@@ -1,37 +1,60 @@
 import type { Config } from "tailwindcss";
 
+const colors = {
+  base: {
+    background: "var(--background)",
+    foreground: "var(--foreground)",
+    white: '#FFFFFF',
+  },
+  brand: {
+    primary: '#4ECCA3',
+    secondary: '#387478',
+    tertiary: '#2C5154',
+  },
+  neutral: {
+    bg: '#EEEEEE',
+    black: '#232931',
+    grey: '#393E46',
+    white: '#232931'
+  },
+  accent: {
+    red: '#E36C59',
+    orange: '#DA9540',
+    blue: '#778BAD',
+    teal: '#42888D',
+    redSoft: '#D87566',
+  }
+};
+
 export default {
   content: [
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/providers/**/*.{js,ts,jsx,tsx,mdx}"
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/providers/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   safelist: [
-    'text-white',
-    'bg-opacity-40',
-    'rounded-[30px]',
-    'shadow-lg',
+    'h-5',
+    'shadow-[0px_4px_4px_rgba(0,0,0,0.25)]',
+    'rounded-[15px]'
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        'custom-bg': '#EEEEEE',
-        'custom-black': '#232931',
-        'custom-grey': '#393E46',
-        'custom-white': '#232931',
-        'primary-green': '#4ECCA3',
-        'secondary-green': '#387478',
-        'tertiary-green': '#2C5154',
-        'color-1': '#E36C59',
-        'color-2': '#D87566',
-        'color-3': '#DA9540',
-        'color-4': '#778BAD',
-        'color-5': '#42888D',
+        background: colors.base.background,
+        foreground: colors.base.foreground,
+        brand: colors.brand,
+        neutral: colors.neutral,
+        accent: colors.accent,
       },
       fontFamily: {
-        sans: ['var(--font-space-grotesk)'],
+        spaceGrotesk: ['var(--font-space-grotesk)', 'sans-serif'],
+      },
+      container: {
+        center: true,
+        padding: '2rem',
+        screens: {
+          '2xl': '1400px',
+        },
       },
     },
   },
