@@ -14,18 +14,21 @@ export const metadata: Metadata = {
   description: "Example application using MiniKit with Next.js",
 };
 
-interface RootLayoutProps {
+export default function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+}) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable}`}>
-      <body className={`${spaceGrotesk.className} min-h-screen bg-background text-foreground antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={`${spaceGrotesk.variable} min-h-screen bg-background text-foreground antialiased`}>
         <MiniKitProvider>
-          <div className="relative flex min-h-screen flex-col">
+          <main className="relative flex min-h-screen flex-col">
             {children}
-          </div>
+          </main>
         </MiniKitProvider>
       </body>
     </html>
