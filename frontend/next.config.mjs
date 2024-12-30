@@ -1,8 +1,7 @@
 const nextConfig = {
-  env: {
-    NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
-    DEV_PORTAL_API_KEY: process.env.DEV_PORTAL_API_KEY,
-  }
+  swcMinify: true,
+  reactStrictMode: true,
+  poweredByHeader: false,
 };
 
-export default nextConfig; 
+export default nextConfig;
