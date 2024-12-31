@@ -1,10 +1,11 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { LucideIcon } from "lucide-react"
+import { buttonSizes, buttonVariants, ButtonSize, ButtonVariant } from "./styles/buttonStyles"
 
 interface FilledButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  size?: 'sm' | 'md' | 'lg'
-  variant?: 'default' | 'success' | 'warning'
+  size?: ButtonSize
+  variant?: ButtonVariant
   fullWidth?: boolean
   icon?: LucideIcon
   iconClassName?: string
@@ -21,24 +22,12 @@ export function FilledButton({
   children,
   ...props
 }: FilledButtonProps) {
-  const sizeStyles = {
-    sm: 'h-8 px-4 text-sm',
-    md: 'h-10 px-6 text-base',
-    lg: 'h-12 px-8 text-lg'
-  }
-
-  const variantStyles = {
-    default: 'bg-accent-red hover:bg-accent-redSoft',
-    success: 'bg-brand-primary hover:bg-brand-secondary',
-    warning: 'bg-accent-orange hover:bg-accent-orange/90'
-  }
-
   return (
     <button
       className={cn(
         "relative flex items-center justify-center gap-2 rounded-[20px] font-semibold text-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors",
-        sizeStyles[size],
-        variantStyles[variant],
+        buttonSizes[size],
+        buttonVariants[variant],
         fullWidth && "w-full",
         className
       )}
