@@ -1,11 +1,11 @@
 "use client";
 
-import { BannerTop } from '@/components/ui/BannerTop'
+import AchievementCard from '@/components/UI/AchievementCard';
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      <BannerTop />
+      <AchievementCard />
     </div>
   )
 }
