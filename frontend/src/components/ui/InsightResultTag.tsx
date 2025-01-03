@@ -7,7 +7,16 @@ interface IdeologyTagProps {
   className?: string
 }
 
+function validateScale(scale: number): void {
+  if (scale < 0 || scale > 100) {
+    throw new RangeError('scale must be between 0 and 100')
+  }
+}
+
 export default function IdeologyTag({ scale, className = '' }: IdeologyTagProps) {
+  // Validate the scale value at runtime
+  validateScale(scale);
+
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
