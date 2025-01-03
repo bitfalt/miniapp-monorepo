@@ -31,7 +31,6 @@ export function TestCard({
       <div className="absolute inset-0 bg-black opacity-20 rounded-3xl transform translate-y-2 blur-md"></div>
       <div className="relative z-10">
         <div className="p-6 relative">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-full"></div>
           <h2 className="text-center text-3xl font-bold mb-4 tracking-tight">Ideology Test</h2>
           <div className="space-y-4">
             <div className="space-y-2">
