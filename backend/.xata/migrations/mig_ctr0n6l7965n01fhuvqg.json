@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0n6l7965n01fhuvqg",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "country_name",
+          "table": "Countries",
+          "column": "name"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0n6l7965n01fhuvqg",
+  "parent": "mig_ctr0n1t7965n01fhuvpg",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:44:27.160079Z"
+}

@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr10oh901h3pf6vkeq0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "'{}'",
+          "table": "UserTestProgress",
+          "column": {
+            "name": "answers",
+            "type": "json",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr10oh901h3pf6vkeq0",
+  "parent": "mig_ctr10hr2vtkja3ivfhj0",
+  "schema": "public",
+  "startedAt": "2025-01-02T04:04:51.805436Z"
+}

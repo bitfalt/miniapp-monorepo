@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctqv0ij2vtkja3ivfg5g",
+    "operations": [
+      {
+        "drop_table": {
+          "name": "AgeGroup"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctqv0ij2vtkja3ivfg5g",
+  "parent": "mig_ctqv0cr2vtkja3ivfg4g",
+  "schema": "public",
+  "startedAt": "2025-01-02T01:47:55.260986Z"
+}

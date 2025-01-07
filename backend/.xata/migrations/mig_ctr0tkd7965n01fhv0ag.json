@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0tkd7965n01fhv0ag",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "WeightsPerAnswer",
+          "column": {
+            "name": "weight_id",
+            "type": "int",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0tkd7965n01fhv0ag",
+  "parent": "mig_ctr0tfj2vtkja3ivfhe0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:58:09.915972Z"
+}

@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0vtl7965n01fhv0gg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "UserTestProgress",
+          "column": {
+            "name": "user_progress_id",
+            "type": "int",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0vtl7965n01fhv0gg",
+  "parent": "mig_ctr0vp9901h3pf6vken0",
+  "schema": "public",
+  "startedAt": "2025-01-02T04:03:03.101072Z"
+}

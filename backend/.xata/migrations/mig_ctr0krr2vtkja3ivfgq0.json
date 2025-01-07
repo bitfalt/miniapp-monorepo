@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0krr2vtkja3ivfgq0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Users",
+          "column": {
+            "name": "wallet_address",
+            "type": "text",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0krr2vtkja3ivfgq0",
+  "parent": "mig_ctr0kmj2vtkja3ivfgp0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:39:28.544935Z"
+}
