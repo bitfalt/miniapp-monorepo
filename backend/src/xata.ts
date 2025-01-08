@@ -209,6 +209,10 @@ const tables = [
     },
     primaryKey: [],
     uniqueConstraints: {
+      Countries__pgroll_new_code_key: {
+        name: "Countries__pgroll_new_code_key",
+        columns: ["code"],
+      },
       Countries__pgroll_new_country_id_key: {
         name: "Countries__pgroll_new_country_id_key",
         columns: ["country_id"],
@@ -223,6 +227,14 @@ const tables = [
       },
     },
     columns: [
+      {
+        name: "code",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
+      },
       {
         name: "country_id",
         type: "int",
@@ -1011,6 +1023,14 @@ const tables = [
         comment: "",
       },
       {
+        name: "completed_at",
+        type: "datetime",
+        notNull: false,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "question",
         type: "link",
         link: { table: "Questions" },
@@ -1018,6 +1038,22 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Questions"}',
+      },
+      {
+        name: "started_at",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "status",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "test",
@@ -1172,7 +1208,7 @@ const tables = [
         comment: "",
       },
       {
-        name: "suscription",
+        name: "subscription",
         type: "bool",
         notNull: true,
         unique: false,
