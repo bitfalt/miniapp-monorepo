@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0udd7965n01fhv0cg",
+    "operations": [
+      {
+        "add_column": {
+          "table": "WeightsPerAnswer",
+          "column": {
+            "name": "pers_answer",
+            "type": "text",
+            "comment": "{\"xata.link\":\"PersonalizedAnswers\"}",
+            "nullable": true,
+            "references": {
+              "name": "pers_answer_link",
+              "table": "PersonalizedAnswers",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0udd7965n01fhv0cg",
+  "parent": "mig_ctr0u3l7965n01fhv0bg",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:59:50.191769Z"
+}

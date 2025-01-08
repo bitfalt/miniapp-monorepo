@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0ro9901h3pf6vkel0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "Categories",
+          "column": {
+            "name": "category_id",
+            "type": "int",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0ro9901h3pf6vkel0",
+  "parent": "mig_ctr0rkb2vtkja3ivfh70",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:54:10.719248Z"
+}

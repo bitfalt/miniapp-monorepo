@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0se57965n01fhv09g",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "Insights",
+          "column": {
+            "name": "insight_id",
+            "type": "int",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0se57965n01fhv09g",
+  "parent": "mig_ctr0sab2vtkja3ivfh90",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:55:36.818791Z"
+}

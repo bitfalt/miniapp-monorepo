@@ -11,6 +11,9 @@ importers:
       '@worldcoin/minikit-js':
         specifier: 1.1.1
         version: 1.1.1(react@18.3.1)(typescript@5.6.2)(viem@2.21.15(typescript@5.6.2))
+      '@xata.io/client':
+        specifier: 0.0.0-next.va121e4207b94bfe0a3c025fc00b247b923880930
+        version: 0.0.0-next.va121e4207b94bfe0a3c025fc00b247b923880930(typescript@5.6.2)
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -271,6 +274,11 @@ packages:
     engines: {node: '>= 16'}
     peerDependencies:
       viem: ^2.0.0
+
+  '@xata.io/client@0.0.0-next.va121e4207b94bfe0a3c025fc00b247b923880930':
+    resolution: {integrity: sha512-tRhsrV6vSJk4r+Cn7WkE1hyV2WfnHOoMzpQeLujqrbemPtVj82R1uhqHM2fPFuUKMfD+19PVF+Gist0ePlX5SQ==}
+    peerDependencies:
+      typescript: '>=4.5'
 
   abitype@1.0.5:
     resolution: {integrity: sha512-YzDhti7cjlfaBhHutMaboYB21Ha3rXR9QTkNJFzYC4kC8YclaiwPBBBJY8ejFdu2wnJeZCVZSMlQJ7fi8S6hsw==}
@@ -990,6 +998,10 @@ snapshots:
       - typescript
       - utf-8-validate
       - zod
+
+  '@xata.io/client@0.0.0-next.va121e4207b94bfe0a3c025fc00b247b923880930(typescript@5.6.2)':
+    dependencies:
+      typescript: 5.6.2
 
   abitype@1.0.5(typescript@5.6.2):
     optionalDependencies:

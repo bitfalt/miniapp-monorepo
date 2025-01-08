@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr10hr2vtkja3ivfhj0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "UserTestProgress",
+          "column": {
+            "name": "question",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Questions\"}",
+            "references": {
+              "name": "question_link",
+              "table": "Questions",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr10hr2vtkja3ivfhj0",
+  "parent": "mig_ctr10cp901h3pf6vkep0",
+  "schema": "public",
+  "startedAt": "2025-01-02T04:04:24.484509Z"
+}
