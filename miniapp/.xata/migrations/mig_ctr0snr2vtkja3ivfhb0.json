@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0snr2vtkja3ivfhb0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "Insights",
+          "column": {
+            "name": "lower_limit",
+            "type": "int",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0snr2vtkja3ivfhb0",
+  "parent": "mig_ctr0si32vtkja3ivfha0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:56:15.391198Z"
+}

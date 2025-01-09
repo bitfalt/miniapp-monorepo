@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0ker2vtkja3ivfgo0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Users",
+          "column": {
+            "name": "country",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Countries\"}",
+            "references": {
+              "name": "country_link",
+              "table": "Countries",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0ker2vtkja3ivfgo0",
+  "parent": "mig_ctr0kal7965n01fhuvkg",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:38:36.909318Z"
+}

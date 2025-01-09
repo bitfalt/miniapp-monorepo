@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctvenqnu4vn5gjmcunrg",
+    "operations": [
+      {
+        "add_column": {
+          "table": "UserTestProgress",
+          "column": {
+            "name": "completed_at",
+            "type": "timestamptz",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctvenqnu4vn5gjmcunrg",
+  "parent": "mig_ctvenklm9qvfkglo5tpg",
+  "schema": "public",
+  "startedAt": "2025-01-08T21:19:38.469691Z"
+}

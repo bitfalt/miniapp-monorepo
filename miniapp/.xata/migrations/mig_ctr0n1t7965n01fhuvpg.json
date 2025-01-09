@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0n1t7965n01fhuvpg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "Areas",
+          "column": {
+            "name": "area_id",
+            "type": "int",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0n1t7965n01fhuvpg",
+  "parent": "mig_ctr0mt57965n01fhuvog",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:44:08.94548Z"
+}

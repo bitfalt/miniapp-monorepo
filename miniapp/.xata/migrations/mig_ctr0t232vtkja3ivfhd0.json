@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0t232vtkja3ivfhd0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Insights",
+          "column": {
+            "name": "category",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Categories\"}",
+            "references": {
+              "name": "category_link",
+              "table": "Categories",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0t232vtkja3ivfhd0",
+  "parent": "mig_ctr0sr32vtkja3ivfhc0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:56:57.037331Z"
+}

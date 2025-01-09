@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0qn9901h3pf6vkei0",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "std_answer_id",
+          "table": "StandardAnswers",
+          "column": "answer_id"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0qn9901h3pf6vkei0",
+  "parent": "mig_ctr0qid7965n01fhv05g",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:51:57.929878Z"
+}

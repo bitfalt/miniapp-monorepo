@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0o057965n01fhuvtg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Tests",
+          "column": {
+            "name": "test_description",
+            "type": "text",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0o057965n01fhuvtg",
+  "parent": "mig_ctr0ns32vtkja3ivfgu0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:46:09.375195Z"
+}

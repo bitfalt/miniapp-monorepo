@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ctr0k4b2vtkja3ivfgm0",
+    "operations": [
+      {
+        "alter_column": {
+          "up": "\"email\"",
+          "down": "\"email\"",
+          "table": "Users",
+          "column": "email",
+          "unique": {
+            "name": "Users_email_unique"
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ctr0k4b2vtkja3ivfgm0",
+  "parent": "mig_ctr0k1r2vtkja3ivfgl0",
+  "schema": "public",
+  "startedAt": "2025-01-02T03:37:54.238331Z"
+}
