@@ -12,24 +12,52 @@ interface IRequestPayload {
 }
 
 export async function POST(req: NextRequest) {
-  const { payload, action, signal } = (await req.json()) as IRequestPayload;
-  const app_id = process.env.APP_ID as `app_${string}`;
-  const verifyRes = (await verifyCloudProof(
-    payload,
-    app_id,
-    action,
-    signal
-  )) as IVerifyResponse; // Wrapper on this
-  
-  console.log(verifyRes);
+  try {
+    if (!req.body) {
+      return NextResponse.json(
+        { error: 'Missing request body' },
+        { status: 400 }
+      );
+    }
 
-  if (verifyRes.success) {
-    // This is where you should perform backend actions if the verification succeeds
-    // Such as, setting a user as "verified" in a database
-    return NextResponse.json({ verifyRes, status: 200 });
-  } else {
-    // This is where you should handle errors from the World ID /verify endpoint.
-    // Usually these errors are due to a user having already verified.
-    return NextResponse.json({ verifyRes, status: 400 });
+    const { payload, action, signal } = (await req.json()) as IRequestPayload;
+    
+    if (!payload || !action) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const app_id = process.env.APP_ID as `app_${string}`;
+    if (!app_id) {
+      throw new Error('APP_ID environment variable is not set');
+    }
+
+    const verifyRes = (await verifyCloudProof(
+      payload,
+      app_id,
+      action,
+      signal
+    )) as IVerifyResponse;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Verification response:', verifyRes);
+    }
+
+    if (verifyRes.success) {
+      return NextResponse.json(verifyRes, { status: 200 });
+    } else {
+      return NextResponse.json(
+        { error: 'Verification failed', details: verifyRes },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
+    console.error('Verification error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
