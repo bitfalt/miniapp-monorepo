@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
   });
 
-  console.log(uuid);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Payment nonce generated:', uuid);
+  }
 
   return NextResponse.json({ id: uuid });
 }
