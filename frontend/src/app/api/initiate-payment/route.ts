@@ -9,6 +9,10 @@ export async function POST(req: NextRequest) {
     name: "payment-nonce",
     value: uuid,
     httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 3600 // 1 hour expiry
   });
 
   if (process.env.NODE_ENV === 'development') {
