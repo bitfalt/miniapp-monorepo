@@ -1,9 +1,16 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 
-const authOptions: NextAuthOptions = {
 if (!process.env.NEXTAUTH_SECRET) {
   throw new Error('NEXTAUTH_SECRET must be set');
 }
+if (!process.env.WLD_CLIENT_ID) {
+  throw new Error('WLD_CLIENT_ID must be set');
+}
+if (!process.env.WLD_CLIENT_SECRET) {
+  throw new Error('WLD_CLIENT_SECRET must be set');
+}
+
+const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   providers: [
