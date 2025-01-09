@@ -1,6 +1,9 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 
 const authOptions: NextAuthOptions = {
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET must be set');
+}
   secret: process.env.NEXTAUTH_SECRET,
 
   providers: [
