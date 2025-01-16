@@ -4,8 +4,6 @@ import dynamic from "next/dynamic";
 import MiniKitProvider from "@/providers/MiniKitProvider";
 import NextAuthProvider from "@/providers/next-auth-provider";
 import MobileBottomNav from "@/components/BottomNav";
-import { getServerSession } from "next-auth";
-import { headers } from 'next/headers';
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -31,11 +29,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-  const headersList = headers();
-  const pathname = headersList.get("x-pathname") || "";
-  const isSignInPage = pathname === "/sign-in";
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -45,10 +38,10 @@ export default async function RootLayout({
         <NextAuthProvider>
           <ErudaProvider>
             <MiniKitProvider>
-              <main className={`min-h-screen w-full ${session && !isSignInPage ? 'pb-16' : ''}`}>
+              <main className="min-h-screen w-full pb-16">
                 {children}
               </main>
-              {session && !isSignInPage && <MobileBottomNav />}
+              <MobileBottomNav />
             </MiniKitProvider>
           </ErudaProvider>
         </NextAuthProvider>
