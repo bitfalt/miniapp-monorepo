@@ -15,7 +15,6 @@ import { NextResponse } from "next/server";
  *       - Test status
  *       - Achievements (if any)
  *       
- *       Requires user authentication via Clerk.
  *     tags:
  *       - Tests
  *     security:
