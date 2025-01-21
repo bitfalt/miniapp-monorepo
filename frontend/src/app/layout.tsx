@@ -1,10 +1,10 @@
+import "@/app/globals.css";
 import { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import dynamic from "next/dynamic";
 import MiniKitProvider from "@/providers/MiniKitProvider";
 import NextAuthProvider from "@/providers/next-auth-provider";
-import MobileBottomNav from "@/components/BottomNav";
-import "./globals.css";
+import LayoutContent from "@/components/LayoutContent";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -24,24 +24,20 @@ export const metadata: Metadata = {
   description: "Example application using MiniKit with Next.js",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body className={`${spaceGrotesk.variable} min-h-screen bg-neutral-bg text-foreground antialiased overflow-x-hidden`}>
+      <body className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}>
         <NextAuthProvider>
           <ErudaProvider>
             <MiniKitProvider>
-              <main className="min-h-screen w-full pb-16">
+              <LayoutContent>
                 {children}
-              </main>
-              <MobileBottomNav />
+              </LayoutContent>
             </MiniKitProvider>
           </ErudaProvider>
         </NextAuthProvider>

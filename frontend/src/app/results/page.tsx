@@ -50,7 +50,7 @@ export default function ResultsPage() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col items-center">
+    <div className="flex flex-col items-center">
       <div className="w-full bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8">
         <div className="w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20">
           <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold font-spaceGrotesk leading-tight sm:leading-[50px] mb-3 sm:mb-4">
