@@ -78,8 +78,18 @@ export async function GET(
     const xata = getXataClient();
     
     // Fetch the question with its area relationship
+    const xata = getXataClient();
+    const questionId = parseInt(params.id)
+    if (isNaN(questionId) || questionId <= 0) {
+      return NextResponse.json(
+        { error: "Invalid question ID" },
+        { status: 400 }
+      )
+    }
+    
+    // Fetch the question with its area relationship
     const question = await xata.db.Questions
-      .filter({ question_id: parseInt(params.id) })
+      .filter({ question_id: questionId })
       .select([
         "question_id",
         "question",
