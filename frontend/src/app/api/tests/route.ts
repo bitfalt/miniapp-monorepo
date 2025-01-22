@@ -1,5 +1,6 @@
 import { getXataClient } from "@/lib/xata";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 //import { auth } from "@clerk/nextjs";
 
 /**
@@ -105,13 +106,14 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   try {
-    // const { userId } = auth();
-    // if (!userId) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   );
-    // }
+  // TODO: get user id from session
+    const userId = 'xd';
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
     const xata = getXataClient();
     
@@ -125,25 +127,27 @@ export async function GET() {
     // Fetch all questions and progress in parallel
     const [allQuestions, allProgress] = await Promise.all([
       xata.db.Questions.filter({
-        "test.test_id": { $in: tests.map(t => t.test_id) }
+        "test.test_id": { $any: tests.map(t => t.test_id) }
       }).getMany(),
       xata.db.UserTestProgress.filter({
-        "test.test_id": { $in: tests.map(t => t.test_id) },
+        "test.test_id": { $any: tests.map(t => t.test_id) },
         "user.user_uuid": userId
       }).getMany()
     ]);
 
-    // Group questions and progress by test_id for O(1) lookup
-    const questionsByTest = allQuestions.reduce((acc, q) => {
-      const testId = q.test?.test_id
+    type QuestionRecord = typeof allQuestions[0];
+    type ProgressRecord = typeof allProgress[0];
+    
+    const questionsByTest = allQuestions.reduce<Record<string, QuestionRecord[]>>((acc, q) => {
+      const testId = q.test?.xata_id
       if (testId) {
         acc[testId] = (acc[testId] || []).concat(q)
       }
       return acc
     }, {});
 
-    const progressByTest = allProgress.reduce((acc, p) => {
-      const testId = p.test?.test_id
+    const progressByTest = allProgress.reduce<Record<string, ProgressRecord>>((acc, p) => {
+      const testId = p.test?.xata_id
       if (testId) {
         acc[testId] = p
       }
@@ -152,11 +156,11 @@ export async function GET() {
 
     const testsWithProgress = tests.map(test => {
       // Get total questions for this test
-      const questions = questionsByTest[test.test_id] || [];
+      const questions = questionsByTest[test.xata_id] || [];
       const totalQuestions = questions.length;
 
       // Get user's progress for this test
-      const userProgress = progressByTest[test.test_id];
+      const userProgress = progressByTest[test.xata_id];
 
       // Count answered questions from the progress
       const answeredQuestions = userProgress?.answers 
