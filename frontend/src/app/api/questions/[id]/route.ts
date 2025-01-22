@@ -77,7 +77,7 @@ export async function GET(
 
     const xata = getXataClient();
     const questionId = parseInt(params.id)
-    if (isNaN(questionId) || questionId <= 0) {
+    if (Number.isNaN(questionId) || questionId <= 0) {
       return NextResponse.json(
         { error: "Invalid question ID" },
         { status: 400 }
