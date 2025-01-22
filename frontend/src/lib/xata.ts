@@ -688,6 +688,14 @@ const tables = [
         comment: "",
       },
       {
+        name: "std_answer",
+        type: "bool",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "test",
         type: "link",
         link: { table: "Tests" },
