@@ -76,9 +76,6 @@ export async function GET(
     // }
 
     const xata = getXataClient();
-    
-    // Fetch the question with its area relationship
-    const xata = getXataClient();
     const questionId = parseInt(params.id)
     if (isNaN(questionId) || questionId <= 0) {
       return NextResponse.json(
