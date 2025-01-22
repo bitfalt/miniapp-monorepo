@@ -1,9 +1,11 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   swcMinify: true,
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
-    domains: [],
+    domains: ['avatars.githubusercontent.com'],
   },
   typescript: {
     ignoreBuildErrors: false,
