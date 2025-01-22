@@ -122,19 +122,41 @@ export async function GET() {
     });
 
     // For each test, get the questions count and user progress
-    const testsWithProgress = await Promise.all(tests.map(async (test) => {
+    // Fetch all questions and progress in parallel
+    const [allQuestions, allProgress] = await Promise.all([
+      xata.db.Questions.filter({
+        "test.test_id": { $in: tests.map(t => t.test_id) }
+      }).getMany(),
+      xata.db.UserTestProgress.filter({
+        "test.test_id": { $in: tests.map(t => t.test_id) },
+        "user.user_uuid": userId
+      }).getMany()
+    ]);
+
+    // Group questions and progress by test_id for O(1) lookup
+    const questionsByTest = allQuestions.reduce((acc, q) => {
+      const testId = q.test?.test_id
+      if (testId) {
+        acc[testId] = (acc[testId] || []).concat(q)
+      }
+      return acc
+    }, {});
+
+    const progressByTest = allProgress.reduce((acc, p) => {
+      const testId = p.test?.test_id
+      if (testId) {
+        acc[testId] = p
+      }
+      return acc
+    }, {});
+
+    const testsWithProgress = tests.map(test => {
       // Get total questions for this test
-      const questions = await xata.db.Questions.filter({
-        "test.test_id": test.test_id
-      }).getMany();
-      
+      const questions = questionsByTest[test.test_id] || [];
       const totalQuestions = questions.length;
 
       // Get user's progress for this test
-      const userProgress = await xata.db.UserTestProgress.filter({
-        "test.test_id": test.test_id,
-        "user.user_uuid": userId
-      }).getFirst();
+      const userProgress = progressByTest[test.test_id];
 
       // Count answered questions from the progress
       const answeredQuestions = userProgress?.answers 
@@ -151,7 +173,7 @@ export async function GET() {
         // TODO: Add achievements when implemented
         achievements: [] 
       };
-    }));
+    });
 
     return NextResponse.json(
       { tests: testsWithProgress },
