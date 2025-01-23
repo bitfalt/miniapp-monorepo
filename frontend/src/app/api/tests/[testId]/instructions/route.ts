@@ -43,7 +43,7 @@ export async function GET(
     const xata = getXataClient();
     // Validate testId
     const testId = parseInt(params.testId);
-    if (isNaN(testId) || testId <= 0) {
+    if (Number.isNaN(testId) || testId <= 0) {
       return NextResponse.json(
         { error: "Invalid test ID" },
         { status: 400 }

@@ -105,7 +105,7 @@ export async function GET(
     const testId = parseInt(params.testId);
     const questionId = parseInt(params.questionId);
     
-    if (isNaN(testId) || testId <= 0 || isNaN(questionId) || questionId <= 0) {
+    if (Number.isNaN(testId) || testId <= 0 || Number.isNaN(questionId) || questionId <= 0) {
       return NextResponse.json(
         { error: "Invalid test or question ID" },
         { status: 400 }
@@ -135,7 +135,7 @@ export async function GET(
             answers: answers
         });
     } else {
-        
+
         // Get personalized answers if the question is not standard
         const options = await xata.db.PersonalizedAnswers.filter({
             "question.question_id": questionId
@@ -179,7 +179,7 @@ export async function POST(
     const testId = parseInt(params.testId);
     const questionId = parseInt(params.questionId);
     
-    if (isNaN(testId) || testId <= 0 || isNaN(questionId) || questionId <= 0) {
+    if (Number.isNaN(testId) || testId <= 0 || Number.isNaN(questionId) || questionId <= 0) {
       return NextResponse.json(
         { error: "Invalid test or question ID" },
         { status: 400 }
