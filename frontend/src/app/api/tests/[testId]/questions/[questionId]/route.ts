@@ -287,7 +287,7 @@ export async function POST(
   } catch (error) {
     console.error("Error recording answer:", error);
     return NextResponse.json(
-      { error: "Failed to record answer" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

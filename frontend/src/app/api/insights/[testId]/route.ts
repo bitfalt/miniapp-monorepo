@@ -128,7 +128,7 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching test insights:", error);
     return NextResponse.json(
-      { error: "Failed to fetch test insights" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -97,7 +97,7 @@ export async function PUT(
   } catch (error) {
     console.error("Error completing test:", error);
     return NextResponse.json(
-      { error: "Failed to complete test" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
