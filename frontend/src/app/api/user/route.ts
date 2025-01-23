@@ -5,34 +5,34 @@ import { createHash, randomUUID } from "crypto";
 
 // Type for user update data
 type UserUpdateData = {
-  age?: number;
-  name?: string;
-  country?: string;
-  email?: string;
-  last_name?: string;
-  username?: string;
-  wallet_address?: string;
+  age: number;
+  name: string;
+  country: string;
+  email: string;
+  last_name: string;
+  username: string;
+  wallet_address: string;
 };
 
 // Validation functions
-function validateAge(age?: number): boolean {
-  return age === undefined || (age >= 18 && age <= 120);
+function validateAge(age: number): boolean {
+  return age >= 18 && age <= 120;
 }
 
-function validateString(str?: string, minLength = 2, maxLength = 50): boolean {
-  return str === undefined || (str.length >= minLength && str.length <= maxLength);
+function validateString(str: string, minLength = 2, maxLength = 50): boolean {
+  return str.length >= minLength && str.length <= maxLength;
 }
 
-function validateUsername(username?: string): boolean {
-  return username === undefined || /^[a-zA-Z0-9_-]{3,30}$/.test(username);
+function validateUsername(username: string): boolean {
+  return /^[a-zA-Z0-9_-]{3,30}$/.test(username);
 }
 
-function validateEmail(email?: string): boolean {
-  return email === undefined || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function validateWalletAddress(address?: string): boolean {
-  return address === undefined || /^0x[a-fA-F0-9]{40}$/.test(address);
+function validateWalletAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
 
 /**
@@ -158,7 +158,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function POST(request: Request) {
   try {
     // TODO: modify session to be compliant with the auth used    
     const session = await getServerSession();
@@ -217,37 +217,45 @@ export async function PUT(request: Request) {
     
     // If this is a new user
     if (!existingUser) {
-      // Get the latest user_id
-      const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
-      const nextUserId = (latestUser?.user_id || 0) + 1;
+        // Get the latest user_id
+        const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
+        const nextUserId = (latestUser?.user_id || 0) + 1;
       
-      // Generate user_uuid from wallet address if provided
-      const userUuid = body.wallet_address 
-        ? createHash('sha256').update(body.wallet_address).digest('hex')
+        // TODO: remove this once we have a proper user_uuid generation method
+        // TODO: the user_uuid should be easily replicable for the DataLake
+        // Generate user_uuid from wallet address if provided
+        const userUuid = body.wallet_address 
+            ? createHash('sha256').update(body.wallet_address).digest('hex')
         : randomUUID();
       
-      // Create new user
-      await xata.db.Users.create({
-        ...body,
-        user_id: nextUserId,
-        user_uuid: userUuid,
-        created_at: new Date(),
-        updated_at: new Date(),
-        subscription: false,
-        verified: false,
-        email: userEmail,
-      });
+        // Fetch country rec from the Countries table
+        const country = await xata.db.Countries.filter({ country_name: body.country }).getFirst();
+        const country_record = country?.xata_id;
+
+        // Create new user
+        // TODO; country should be a link to the countries table by inserting the record
+        // TODO: search the Countries table for the country name and insert the record
+        await xata.db.Users.create({
+            ...body,
+            country: country_record,
+            user_id: nextUserId,
+            user_uuid: userUuid,
+            created_at: new Date(),
+            updated_at: new Date(),
+            subscription: false,
+            verified: false,
+            email: userEmail,
+        });
+
     } else {
-      // Update existing user
-      const recordId = existingUser.xata_id as string;
-      await xata.db.Users.update(recordId, {
-        ...body,
-        updated_at: new Date()
-      });
+        return NextResponse.json(
+            { error: "User already exists" },
+            { status: 400 }
+        );
     }
     
     return NextResponse.json(
-      { message: "User profile updated successfully" },
+      { message: "User profile created successfully" },
       { status: 200 }
     );
 
