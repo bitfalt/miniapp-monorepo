@@ -945,6 +945,14 @@ const tables = [
         comment: "",
       },
       {
+        name: "total_questions",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "xata_createdat",
         type: "datetime",
         notNull: true,
@@ -1499,7 +1507,7 @@ export class XataClient extends DatabaseClient<DatabaseSchema> {
   }
 }
 
-export let instance: XataClient | undefined = undefined;
+let instance: XataClient | undefined = undefined;
 
 export const getXataClient = () => {
   if (instance) return instance;
