@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, ChangeEvent, KeyboardEvent, InputHTMLAttributes, forwardRef } from 'react'
-import { FaSearch, FaTimes } from 'react-icons/fa'
+import { useState, ChangeEvent, InputHTMLAttributes, forwardRef } from 'react'
+import { Search, X } from 'lucide-react'
 
 // Utility function for class names
 const cn = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ')
@@ -38,15 +38,15 @@ export default function SearchBar({
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    setSearchQuery(e.target.value)
   }
 
   const handleSearch = () => {
-    onSearch(searchQuery);
+    onSearch(searchQuery)
   }
 
   const handleClear = () => {
-    setSearchQuery('');
+    setSearchQuery('')
   }
 
   return (
@@ -63,13 +63,13 @@ export default function SearchBar({
           onClick={handleClear} 
           className="h-8 px-2 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors duration-200"
         >
-          <FaTimes />
+          <X className="w-4 h-4" />
         </button>
         <button 
           onClick={handleSearch} 
           className="h-8 px-4 bg-teal-600 text-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-200"
         >
-          <FaSearch />
+          <Search className="w-4 h-4" />
         </button>
       </div>
     </div>
