@@ -1,4 +1,4 @@
-import { getXataClient } from "@/lib/xata";
+import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { createHash, randomUUID } from "crypto";
@@ -233,8 +233,6 @@ export async function POST(request: Request) {
         const country_record = country?.xata_id;
 
         // Create new user
-        // TODO; country should be a link to the countries table by inserting the record
-        // TODO: search the Countries table for the country name and insert the record
         await xata.db.Users.create({
             ...body,
             country: country_record,
