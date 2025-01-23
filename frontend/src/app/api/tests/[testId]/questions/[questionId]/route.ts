@@ -42,7 +42,7 @@ type UserAnswers = {
  *               properties:
  *                 question_text:
  *                   type: string
- *                   example: "How do you feel about abortion?"
+ *                   example: "How do you feel about the intervention of the government in the economy?"
  *                 options:
  *                   type: array
  *                   items:
@@ -187,8 +187,8 @@ export async function POST(
     }
 
     // Get user
-    const user = await xata.db.Users.filter({ email: userEmail }).getFirst();
-    if (!user) {
+    const userRecord = await xata.db.Users.filter({ email: userEmail }).getFirst();
+    if (!userRecord) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
@@ -219,13 +219,24 @@ export async function POST(
       );
     }
 
-    // Get user record
-    const userRecord = await xata.db.Users.filter({ email: userEmail }).getFirst();
-    if (!userRecord) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    // Fetch valid answers for the question
+    let validAnswers;
+    if (question.std_answer) {
+        const options = await xata.db.StandardAnswers.getMany();
+        validAnswers = options.map((option) => option.answer);
+    } else {
+        const options = await xata.db.PersonalizedAnswers.filter({
+            "question.question_id": questionId
+        }).getMany();
+        validAnswers = options.map((option) => option.answer);
+    }
+
+    // Check if the answer is valid
+    if (!validAnswers.includes(answer)) {
+        return NextResponse.json(
+            { error: "Invalid answer" },
+            { status: 400 }
+        );
     }
 
     // Get test record
