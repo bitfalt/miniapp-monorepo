@@ -68,9 +68,9 @@ function validateWalletAddress(address: string): boolean {
  *         description: User not found
  *       500:
  *         description: Internal server error
- *   put:
- *     summary: Update user profile
- *     description: Updates the current user's profile information
+ *   post:
+ *     summary: Create user profile
+ *     description: Creates a new user profile
  *     tags:
  *       - User
  *     security:
@@ -230,6 +230,12 @@ export async function POST(request: Request) {
       
         // Fetch country rec from the Countries table
         const country = await xata.db.Countries.filter({ country_name: body.country }).getFirst();
+        if (!country) {
+            return NextResponse.json(
+                { error: "Invalid country name provided" },
+                { status: 400 }
+            );
+        }
         const country_record = country?.xata_id;
 
         // Create new user
