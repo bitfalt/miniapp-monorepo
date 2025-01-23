@@ -125,10 +125,12 @@ export async function GET(
       );
     }
 
+    const mapAnswers = (options: any[]) => options.map((option) => option.answer);
+    
     if (question.std_answer) {
         const options = await xata.db.StandardAnswers.getMany();
         // Make options an array of strings which are the answers
-        const answers = options.map((option) => option.answer);
+        const answers = mapAnswers(options);
 
         return NextResponse.json({
             question_text: question.question,
@@ -141,7 +143,7 @@ export async function GET(
             "question.question_id": questionId
         }).getMany();
         // Make options an array of strings which are the answers
-        const answers = options.map((option) => option.answer);
+        const answers = mapAnswers(options);
         return NextResponse.json({
             question_text: question.question,
             answers: answers
@@ -298,7 +300,7 @@ export async function POST(
   } catch (error) {
     console.error("Error recording answer:", error);
     return NextResponse.json(
-      { error: "Failed to record answer" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
