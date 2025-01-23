@@ -68,7 +68,7 @@ function validateWalletAddress(address: string): boolean {
  *         description: User not found
  *       500:
  *         description: Internal server error
- *   put:
+ *   post:
  *     summary: Update user profile
  *     description: Updates the current user's profile information
  *     tags:
