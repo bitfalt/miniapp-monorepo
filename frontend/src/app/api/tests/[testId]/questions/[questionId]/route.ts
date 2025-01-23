@@ -134,6 +134,18 @@ export async function GET(
             question_text: question.question,
             answers: answers
         });
+    } else {
+        
+        // Get personalized answers if the question is not standard
+        const options = await xata.db.PersonalizedAnswers.filter({
+            "question.question_id": questionId
+        }).getMany();
+        // Make options an array of strings which are the answers
+        const answers = options.map((option) => option.answer);
+        return NextResponse.json({
+            question_text: question.question,
+            answers: answers
+        });
     }
 
   } catch (error) {
