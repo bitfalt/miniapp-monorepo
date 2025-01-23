@@ -38,9 +38,9 @@ export default function TestsPage() {
 
   return (
     <main className="min-h-screen bg-[#FFFFFF] p-4 sm:p-6 md:p-8">
-      <div className="w-full max-w-md mx-auto mb-8 bg-gradient-to-br from-[#387478] to-[#2C5154] text-white p-6 sm:p-8 md:p-10 rounded-3xl">
-        <div className="flex justify-between items-start mb-6 md:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
+      <div className="w-full bg-gradient-to-br from-[#387478] to-[#2C5154] text-white p-8 sm:p-10 md:p-12 rounded-b-3xl">
+        <div className="flex justify-center items-start mb-6 md:mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-center w-full">
             Your journey to Self-Awareness
           </h1>
         </div>
@@ -57,7 +57,7 @@ export default function TestsPage() {
           </p>
         </div>
       </div>
-      <div className="space-y-6 max-w-md mx-auto"> 
+      <div className="space-y-6 max-w-md mx-auto mt-4"> 
         {filteredTests.map((test, index) => (
           <TestCard
             key={index}

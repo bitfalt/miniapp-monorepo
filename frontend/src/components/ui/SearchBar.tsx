@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, ChangeEvent, KeyboardEvent, InputHTMLAttributes, forwardRef } from 'react'
+import { FaSearch, FaTimes } from 'react-icons/fa'
 
 // Utility function for class names
 const cn = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ')
@@ -37,27 +38,40 @@ export default function SearchBar({
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    onSearch(value);
+    setSearchQuery(e.target.value);
   }
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      onSearch(searchQuery);
-    }
+  const handleSearch = () => {
+    onSearch(searchQuery);
+  }
+
+  const handleClear = () => {
+    setSearchQuery('');
   }
 
   return (
     <div className={cn("relative w-full max-w-md", className)}>
       <Input
-        type="search"
+        type="text"
         placeholder={placeholder}
         value={searchQuery}
         onChange={handleInputChange}
-        onKeyPress={handleKeyPress}
-        className="w-full h-12 pl-4 pr-12 bg-white rounded-full border-0 text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg font-bold"
+        className="w-full h-12 pl-4 pr-12 bg-white rounded-full border-0 text-gray-600 placeholder:text-gray-400 text-lg font-bold"
       />
+      <div className="absolute right-2 top-2 flex items-center space-x-2">
+        <button 
+          onClick={handleClear} 
+          className="h-8 px-2 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors duration-200"
+        >
+          <FaTimes />
+        </button>
+        <button 
+          onClick={handleSearch} 
+          className="h-8 px-4 bg-teal-600 text-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-200"
+        >
+          <FaSearch />
+        </button>
+      </div>
     </div>
   )
 }
