@@ -945,6 +945,14 @@ const tables = [
         comment: "",
       },
       {
+        name: "total_questions",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "xata_createdat",
         type: "datetime",
         notNull: true,
