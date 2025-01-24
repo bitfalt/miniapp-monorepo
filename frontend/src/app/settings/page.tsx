@@ -1,68 +1,110 @@
 "use client"
 
 import { FilledButton } from "@/components/ui/FilledButton"
-import { LogOut, Moon, Bell, Shield, User } from "lucide-react"
+import { LogOut, Moon, Bell, HelpCircle, Flag, FileText, Crown } from "lucide-react"
+import { SettingsCard } from "@/components/ui/SettingsCard"
+import { ToggleSwitch } from "@/components/ui/ToggleSwitch"
+import { MembershipCard } from "@/components/ui/MembershipCard"
+import { NotificationsToggle } from "@/components/ui/NotificationsToggle"
+import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
-  const settingsGroups = [
-    {
-      title: "Account",
-      items: [
-        { icon: User, label: "Profile Settings", onClick: () => {} },
-        { icon: Shield, label: "Privacy & Security", onClick: () => {} },
-      ]
-    },
-    {
-      title: "Preferences",
-      items: [
-        { icon: Bell, label: "Notifications", onClick: () => {} },
-        { icon: Moon, label: "Appearance", onClick: () => {} },
-      ]
-    }
-  ]
+  const router = useRouter()
 
   return (
-    <div className="flex flex-col items-center p-4 md:p-6 mt-16 md:mt-14">
-      <div className="w-full max-w-2xl px-4">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold font-spaceGrotesk mb-2">
+    <div className="min-h-screen bg-neutral-bg">
+      <div className="bg-brand-tertiary p-10 pt-20 pb-16 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
+        <div className="relative z-10 text-center">
+          <h1 className="text-4xl font-bold text-white mb-4 font-spaceGrotesk">
             Settings
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
+          <div className="inline-block bg-accent-red px-6 py-1.5 rounded-full">
+            <span className="text-white text-sm font-bold font-spaceGrotesk">
+              Premium Member
+            </span>
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-8">
-          {settingsGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className="space-y-4">
-              <h2 className="text-xl font-semibold font-spaceGrotesk">
-                {group.title}
-              </h2>
-              <div className="space-y-2">
-                {group.items.map((item, itemIndex) => (
-                  <button
-                    key={itemIndex}
-                    onClick={item.onClick}
-                    className="w-full flex items-center gap-3 p-4 rounded-lg bg-brand-tertiary hover:bg-brand-secondary transition-colors"
-                  >
-                    <item.icon className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+      <div className="max-w-md mx-auto px-4 -mt-8">
+        {/* Membership Section */}
+        <div className="relative">
+          <MembershipCard 
+            expiryDate="March 15, 2024"
+            isActive={true}
+            cost={3}
+          />
+          
+          {/* Upgrade Button with Enhanced Styling */}
+          <div className="mt-4 relative">
+            <div className="absolute -inset-3 bg-accent-red/20 blur-xl rounded-2xl animate-pulse"></div>
+            <FilledButton
+              variant="default"
+              size="lg"
+              className={cn(
+                "w-full bg-accent-red hover:bg-accent-red/90",
+                "transform transition-all duration-300 hover:scale-[1.02]",
+                "shadow-[0_10px_20px_rgba(227,108,89,0.3)]",
+                "hover:shadow-[0_14px_28px_rgba(227,108,89,0.4)]",
+                "relative z-10"
+              )}
+              onClick={() => router.push('/awaken-pro')}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Crown className="w-5 h-5" />
+                <span>Upgrade to Awaken Pro</span>
               </div>
+            </FilledButton>
+            
+            {/* Enhanced Promotional Text */}
+            <div className="relative z-10 mt-3 mb-4 text-center py-2 px-4">
+              <p className="text-sm font-medium">
+                <span className="text-neutral-black">Unlock</span>
+                <span className="text-accent-red"> advanced features </span>
+                <span className="text-neutral-black">and</span>
+                <span className="text-accent-red"> exclusive content </span>
+              </p>
             </div>
-          ))}
+          </div>
         </div>
 
-        <div className="mt-12">
+        <div className="space-y-4">
+          <SettingsCard
+            icon={Bell}
+            label="Notifications"
+            rightElement={<NotificationsToggle />}
+          />
+          <SettingsCard
+            icon={Moon}
+            label="Dark Theme"
+            rightElement={<ToggleSwitch />}
+          />
+          <SettingsCard
+            icon={FileText}
+            label="View Privacy Policy"
+            onClick={() => {}}
+          />
+          <SettingsCard
+            icon={HelpCircle}
+            label="Help Center"
+            onClick={() => {}}
+          />
+          <SettingsCard
+            icon={Flag}
+            label="Report an Issue"
+            onClick={() => {}}
+          />
+        </div>
+
+        <div className="mt-8 mb-20">
           <FilledButton
-            variant="warning"
+            variant="default"
             size="lg"
             icon={LogOut}
             className="w-full"
           >
-            Sign Out
+            Log Out
           </FilledButton>
         </div>
       </div>

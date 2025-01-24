@@ -39,7 +39,7 @@ const AchievementsPage = () => {
             Achievements
           </h1>
           <p className="text-slate-200 text-lg mb-9 max-w-sm mx-auto font-medium">
-            Celebrate your progress and discover what's next on your journey
+            Celebrate your progress and discover what&apos;s next on your journey
           </p>
           
           {/* Level Progress */}

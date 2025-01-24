@@ -6,10 +6,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export let instance: XataClient | undefined = undefined;
+let instance: XataClient | undefined = undefined;
 
 export const getXataClient = () => {
   if (instance) return instance;
+
+  if (!process.env.XATA_DATABASE_URL || !process.env.XATA_API_KEY || !process.env.XATA_BRANCH) {
+    throw new Error('Missing Xata configuration environment variables.');
+  }
 
   instance = new XataClient({
     databaseURL: process.env.XATA_DATABASE_URL,
