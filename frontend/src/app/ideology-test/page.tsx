@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { FilledButton } from "@/components/ui/FilledButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useRouter } from "next/navigation";
-import { saveProgress } from "@/lib/api";
 import { Question } from "@/app/types";
 import { TestResult } from "@/app/types";
 
@@ -61,9 +60,6 @@ export default function IdeologyTest() {
     };
     setScores(updatedScores);
 
-    // Save progress to the backend
-    await saveProgress(1, currentQuestion + 1, "in_progress");
-
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
@@ -83,9 +79,6 @@ export default function IdeologyTest() {
         govt: govtScore,
         scty: sctyScore,
       };
-
-      // Save final progress
-      await saveProgress(1, questions.length, "completed");
 
       // Redirect to insights page with results
       router.push(`/insights?econ=${results.econ}&dipl=${results.dipl}&govt=${results.govt}&scty=${results.scty}`);
