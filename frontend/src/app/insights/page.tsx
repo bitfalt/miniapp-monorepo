@@ -38,18 +38,13 @@ export default function InsightsPage() {
   // Placeholder function to simulate backend fetch
   const fetchInsights = async () => {
     try {
-      // Uncomment this block when the API is ready:
-      // const response = await fetch('/api/insights');
-      // const data = await response.json();
-      // setInsights(data.results);
-
-      // Simulating API fetch with a delay (remove this once API is connected)
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate loading
-      console.log('Using example insights for now...');
+      const response = await fetch('/api/insights')
+      const data = await response.json()
+      setInsights(data)
     } catch (error) {
-      console.error('Error fetching insights:', error);
+      console.error('Error fetching insights:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 

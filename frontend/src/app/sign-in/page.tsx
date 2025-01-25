@@ -2,11 +2,88 @@
 
 import { signIn } from "next-auth/react";
 import { FilledButton } from "@/components/ui/FilledButton";
-import { Wallet } from "lucide-react";
+import { Wallet, Chrome } from "lucide-react";
 import { OutlinedButton } from "@/components/ui/OutlinedButton";
-import { Chrome } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { MiniKit } from '@worldcoin/minikit-js';
+import { useState } from 'react';
 
 export default function SignIn() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  const handleWorldIDClick = async () => {
+    try {
+      setError(null);
+      
+      if (!MiniKit.isInstalled()) {
+        router.push("https://worldcoin.org/download-app");
+        return;
+      }
+
+      const nonceResponse = await fetch(`/api/nonce`);
+      if (!nonceResponse.ok) {
+        throw new Error('Failed to fetch nonce');
+      }
+      
+      const { nonce } = await nonceResponse.json();
+      if (!nonce) {
+        throw new Error('Invalid nonce received');
+      }
+
+      const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+        nonce,
+        expirationTime: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+        notBefore: new Date(),
+        statement: 'Sign in with your Ethereum wallet'
+      });
+
+      if (!finalPayload || finalPayload.status !== 'success') {
+        throw new Error('Authentication failed');
+      }
+
+      const response = await fetch('/api/complete-siwe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload: finalPayload, nonce }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to complete authentication');
+      }
+
+      router.push(callbackUrl);
+
+    } catch (error) {
+      if (error instanceof DOMException) {
+        console.error('WorldID auth cancelled by user');
+        return;
+      }
+      
+      console.error('WorldID auth failed:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        type: error?.constructor?.name
+      });
+      
+      let errorMessage = 'Authentication failed';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+      
+      setError(errorMessage);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div className="relative w-screen h-[510px] -mt-4">
@@ -24,12 +101,18 @@ export default function SignIn() {
       </div>
 
       <div className="w-full max-w-md space-y-4 text-center mt-auto p-4">
+        {error && (
+          <div className="text-red-500 text-sm mb-4">
+            {error}
+          </div>
+        )}
+
         <FilledButton
           variant="default"
           size="sm"
           icon={Wallet}
           className="w-full max-w-[200px] h-10 text-base transform transition-all duration-300 hover:scale-105 mx-auto"
-          onClick={() => signIn("worldcoin", { callbackUrl: "/" })}
+          onClick={handleWorldIDClick}
         >
           World ID
         </FilledButton>
@@ -39,7 +122,7 @@ export default function SignIn() {
           size="sm"
           icon={Chrome}
           className="w-full max-w-[200px] h-10 text-base transform transition-all duration-300 hover:scale-105 mx-auto"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => signIn("google", { callbackUrl })}
         >
           Google sign in
         </OutlinedButton>

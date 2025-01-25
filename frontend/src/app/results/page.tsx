@@ -1,53 +1,41 @@
 "use client"
 
+import { useState, useEffect } from 'react'
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { ActionCard } from "@/components/ui/ActionCard"
-import { ArrowUpRight } from "lucide-react"
+import { LucideIcon } from "lucide-react"
+
+interface TestResult {
+  title: string
+  backgroundColor: string
+  iconBgColor: string
+  Icon: LucideIcon
+  isEnabled: boolean
+}
 
 export default function ResultsPage() {
-  const testResults = [
-    {
-      title: "Ideology Test",
-      backgroundColor: "#42888D",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: true
-    },
-    {
-      title: "Personality Test",
-      backgroundColor: "#E36C59",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: false
-    },
-    {
-      title: "Emotional Int Test",
-      backgroundColor: "#778BAD",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: false
-    },
-    {
-      title: "Values Test",
-      backgroundColor: "#DA9540",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: false
-    },
-    {
-      title: " ",
-      backgroundColor: "#D9D9D9",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: false
-    },
-    {
-      title: " ",
-      backgroundColor: "#D9D9D9",
-      iconBgColor: "#2C5154",
-      Icon: ArrowUpRight,
-      isEnabled: false
+  const [loading, setLoading] = useState(true)
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await fetch('/api/results')
+        const data = await response.json()
+        setTestResults(data)
+      } catch (error) {
+        console.error('Error fetching results:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchResults()
+  }, [])
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
 
   return (
     <div className="flex flex-col items-center">

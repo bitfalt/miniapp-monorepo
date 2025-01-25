@@ -1,32 +1,41 @@
-import React from 'react';
-import AchievementCard from '@/components/ui/AchievementCard';  
+"use client"
 
-const AchievementsPage = () => {
-  const level = {
-    current: 37,
-    max: 100,
-    title: "Conscious Explorer"
-  };
+import { useState, useEffect } from 'react'
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
+import AchievementCard from "@/components/ui/AchievementCard"
 
-  const achievements = [
-    {
-      title: "Ideology Explorer",
-      description: "Completed the Ideology Test",
-      date: "Jan 5, 2024",
-      obtained: true
-    },
-    {
-      title: "Streak Keeper",
-      description: "Logged in for 7 days in a row",
-      date: "Jan 9, 2024",
-      obtained: true
-    },
-    {
-      title: "Personality Explorer",
-      description: "Coming Soon",
-      obtained: false
+interface Achievement {
+  title: string
+  description: string
+  date?: string
+  obtained: boolean
+}
+
+export default function AchievementsPage() {
+  const [loading, setLoading] = useState(true)
+  const [level, setLevel] = useState({ current: 0, max: 100, title: "" })
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/achievements')
+        const data = await response.json()
+        setLevel(data.level)
+        setAchievements(data.achievements)
+      } catch (error) {
+        console.error('Error fetching achievements:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ];
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
 
   return (
     <div className="min-h-screen bg-neutral-bg">
@@ -85,6 +94,4 @@ const AchievementsPage = () => {
       </div>
     </div>
   );
-};
-
-export default AchievementsPage;
+}

@@ -1,11 +1,34 @@
 "use client";
 
+import { useState, useEffect } from 'react'
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { ProfileCard } from "@/components/ui/ProfileCard";
 import QuizCard from "@/components/ui/QuizCard";
 import { AchievementButton } from "@/components/ui/AchievementButton"
 import { LeaderboardButton } from "@/components/ui/LeaderboardButton"
 
 export default function Home() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/home')
+        await response.json()
+      } catch (error) {
+        console.error('Error fetching home data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
   return (
     <div className="min-h-screen bg-neutral-bg">
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-8">
