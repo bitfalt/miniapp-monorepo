@@ -1,5 +1,6 @@
-import { getXataClient } from "@/lib/xata";
+import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 //import { auth } from "@clerk/nextjs";
 
 /**
@@ -12,6 +13,7 @@ import { NextResponse } from "next/server";
  *       - Test details (name, description)
  *       - Total number of questions per test
  *       - User's progress (answered questions)
+ *       - Progress percentage
  *       - Test status
  *       - Achievements (if any)
  *       
@@ -37,6 +39,7 @@ import { NextResponse } from "next/server";
  *                       - description
  *                       - totalQuestions
  *                       - answeredQuestions
+ *                       - progressPercentage
  *                       - status
  *                     properties:
  *                       testId:
@@ -59,6 +62,10 @@ import { NextResponse } from "next/server";
  *                         type: integer
  *                         description: Number of questions answered by the user
  *                         example: 8
+ *                       progressPercentage:
+ *                         type: integer
+ *                         description: Percentage of test completion
+ *                         example: 40
  *                       status:
  *                         type: string
  *                         description: Current status of the test for the user
@@ -105,45 +112,34 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   try {
-    // const { userId } = auth();
-    // if (!userId) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   );
-    // }
+    // TODO: get user id from session
+    const userId = 'xd';
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
     const xata = getXataClient();
     
-    // Fetch all tests
+    // Fetch all tests with total_questions
     const tests = await xata.db.Tests.getAll({
-      columns: ["test_id", "test_name", "test_description"],
+      columns: ["test_id", "test_name", "test_description", "total_questions"],
       sort: { "test_id": "asc" }
     });
 
-    // For each test, get the questions count and user progress
-    // Fetch all questions and progress in parallel
-    const [allQuestions, allProgress] = await Promise.all([
-      xata.db.Questions.filter({
-        "test.test_id": { $in: tests.map(t => t.test_id) }
-      }).getMany(),
-      xata.db.UserTestProgress.filter({
-        "test.test_id": { $in: tests.map(t => t.test_id) },
-        "user.user_uuid": userId
-      }).getMany()
-    ]);
+    // Fetch user progress for all tests
+    const allProgress = await xata.db.UserTestProgress.filter({
+      "test.test_id": { $any: tests.map(t => t.test_id) },
+      "user.user_uuid": userId
+    }).getMany();
 
-    // Group questions and progress by test_id for O(1) lookup
-    const questionsByTest = allQuestions.reduce((acc, q) => {
-      const testId = q.test?.test_id
-      if (testId) {
-        acc[testId] = (acc[testId] || []).concat(q)
-      }
-      return acc
-    }, {});
-
-    const progressByTest = allProgress.reduce((acc, p) => {
-      const testId = p.test?.test_id
+    type ProgressRecord = typeof allProgress[0];
+    
+    // Create a map of test progress
+    const progressByTest = allProgress.reduce<Record<string, ProgressRecord>>((acc, p) => {
+      const testId = p.test?.xata_id
       if (testId) {
         acc[testId] = p
       }
@@ -151,14 +147,10 @@ export async function GET() {
     }, {});
 
     const testsWithProgress = tests.map(test => {
-      // Get total questions for this test
-      const questions = questionsByTest[test.test_id] || [];
-      const totalQuestions = questions.length;
-
       // Get user's progress for this test
-      const userProgress = progressByTest[test.test_id];
+      const userProgress = progressByTest[test.xata_id];
 
-      // Count answered questions from the progress
+      // Count answered questions from the progress.answers JSON
       const answeredQuestions = userProgress?.answers 
         ? Object.keys(userProgress.answers as object).length 
         : 0;
@@ -167,8 +159,9 @@ export async function GET() {
         testId: test.test_id,
         testName: test.test_name,
         description: test.test_description,
-        totalQuestions,
+        totalQuestions: test.total_questions,
         answeredQuestions,
+        progressPercentage: Math.round((answeredQuestions / test.total_questions) * 100),
         status: userProgress?.status || "not_started",
         // TODO: Add achievements when implemented
         achievements: [] 

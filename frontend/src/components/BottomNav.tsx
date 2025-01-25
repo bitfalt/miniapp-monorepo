@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Home, BookCheck, Trophy, Settings } from 'lucide-react'
+import { Home, BookCheck, Trophy, Settings, Lightbulb } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
   { icon: Home, href: '/' },
   { icon: BookCheck, href: '/tests' },
+  { icon: Lightbulb, href: '/results' },
   { icon: Trophy, href: '/achievements' },
   { icon: Settings, href: '/settings' },
 ]

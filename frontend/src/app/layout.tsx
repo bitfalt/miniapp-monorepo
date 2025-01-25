@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import MiniKitProvider from "@/providers/MiniKitProvider";
 import NextAuthProvider from "@/providers/next-auth-provider";
 import LayoutContent from "@/components/LayoutContent";
+import { ThemeProvider } from "@/providers/ThemeProvider"
+import { NotificationsProvider } from "@/providers/NotificationsProvider"
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -32,15 +34,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}>
-        <NextAuthProvider>
-          <ErudaProvider>
-            <MiniKitProvider>
-              <LayoutContent>
-                {children}
-              </LayoutContent>
-            </MiniKitProvider>
-          </ErudaProvider>
-        </NextAuthProvider>
+        <ThemeProvider>
+          <NotificationsProvider>
+            <NextAuthProvider>
+              <ErudaProvider>
+                <MiniKitProvider>
+                  <LayoutContent>
+                    {children}
+                  </LayoutContent>
+                </MiniKitProvider>
+              </ErudaProvider>
+            </NextAuthProvider>
+          </NotificationsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
