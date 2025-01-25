@@ -23,16 +23,21 @@ export default function SignIn() {
         return;
       }
 
+      console.log('Requesting nonce...');
       const nonceResponse = await fetch(`/api/nonce`);
       if (!nonceResponse.ok) {
+        console.error('Nonce fetch failed:', await nonceResponse.text());
         throw new Error('Failed to fetch nonce');
       }
       
       const { nonce } = await nonceResponse.json();
+      console.log('Nonce received:', nonce);
+
       if (!nonce) {
         throw new Error('Invalid nonce received');
       }
 
+      console.log('Initiating wallet auth...');
       const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
         nonce,
         expirationTime: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
@@ -40,10 +45,14 @@ export default function SignIn() {
         statement: 'Sign in with your Ethereum wallet'
       });
 
+      console.log('Wallet auth response:', finalPayload);
+
       if (!finalPayload || finalPayload.status !== 'success') {
+        console.error('Wallet auth failed:', finalPayload);
         throw new Error('Authentication failed');
       }
 
+      console.log('Completing SIWE verification...');
       const response = await fetch('/api/complete-siwe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,12 +60,17 @@ export default function SignIn() {
       });
 
       const data = await response.json();
+      console.log('SIWE completion response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to complete authentication');
       }
 
-      router.push(callbackUrl);
+      if (data.isRegistered) {
+        router.push(callbackUrl);
+      } else {
+        router.push(`/register?userId=${data.address}`);
+      }
 
     } catch (error) {
       if (error instanceof DOMException) {

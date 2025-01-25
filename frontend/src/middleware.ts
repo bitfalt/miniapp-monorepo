@@ -1,62 +1,67 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import jwt from 'jsonwebtoken'
-import { getToken } from "next-auth/jwt"
 
-// Add paths that don't require authentication
-const publicPaths = ['/sign-in', '/sign-up', '/forgot-password']
 const JWT_SECRET = process.env.JWT_SECRET!
+const publicPaths = ['/sign-in', '/register']
 
 export async function middleware(request: NextRequest) {
-  // Check both SIWE JWT and NextAuth session
-  const siweSession = request.cookies.get('session')
-  const nextAuthToken = await getToken({ req: request })
+  const session = request.cookies.get('session')
   const { pathname } = request.nextUrl
-  
-  // Check if the path is public
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
-  // Handle auth pages (sign-in, sign-up, etc.)
-  if (isPublicPath) {
-    // Check if user is authenticated with either method
-    if (siweSession) {
+  // Allow public paths
+  if (publicPaths.some(path => pathname.startsWith(path))) {
+    if (session) {
       try {
-        jwt.verify(siweSession.value, JWT_SECRET)
-        return NextResponse.redirect(new URL("/", request.url))
+        const decoded = jwt.verify(session.value, JWT_SECRET) as { 
+          address: string;
+          isRegistered: boolean;
+        }
+        
+        // If user is registered, redirect to home
+        if (decoded.isRegistered) {
+          return NextResponse.redirect(new URL("/", request.url))
+        }
+        
+        // If user is not registered and trying to access register, allow it
+        if (!decoded.isRegistered && pathname.startsWith('/register')) {
+          return NextResponse.next()
+        }
+        
+        // If user is not registered and not on register page, redirect to register
+        return NextResponse.redirect(new URL("/register", request.url))
       } catch {
-        // Invalid token, continue
+        // Invalid token, continue to sign-in
       }
-    }
-    if (nextAuthToken) {
-      return NextResponse.redirect(new URL("/", request.url))
     }
     return NextResponse.next()
   }
 
-  // Protected routes - check both auth methods
-  if (!siweSession && !nextAuthToken) {
+  // Protected routes
+  if (!session) {
     const signInUrl = new URL("/sign-in", request.url)
-    // Use the full URL including protocol and host
     signInUrl.searchParams.set("callbackUrl", request.url)
     return NextResponse.redirect(signInUrl)
   }
 
-  if (siweSession) {
-    try {
-      jwt.verify(siweSession.value, JWT_SECRET)
-      return NextResponse.next()
-    } catch {
-      // Invalid SIWE token, fall through to check NextAuth
+  try {
+    const decoded = jwt.verify(session.value, JWT_SECRET) as {
+      address: string;
+      isRegistered: boolean;
     }
-  }
 
-  if (nextAuthToken) {
+    // If user is not registered, redirect to register
+    if (!decoded.isRegistered) {
+      return NextResponse.redirect(new URL("/register", request.url))
+    }
+
     return NextResponse.next()
+  } catch {
+    // Invalid token
+    const signInUrl = new URL("/sign-in", request.url)
+    signInUrl.searchParams.set("callbackUrl", request.url)
+    return NextResponse.redirect(signInUrl)
   }
-
-  const signInUrl = new URL("/sign-in", request.url)
-  signInUrl.searchParams.set("callbackUrl", request.url)
-  return NextResponse.redirect(signInUrl)
 }
 
 export const config = {
