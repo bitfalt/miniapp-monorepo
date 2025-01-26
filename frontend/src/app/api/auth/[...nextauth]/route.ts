@@ -1,6 +1,12 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { NextAuthOptions, Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import jwt from 'jsonwebtoken';
+
+declare module "next-auth" {
+  interface Session {
+    customToken?: string
+  }
+}
 
 if (!process.env.NEXTAUTH_SECRET) {
   throw new Error('NEXTAUTH_SECRET must be set');
@@ -60,7 +66,10 @@ const authOptions: NextAuthOptions = {
         const customToken = jwt.sign(
           { userId: user.id, email: user.email },
           JWT_SECRET,
-          { expiresIn: '24h' }
+          { 
+            expiresIn: '24h',
+            algorithm: 'HS256'
+          }
         );
         token.customToken = customToken;
       }

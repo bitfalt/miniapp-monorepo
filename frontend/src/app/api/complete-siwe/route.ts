@@ -4,7 +4,11 @@ import jwt from 'jsonwebtoken';
 import { verifySiweMessage } from '@worldcoin/minikit-js';
 import { getXataClient } from '@/lib/utils';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required')
+}
+
 const xata = getXataClient();
 
 interface IRequestPayload {
