@@ -2,45 +2,41 @@
 
 import React, { useEffect, useState } from 'react';
 import { InsightResultCard } from '@/components/ui/InsightResultCard';
+import { useSearchParams } from 'next/navigation';
 
-// Example data (fallback for now)
-const exampleInsights = [
-  {
-    axis: 'economic',
-    percentage: 55,
-    insight: 'You favor a balanced approach between economic equality and market freedom.',
-    values: { left: 55, right: 45, label: 'Equality / Markets' },
-  },
-  {
-    axis: 'diplomatic',
-    percentage: 30,
-    insight: 'You lean toward national interests but see value in limited international collaboration.',
-    values: { left: 30, right: 70, label: 'Nation / Globe' },
-  },
-  {
-    axis: 'civil',
-    percentage: 75,
-    insight: 'You value personal freedoms and believe civil liberties should be protected above all.',
-    values: { left: 75, right: 25, label: 'Liberty / Authority' },
-  },
-  {
-    axis: 'societal',
-    percentage: 20,
-    insight: 'You lean toward traditionalism but are open to gradual social changes.',
-    values: { left: 20, right: 80, label: 'Tradition / Progress' },
-  },
-];
+interface Insight {
+  axis: string;
+  percentage: number;
+  insight: string;
+  values: {
+    left: number;
+    right: number;
+    label: string;
+  };
+}
 
 export default function InsightsPage() {
-  const [insights, setInsights] = useState(exampleInsights); // Default to example data
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
 
-  // Placeholder function to simulate backend fetch
   const fetchInsights = async () => {
+<<<<<<< HEAD
     try {
       const response = await fetch('/api/insights')
       const data = await response.json()
       setInsights(data)
+=======
+    const econ = searchParams.get('econ');
+    const dipl = searchParams.get('dipl');
+    const govt = searchParams.get('govt');
+    const scty = searchParams.get('scty');
+
+    try {
+      const response = await fetch(`/api/insights?econ=${econ}&dipl=${dipl}&govt=${govt}&scty=${scty}`);
+      const data = await response.json();
+      setInsights(data.insights);
+>>>>>>> main
     } catch (error) {
       console.error('Error fetching insights:', error)
     } finally {
@@ -49,8 +45,8 @@ export default function InsightsPage() {
   };
 
   useEffect(() => {
-    fetchInsights(); // Fetch insights (currently uses example data)
-  }, []);
+    fetchInsights();
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -62,7 +58,6 @@ export default function InsightsPage() {
 
   return (
     <div className="min-h-screen bg-neutral-bg">
-      {/* Header Section */}
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/50 to-transparent"></div>
         <div className="relative z-10 text-center max-w-md mx-auto">
@@ -75,7 +70,6 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* Insights Grid */}
       <div className="max-w-3xl mx-auto px-6 space-y-8 pb-16">
         {insights.map((insight, index) => (
           <InsightResultCard
