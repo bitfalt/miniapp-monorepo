@@ -139,10 +139,19 @@ export default function TestInstructions() {
               <FilledButton 
                 variant="default"
                 size="lg"
-                className="w-full sm:w-auto px-8 bg-gradient-to-r from-[#E36C59] to-[#E36C59]/90 hover:from-[#E36C59]/90 hover:to-[#E36C59] text-white"
-                onClick={() => router.push(`/ideology-test?testId=${testId}`)}
+                className="w-full sm:w-auto px-8 bg-gradient-to-r from-[#E36C59] to-[#E36C59]/90 hover:from-[#E36C59]/90 hover:to-[#E36C59] text-white relative overflow-hidden group"
+                onClick={async () => {
+                  try {
+                    // Skip saving progress initially and just navigate
+                    router.push(`/ideology-test?testId=${testId}`);
+                  } catch (error) {
+                    console.error('Error starting test:', error);
+                  }
+                }}
               >
-                {currentQuestion > 0 ? 'Continue test' : 'Start test'}
+                <span className="relative z-10">
+                  {currentQuestion > 0 ? 'Continue test' : 'Start test'}
+                </span>
               </FilledButton>
             </motion.div>
           </motion.div>
