@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { FilledButton } from "@/components/ui/FilledButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Question } from "@/app/types";
 import { TestResult } from "@/app/types";
 
@@ -17,6 +17,9 @@ const answers = [
 
 export default function IdeologyTest() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const testId = searchParams.get('testId') || '1';
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [scores, setScores] = useState({ econ: 0, dipl: 0, govt: 0, scty: 0 });
@@ -30,23 +33,51 @@ export default function IdeologyTest() {
     console.log("Fetching questions...");
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(`/api/questions/ideology-test`);
+        const response = await fetch(`/api/tests/${testId}/questions`);
         if (!response.ok) {
-          throw new Error("Failed to fetch questions");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch questions");
         }
         const data = await response.json();
+        
+        if (!data.questions || !Array.isArray(data.questions)) {
+          throw new Error("Invalid response format");
+        }
+        
         console.log("Questions fetched:", data.questions);
         setQuestions(data.questions);
       } catch (err) {
-        console.error("Error fetching questions:", err);
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        console.error("Error fetching questions:", errorMessage);
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuestions();
-  }, []);
+    if (testId) {
+      fetchQuestions();
+    }
+  }, [testId]);
+
+  useEffect(() => {
+    const loadSavedProgress = async () => {
+      try {
+        const response = await fetch(`/api/tests/${testId}/progress`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.currentQuestion > 0) {
+            setCurrentQuestion(data.currentQuestion);
+            setScores(data.scores);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved progress:', error);
+      }
+    };
+
+    loadSavedProgress();
+  }, [testId]);
 
   const handleAnswer = async (multiplier: number) => {
     if (questions.length === 0) return;
@@ -59,6 +90,29 @@ export default function IdeologyTest() {
       scty: scores.scty + multiplier * question.effect.scty,
     };
     setScores(updatedScores);
+
+    // Save progress to database
+    try {
+      const response = await fetch(`/api/tests/${testId}/progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: question.id,
+          answer: multiplier,
+          currentQuestion: currentQuestion,
+          scores: updatedScores
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save progress');
+      }
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      // Optionally show error to user
+    }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -79,6 +133,19 @@ export default function IdeologyTest() {
         govt: govtScore,
         scty: sctyScore,
       };
+
+      // Save final results
+      try {
+        await fetch(`/api/tests/${testId}/complete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ results })
+        });
+      } catch (error) {
+        console.error('Error saving final results:', error);
+      }
 
       // Redirect to insights page with results
       router.push(`/insights?econ=${results.econ}&dipl=${results.dipl}&govt=${results.govt}&scty=${results.scty}`);

@@ -40,8 +40,8 @@ export default function TestsPage() {
         const data = await response.json()
         console.log('API Response:', data) // Debug log
         
-        if (data && data.length > 0) {
-          const firstTest = data[0]
+        if (data.tests && data.tests.length > 0) {
+          const firstTest = data.tests[0]
           console.log('First Test:', firstTest) // Debug log
           
           setTestData({
@@ -102,7 +102,7 @@ export default function TestsPage() {
           
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 mt-4">
             <p className="text-center text-sm text-white/90">
-              Complete 3 tests to unlock the Insight Seeker Badge! 🏆
+              Achievements coming soon! 🏆
             </p>
           </div>
         </motion.div>
@@ -121,7 +121,7 @@ export default function TestsPage() {
               totalQuestions={testData.totalQuestions}
               answeredQuestions={testData.answeredQuestions}
               achievements={testData.achievements}
-              onCardClick={() => router.push('/tests/instructions')}
+              onCardClick={() => router.push(`/tests/instructions?testId=${testData.testId}`)}
             />
             <div className="opacity-40 pointer-events-none">
               <TestCard

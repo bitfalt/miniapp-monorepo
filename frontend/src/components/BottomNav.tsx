@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 
 const navItems = [
   { icon: Home, href: '/' },
-  { icon: BookCheck, href: '/tests' },
+  { icon: BookCheck, href: '/test-selection' },
   { icon: Lightbulb, href: '/results' },
   { icon: Trophy, href: '/achievements' },
   { icon: Settings, href: '/settings' },
@@ -25,7 +25,7 @@ export default function MobileBottomNav() {
   }, [pathname])
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-brand-tertiary rounded-t-[25px] shadow-lg">
+    <nav className="fixed bottom-4 left-4 right-4 h-16 bg-brand-tertiary rounded-[25px] shadow-lg">
       <div className="flex justify-around items-center h-full px-4">
         {navItems.map(({ icon: Icon, href }, index) => (
           <Link
