@@ -1,9 +1,11 @@
 import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { createHash, randomUUID } from "crypto";
 
-// Type for user update data
+/**
+ * Type definition for user update data
+ * Contains all required fields for user profile creation/update
+ */
 type UserUpdateData = {
   age: number;
   name: string;
@@ -14,25 +16,39 @@ type UserUpdateData = {
   wallet_address: string;
 };
 
-// Validation functions
-function validateAge(age: number): boolean {
-  return age >= 18 && age <= 120;
-}
+/**
+ * Validation functions for user data
+ */
+const validateAge = (age: number): boolean => age >= 18 && age <= 120;
 
-function validateString(str: string, minLength = 2, maxLength = 50): boolean {
-  return str.length >= minLength && str.length <= maxLength;
-}
+const validateString = (str: string, minLength = 2, maxLength = 50): boolean =>
+  str.length >= minLength && str.length <= maxLength;
 
-function validateUsername(username: string): boolean {
-  return /^[a-zA-Z0-9_-]{3,30}$/.test(username);
-}
+const validateUsername = (username: string): boolean =>
+  /^[a-zA-Z0-9_-]{3,30}$/.test(username);
 
-function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+const validateEmail = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-function validateWalletAddress(address: string): boolean {
-  return /^0x[a-fA-F0-9]{40}$/.test(address);
+const validateWalletAddress = (address: string): boolean =>
+  /^0x[a-fA-F0-9]{40}$/.test(address);
+
+// Function to generate UUID using Web Crypto API
+const generateUUID = () => {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  array[6] = (array[6] & 0x0f) | 0x40;
+  array[8] = (array[8] & 0x3f) | 0x80;
+  
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+// Function to create hash using Web Crypto API
+async function createHash(text: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -68,61 +84,9 @@ function validateWalletAddress(address: string): boolean {
  *         description: User not found
  *       500:
  *         description: Internal server error
- *   post:
- *     summary: Create user profile
- *     description: Creates a new user profile
- *     tags:
- *       - User
- *     security:
- *       - NextAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               age:
- *                 type: number
- *                 minimum: 18
- *                 maximum: 120
- *               name:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 50
- *               country:
- *                 type: string
- *                 format: uuid
- *               email:
- *                 type: string
- *                 format: email
- *               last_name:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 50
- *               username:
- *                 type: string
- *                 pattern: "^[a-zA-Z0-9_-]+$"
- *                 minLength: 3
- *                 maxLength: 30
- *               wallet_address:
- *                 type: string
- *                 pattern: "^0x[a-fA-F0-9]{40}$"
- *     responses:
- *       200:
- *         description: User profile updated successfully
- *       400:
- *         description: Invalid input data
- *       401:
- *         description: Unauthorized - User not authenticated
- *       404:
- *         description: User not found
- *       500:
- *         description: Internal server error
  */
 export async function GET() {
   try {
-    // TODO: modify session to be compliant with the auth used
     const session = await getServerSession();
     const userEmail = session?.user?.email;
 
@@ -158,116 +122,120 @@ export async function GET() {
   }
 }
 
+/**
+ * @swagger
+ * /api/user:
+ *   post:
+ *     summary: Create user profile
+ *     description: Creates a new user profile with provided data
+ *     tags:
+ *       - User
+ *     security:
+ *       - NextAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserUpdateData'
+ *     responses:
+ *       200:
+ *         description: User profile created successfully
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 export async function POST(request: Request) {
   try {
-    // TODO: modify session to be compliant with the auth used    
-    const session = await getServerSession();
-    const userEmail = session?.user?.email;
+    const body = await request.json() as UserUpdateData;
+    const xata = getXataClient();
 
-    if (!userEmail) {
+    // Check if user already exists
+    const existingUser = await xata.db.Users.filter({
+      $any: [
+        { email: body.email },
+        { wallet_address: body.wallet_address }
+      ]
+    }).getFirst();
+
+    if (existingUser) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "User already exists" },
+        { status: 400 }
       );
     }
 
-    const xata = getXataClient();
-    
-    // Get current user
-    const existingUser = await xata.db.Users.filter({ email: userEmail }).getFirst();
-    
-    // Parse request body
-    const body = await request.json() as UserUpdateData;
-    
-    // Validate input data
+    // Validate all input data
     if (!validateAge(body.age)) {
       return NextResponse.json(
         { error: "Invalid age. Must be between 18 and 120." },
         { status: 400 }
       );
     }
-    
+
     if (!validateString(body.name) || !validateString(body.last_name)) {
       return NextResponse.json(
         { error: "Invalid name or last name. Must be between 2 and 50 characters." },
         { status: 400 }
       );
     }
-    
+
     if (!validateUsername(body.username)) {
       return NextResponse.json(
         { error: "Invalid username. Must be 3-30 characters and contain only letters, numbers, underscores, and hyphens." },
         { status: 400 }
       );
     }
-    
+
     if (!validateEmail(body.email)) {
       return NextResponse.json(
         { error: "Invalid email format." },
         { status: 400 }
       );
     }
+
+    // Get the latest user_id
+    const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
+    const nextUserId = (latestUser?.user_id || 0) + 1;
     
-    if (!validateWalletAddress(body.wallet_address)) {
+    // Generate user_uuid using Web Crypto API
+    const userUuid = body.wallet_address 
+      ? await createHash(body.wallet_address)
+      : generateUUID();
+
+    // Validate and get country record
+    const country = await xata.db.Countries.filter({ country_name: body.country }).getFirst();
+    if (!country) {
       return NextResponse.json(
-        { error: "Invalid Ethereum wallet address." },
+        { error: "Invalid country name provided" },
         { status: 400 }
       );
     }
-    
-    // If this is a new user
-    if (!existingUser) {
-        // Get the latest user_id
-        const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
-        const nextUserId = (latestUser?.user_id || 0) + 1;
-      
-        // TODO: remove this once we have a proper user_uuid generation method
-        // TODO: the user_uuid should be easily replicable for the DataLake
-        // Generate user_uuid from wallet address if provided
-        const userUuid = body.wallet_address 
-            ? createHash('sha256').update(body.wallet_address).digest('hex')
-        : randomUUID();
-      
-        // Fetch country rec from the Countries table
-        const country = await xata.db.Countries.filter({ country_name: body.country }).getFirst();
-        if (!country) {
-            return NextResponse.json(
-                { error: "Invalid country name provided" },
-                { status: 400 }
-            );
-        }
-        const country_record = country?.xata_id;
 
-        // Create new user
-        await xata.db.Users.create({
-            ...body,
-            country: country_record,
-            user_id: nextUserId,
-            user_uuid: userUuid,
-            created_at: new Date(),
-            updated_at: new Date(),
-            subscription: false,
-            verified: false,
-            email: userEmail,
-        });
+    // Create new user
+    await xata.db.Users.create({
+      ...body,
+      country: country.xata_id,
+      user_id: nextUserId,
+      user_uuid: userUuid,
+      created_at: new Date(),
+      updated_at: new Date(),
+      subscription: false,
+      verified: false,
+    });
 
-    } else {
-        return NextResponse.json(
-            { error: "User already exists" },
-            { status: 400 }
-        );
-    }
-    
     return NextResponse.json(
       { message: "User profile created successfully" },
       { status: 200 }
     );
 
   } catch (error) {
-    console.error("Error updating user:", error);
-    
+    console.error("Error creating user:", error);
     return NextResponse.json(
-      { error: "Failed to update user data" },
+      { error: "Failed to create user" },
       { status: 500 }
     );
   }

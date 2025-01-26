@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^12.0.5
         version: 12.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      jose:
+        specifier: ^5.9.6
+        version: 5.9.6
       jotai:
         specifier: ^2.11.1
         version: 2.11.1(@types/react@19.0.8)(react@18.3.1)
@@ -1756,6 +1759,9 @@ packages:
 
   jose@4.15.9:
     resolution: {integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==}
+
+  jose@5.9.6:
+    resolution: {integrity: sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==}
 
   jotai@2.11.1:
     resolution: {integrity: sha512-41Su098mpHIX29hF/XOpDb0SqF6EES7+HXfrhuBqVSzRkxX48hD5i8nGsEewWZNAsBWJCTTmuz8M946Ih2PfcQ==}
@@ -4956,6 +4962,8 @@ snapshots:
   jiti@1.21.7: {}
 
   jose@4.15.9: {}
+
+  jose@5.9.6: {}
 
   jotai@2.11.1(@types/react@19.0.8)(react@18.3.1):
     optionalDependencies:

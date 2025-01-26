@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { SignJWT } from 'jose';
 import { verifySiweMessage } from '@worldcoin/minikit-js';
 import { getXataClient } from '@/lib/utils';
 
@@ -50,12 +50,15 @@ export const POST = async (req: NextRequest) => {
     }).getFirst();
     console.log('Database lookup result:', existingUser);
 
-    const token = jwt.sign({ 
+    const secret = new TextEncoder().encode(JWT_SECRET);
+
+    const token = await new SignJWT({ 
       address,
       isRegistered: !!existingUser 
-    }, JWT_SECRET, { 
-      expiresIn: '24h' 
-    });
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('24h')
+      .sign(secret);
     
     const response = NextResponse.json({ 
       success: true, 

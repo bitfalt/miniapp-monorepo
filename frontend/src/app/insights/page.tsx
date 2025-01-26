@@ -21,12 +21,10 @@ export default function InsightsPage() {
   const searchParams = useSearchParams();
 
   const fetchInsights = async () => {
-<<<<<<< HEAD
     try {
       const response = await fetch('/api/insights')
       const data = await response.json()
       setInsights(data)
-=======
     const econ = searchParams.get('econ');
     const dipl = searchParams.get('dipl');
     const govt = searchParams.get('govt');
@@ -36,7 +34,6 @@ export default function InsightsPage() {
       const response = await fetch(`/api/insights?econ=${econ}&dipl=${dipl}&govt=${govt}&scty=${scty}`);
       const data = await response.json();
       setInsights(data.insights);
->>>>>>> main
     } catch (error) {
       console.error('Error fetching insights:', error)
     } finally {
