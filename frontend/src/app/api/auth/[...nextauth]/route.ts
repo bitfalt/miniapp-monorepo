@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions, Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 
 declare module "next-auth" {
   interface Session {
@@ -27,7 +27,7 @@ if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET must be set');
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const WorldcoinProvider = {
   id: "worldcoin",
@@ -49,11 +49,11 @@ const WorldcoinProvider = {
 
 const authOptions: NextAuthOptions = {
   providers: [
-    WorldcoinProvider,
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    WorldcoinProvider
   ],
   pages: {
     signIn: '/sign-in',
@@ -63,14 +63,10 @@ const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
         // Sign a custom JWT token
-        const customToken = jwt.sign(
-          { userId: user.id, email: user.email },
-          JWT_SECRET,
-          { 
-            expiresIn: '24h',
-            algorithm: 'HS256'
-          }
-        );
+        const customToken = await new SignJWT(token)
+          .setProtectedHeader({ alg: 'HS256' })
+          .setExpirationTime('24h')
+          .sign(secret);
         token.customToken = customToken;
       }
       return token;
@@ -83,6 +79,22 @@ const authOptions: NextAuthOptions = {
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
+  jwt: {
+    async encode({ token }) {
+      return await new SignJWT(token)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('24h')
+        .sign(secret);
+    },
+    async decode({ token }) {
+      try {
+        const { payload } = await jwtVerify(token!, secret);
+        return payload;
+      } catch {
+        return null;
+      }
+    },
+  }
 }
 
 const handler = NextAuth(authOptions);

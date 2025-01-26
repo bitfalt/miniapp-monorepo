@@ -1,18 +1,30 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 
 const JWT_SECRET = process.env.JWT_SECRET
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required')
 }
 
+// Convert secret to Uint8Array for jose
+const secret = new TextEncoder().encode(JWT_SECRET)
+
 interface JWTPayload {
   address: string;
   isRegistered: boolean;
 }
 
-const publicPaths = ['/sign-in', '/register']
+// Add all public paths including API endpoints
+const publicPaths = [
+  '/sign-in',
+  '/register',
+  '/api/user',
+  '/api/nonce',
+  '/api/complete-siwe',
+  '/api/check-registration',
+  '/welcome'
+]
 
 const createSignInUrl = (request: NextRequest) => {
   const signInUrl = new URL("/sign-in", request.url)
@@ -20,66 +32,45 @@ const createSignInUrl = (request: NextRequest) => {
   return signInUrl
 }
 
-const verifySession = (sessionValue: string): JWTPayload => {
-  return jwt.verify(sessionValue, JWT_SECRET, { algorithms: ['HS256'] }) as unknown as JWTPayload
+const verifySession = async (sessionValue: string): Promise<JWTPayload> => {
+  const { payload } = await jwtVerify(sessionValue, secret)
+  return payload as JWTPayload
 }
 
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get('session')
   const { pathname } = request.nextUrl
 
-  // Allow public paths
-  if (publicPaths.some(path => pathname.startsWith(path))) {
-    if (session?.value) {
-      try {
-        const decoded = verifySession(session.value)
-        
-        if (decoded.isRegistered) {
-          return NextResponse.redirect(new URL("/", request.url))
-        }
-        
-        if (!decoded.isRegistered && pathname.startsWith('/register')) {
-          return NextResponse.next()
-        }
-        
-        return NextResponse.redirect(new URL("/register", request.url))
-      } catch (error) {
-        console.error('Invalid token in public path:', error)
-        // Invalid token, continue to sign-in
-      }
-    }
+  // Check if the current path is public
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
+
+  // Allow all public paths without any checks
+  if (isPublicPath) {
     return NextResponse.next()
   }
 
-  // Protected routes
+  // For protected routes, check session
   if (!session?.value) {
-    return NextResponse.redirect(createSignInUrl(request))
+    return NextResponse.redirect(new URL("/sign-in", request.url))
   }
 
   try {
-    const decoded = verifySession(session.value)
+    const decoded = await verifySession(session.value)
 
-    if (!decoded.isRegistered) {
+    // If user is not registered, redirect to register page
+    if (!decoded.isRegistered && !pathname.startsWith('/register')) {
       return NextResponse.redirect(new URL("/register", request.url))
     }
 
     return NextResponse.next()
   } catch (error) {
-    console.error('Invalid token in protected route:', error)
-    return NextResponse.redirect(createSignInUrl(request))
+    console.error('Invalid token:', error)
+    return NextResponse.redirect(new URL("/sign-in", request.url))
   }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 } 

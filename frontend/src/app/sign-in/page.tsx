@@ -67,7 +67,7 @@ export default function SignIn() {
       }
 
       if (data.isRegistered) {
-        router.push(callbackUrl);
+        router.push('/');
       } else {
         router.push(`/register?userId=${data.address}`);
       }

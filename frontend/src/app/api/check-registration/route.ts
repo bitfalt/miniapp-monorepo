@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getXataClient } from "@/lib/utils";
-import { createHash } from "crypto";
 
 const xata = getXataClient();
+
+async function createHash(text: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,7 +42,7 @@ export async function POST(req: NextRequest) {
       const nextUserId = (latestUser?.user_id || 0) + 1;
       
       // Generate user_uuid from wallet address
-      const userUuid = createHash('sha256').update(userId).digest('hex');
+      const userUuid = await createHash(userId);
 
       // Create minimal user record
       const countryRecord = await xata.db.Countries.filter({ country_name: "Costa Rica" }).getFirst();
