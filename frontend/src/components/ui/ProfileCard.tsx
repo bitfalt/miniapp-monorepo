@@ -7,6 +7,7 @@ import { motivationalQuotes } from "@/data/motivationalQuotes"
 
 interface User {
   name: string;
+  last_name: string;
   level: string;
   points: number;
   maxPoints: number;
@@ -17,15 +18,10 @@ interface ProfileCardProps {
   user?: User;
 }
 
-const ProfileAvatar = ({ name }: { name: string }) => {
+const ProfileAvatar = ({ name, lastName }: { name: string; lastName: string }) => {
   const initials = useMemo(() => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }, [name])
+    return `${name[0]}${lastName[0]}`.toUpperCase();
+  }, [name, lastName]);
 
   return (
     <div className="relative">
@@ -64,7 +60,8 @@ const LevelProgress = ({ points, maxPoints }: { points: number; maxPoints: numbe
 export function ProfileCard({ 
   className,
   user = {
-    name: "John Doe",
+    name: "",
+    last_name: "",
     level: "Conscious Explorer",
     points: 45,
     maxPoints: 100
@@ -102,7 +99,7 @@ export function ProfileCard({
         <div className="p-3 h-[50px] flex items-center justify-center">
           <div className="flex flex-col w-full px-4 mt-8">
             <p className="text-white text-xs sm:text-sm font-medium font-spaceGrotesk">
-              Hello {user.name.split(' ')[0]}! Let&apos;s see your progress...
+              Hello {user.name} {user.last_name}! Let&apos;s see your progress...
             </p>
             <h2 className="text-accent-red text-base sm:text-xl md:text-2xl font-bold font-spaceGrotesk leading-tight line-clamp-2 mt-1.5 max-w-[280px]">
               {quote}
@@ -112,11 +109,11 @@ export function ProfileCard({
 
         <div className="px-4 flex items-center justify-center mt-7">
           <div className="flex items-center justify-center gap-3 w-full">
-            <ProfileAvatar name={user.name} />
+            <ProfileAvatar name={user.name} lastName={user.last_name} />
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-2 text-white mb-0.5">
                 <h3 className="text-xl sm:text-2xl font-bold font-spaceGrotesk leading-[28px]">
-                  {user.name}
+                  {user.name} {user.last_name}
                 </h3>
                 <div className="flex items-center gap-1">
                   <svg 

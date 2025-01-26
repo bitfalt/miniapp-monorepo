@@ -7,14 +7,30 @@ import QuizCard from "@/components/ui/QuizCard";
 import { AchievementButton } from "@/components/ui/AchievementButton"
 import { LeaderboardButton } from "@/components/ui/LeaderboardButton"
 
+interface User {
+  name: string;
+  last_name: string;
+  level: string;
+  points: number;
+  maxPoints: number;
+}
+
 export default function Home() {
   const [loading, setLoading] = useState(true)
+  const [userData, setUserData] = useState<User | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/home')
-        await response.json()
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('API Error:', errorData)
+          return
+        }
+        const data = await response.json()
+        console.log('Received user data:', data)  // Debug log
+        setUserData(data.user)
       } catch (error) {
         console.error('Error fetching home data:', error)
       } finally {
@@ -46,7 +62,10 @@ export default function Home() {
         <div className="w-full max-w-7xl px-4">
           <div className="flex flex-col gap-6 items-center w-full">
             <div className="w-full flex justify-center">
-              <ProfileCard className="w-full max-w-[365px] transform transition-all duration-300 hover:scale-105" />
+              <ProfileCard 
+                className="w-full max-w-[365px] transform transition-all duration-300 hover:scale-105" 
+                user={userData || undefined}
+              />
             </div>
 
             <div className="w-full flex justify-center">
