@@ -1,18 +1,39 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { signIn } from "next-auth/react";
 import { FilledButton } from "@/components/ui/FilledButton";
 import { Wallet, Chrome } from "lucide-react";
 import { OutlinedButton } from "@/components/ui/OutlinedButton";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MiniKit } from '@worldcoin/minikit-js';
-import { useState } from 'react';
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function SignIn() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/check-registration');
+        const data = await response.json();
+        
+        if (data.isRegistered) {
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [router]);
 
   const handleWorldIDClick = async () => {
     try {

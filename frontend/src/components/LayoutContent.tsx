@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import { BannerTop } from "@/components/ui/BannerTop";
 import MobileBottomNav from "@/components/BottomNav";
@@ -10,19 +10,19 @@ export default function LayoutContent({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { isAuthenticated, loading } = useAuth();
   const pathname = usePathname();
+  
   const isSignInPage = pathname === "/sign-in";
   const isRegisterPage = pathname === "/register";
   const isWelcomePage = pathname === "/welcome";
   
-  const showBanner = session && 
-    !session.user?.isWorldcoinVerified && 
+  const showBanner = isAuthenticated && 
     !isSignInPage && 
     !isRegisterPage && 
     !isWelcomePage;
     
-  const showNav = session && 
+  const showNav = isAuthenticated && 
     !isSignInPage && 
     !isRegisterPage && 
     !isWelcomePage;

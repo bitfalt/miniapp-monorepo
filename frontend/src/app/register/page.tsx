@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { FilledButton } from "@/components/ui/FilledButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { COUNTRIES, type CountryCode } from "@/constants/countries";
 
@@ -21,6 +21,12 @@ export default function Register() {
   });
 
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!userId) {
+      router.push('/sign-in');
+    }
+  }, [userId, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +64,6 @@ export default function Register() {
   };
 
   if (!userId) {
-    router.push('/sign-in');
     return null;
   }
 
@@ -80,7 +85,7 @@ export default function Register() {
           Please fill up the following spaces to begin.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 mb-20">
           {error && (
             <div className="text-red-500 text-sm text-center">
               {error}
@@ -92,7 +97,7 @@ export default function Register() {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
@@ -102,7 +107,7 @@ export default function Register() {
               type="text"
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
@@ -112,18 +117,24 @@ export default function Register() {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-[#232931] text-base">Age</label>
-            <Input
-              type="number"
+            <select
               value={formData.age}
               onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0"
-            />
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
+            >
+              <option value="" className="text-gray-500">Select age</option>
+              {Array.from({ length: 120 }, (_, i) => i + 1).map((age) => (
+                <option key={age} value={age} className="text-black">
+                  {age}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2">
@@ -131,10 +142,10 @@ export default function Register() {
             <select
               value={formData.country}
               onChange={(e) => setFormData({ ...formData, country: e.target.value as CountryCode })}
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 text-black"
             >
               {COUNTRIES.map(({ countryCode, country, flag }) => (
-                <option key={countryCode} value={countryCode}>
+                <option key={countryCode} value={countryCode} className="text-black">
                   {flag} {country}
                 </option>
               ))}
