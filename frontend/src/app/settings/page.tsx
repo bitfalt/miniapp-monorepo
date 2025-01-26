@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { FilledButton } from "@/components/ui/FilledButton"
 import { LogOut, Moon, Bell, HelpCircle, Flag, FileText, Crown } from "lucide-react"
 import { SettingsCard } from "@/components/ui/SettingsCard"
@@ -8,9 +9,30 @@ import { MembershipCard } from "@/components/ui/MembershipCard"
 import { NotificationsToggle } from "@/components/ui/NotificationsToggle"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 
 export default function SettingsPage() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        await response.json()
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSettings()
+  }, [])
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
 
   return (
     <div className="min-h-screen bg-neutral-bg">

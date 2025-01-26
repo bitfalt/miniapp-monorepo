@@ -3,20 +3,64 @@
 import { Input } from "@/components/ui/input";
 import { FilledButton } from "@/components/ui/FilledButton";
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { COUNTRIES, type CountryCode } from "@/constants/countries";
 
 export default function Register() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
+
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
     email: "",
     age: "",
+    country: "CR" as CountryCode,
     subscription: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
+    setError("");
+
+    try {
+      const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          last_name: formData.lastName,
+          email: formData.email,
+          age: parseInt(formData.age),
+          subscription: formData.subscription,
+          wallet_address: userId,
+          username: `${formData.name.toLowerCase()}_${Math.random().toString(36).slice(2, 7)}`,
+          country: COUNTRIES.find(c => c.countryCode === formData.country)?.country || "Costa Rica"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        router.push(`/welcome?name=${formData.name}`);
+      } else {
+        setError(data.error || "Failed to register user");
+      }
+    } catch (err) {
+      setError("An error occurred while registering");
+      console.error(err);
+    }
   };
+
+  if (!userId) {
+    router.push('/sign-in');
+    return null;
+  }
 
   return (
     <div className="flex flex-col items-center">
@@ -37,6 +81,11 @@ export default function Register() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
           <div className="space-y-2">
             <label className="text-[#232931] text-base">Name</label>
             <Input
@@ -75,6 +124,21 @@ export default function Register() {
               onChange={(e) => setFormData({ ...formData, age: e.target.value })}
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[#232931] text-base">Country</label>
+            <select
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value as CountryCode })}
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3"
+            >
+              {COUNTRIES.map(({ countryCode, country, flag }) => (
+                <option key={countryCode} value={countryCode}>
+                  {flag} {country}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-3">
