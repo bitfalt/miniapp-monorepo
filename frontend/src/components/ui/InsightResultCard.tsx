@@ -14,8 +14,7 @@ interface InsightResultCardProps {
 
 export function InsightResultCard({ title, description, scale, values }: InsightResultCardProps) {
   return (
-    <div className="bg-brand-secondary rounded-3xl p-8 shadow-lg border border-brand-tertiary/10 
-                  hover:shadow-xl transition-all duration-300 ease-in-out">
+    <div className="bg-brand-secondary rounded-3xl p-8 shadow-lg border border-brand-tertiary/10 hover:shadow-xl transition-all duration-300 ease-in-out">
       <h2 className="text-2xl font-bold text-slate-100 mb-4 tracking-tight">{title}</h2>
       <p className="text-slate-200/90 mb-8 italic leading-relaxed">"{description}"</p>
       
@@ -43,22 +42,3 @@ export function InsightResultCard({ title, description, scale, values }: Insight
     </div>
   );
 }
-
-// Example usage
-export default function InsightResultCardExample() {
-  return (
-    <div className="p-4">
-      <InsightResultCard
-        title="Your Economic Perspective"
-        description="You lean towards Equality, valuing fairness and redistribution of wealth."
-        scale={50}
-        values={{
-          left: 75,
-          right: 25,
-          label: "Equality / Inequality"
-        }}
-      />
-    </div>
-  );
-}
-
