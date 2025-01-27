@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cua7717lmd4pfs40ocv0",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "current_question",
+          "table": "UserTestProgress",
+          "column": "question"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cua7717lmd4pfs40ocv0",
+  "parent": "mig_cua76eutrfea4ndanmjg",
+  "schema": "public",
+  "startedAt": "2025-01-25T05:15:49.270034Z"
+}

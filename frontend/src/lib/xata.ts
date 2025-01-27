@@ -485,15 +485,7 @@ const tables = [
         comment: "",
       },
       {
-        name: "left_percentage",
-        type: "int",
-        notNull: true,
-        unique: false,
-        defaultValue: null,
-        comment: "",
-      },
-      {
-        name: "right_percentage",
+        name: "percentage",
         type: "int",
         notNull: true,
         unique: false,
@@ -517,6 +509,95 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Users"}',
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "Payments",
+    checkConstraints: {
+      Payments_xata_id_length_xata_id: {
+        name: "Payments_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      user_link: {
+        name: "user_link",
+        columns: ["user"],
+        referencedTable: "Users",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      Payments__pgroll_new_payment_id_key: {
+        name: "Payments__pgroll_new_payment_id_key",
+        columns: ["payment_id"],
+      },
+      _pgroll_new_Payments_xata_id_key: {
+        name: "_pgroll_new_Payments_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "payment_id",
+        type: "int",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "user",
+        type: "link",
+        link: { table: "Users" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Users"}',
+      },
+      {
+        name: "uuid",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "xata_createdat",
@@ -686,6 +767,14 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Areas"}',
+      },
+      {
+        name: "effect",
+        type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "question",
@@ -1022,7 +1111,7 @@ const tables = [
     foreignKeys: {
       question_link: {
         name: "question_link",
-        columns: ["question"],
+        columns: ["current_question"],
         referencedTable: "Questions",
         referencedColumns: ["xata_id"],
         onDelete: "SET NULL",
@@ -1044,10 +1133,6 @@ const tables = [
     },
     primaryKey: [],
     uniqueConstraints: {
-      UserTestProgress__pgroll_new_user_progress_id_key: {
-        name: "UserTestProgress__pgroll_new_user_progress_id_key",
-        columns: ["user_progress_id"],
-      },
       _pgroll_new_UserTestProgress_xata_id_key: {
         name: "_pgroll_new_UserTestProgress_xata_id_key",
         columns: ["xata_id"],
@@ -1071,13 +1156,21 @@ const tables = [
         comment: "",
       },
       {
-        name: "question",
+        name: "current_question",
         type: "link",
         link: { table: "Questions" },
         notNull: true,
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Questions"}',
+      },
+      {
+        name: "score",
+        type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "started_at",
@@ -1112,14 +1205,6 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Users"}',
-      },
-      {
-        name: "user_progress_id",
-        type: "int",
-        notNull: true,
-        unique: true,
-        defaultValue: null,
-        comment: "",
       },
       {
         name: "xata_createdat",
@@ -1487,6 +1572,9 @@ export type InsightsPerUserCategory = InferredTypes["InsightsPerUserCategory"];
 export type InsightsPerUserCategoryRecord = InsightsPerUserCategory &
   XataRecord;
 
+export type Payments = InferredTypes["Payments"];
+export type PaymentsRecord = Payments & XataRecord;
+
 export type PersonalizedAnswers = InferredTypes["PersonalizedAnswers"];
 export type PersonalizedAnswersRecord = PersonalizedAnswers & XataRecord;
 
@@ -1517,6 +1605,7 @@ export type DatabaseSchema = {
   Countries: CountriesRecord;
   Insights: InsightsRecord;
   InsightsPerUserCategory: InsightsPerUserCategoryRecord;
+  Payments: PaymentsRecord;
   PersonalizedAnswers: PersonalizedAnswersRecord;
   Questions: QuestionsRecord;
   Regions: RegionsRecord;

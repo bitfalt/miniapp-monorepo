@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cua6fkm34skj7mihn0sg",
+    "operations": [
+      {
+        "add_column": {
+          "table": "Questions",
+          "column": {
+            "name": "effect",
+            "type": "json",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cua6fkm34skj7mihn0sg",
+  "parent": "mig_cu8uib634skj7mihmmr0",
+  "schema": "public",
+  "startedAt": "2025-01-25T04:25:55.636712Z"
+}

@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cubbm0utrfea4ndanu2g",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "percentage",
+          "table": "InsightsPerUserCategory",
+          "column": "left_percentage"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cubbm0utrfea4ndanu2g",
+  "parent": "mig_cubbllflmd4pfs40ol2g",
+  "schema": "public",
+  "startedAt": "2025-01-26T22:45:24.302166Z"
+}

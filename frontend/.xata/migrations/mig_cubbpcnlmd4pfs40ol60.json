@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cubbpcnlmd4pfs40ol60",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Payments",
+          "column": {
+            "name": "user",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Users\"}",
+            "references": {
+              "name": "user_link",
+              "table": "Users",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cubbpcnlmd4pfs40ol60",
+  "parent": "mig_cubbp4m34skj7mihnaq0",
+  "schema": "public",
+  "startedAt": "2025-01-26T22:52:35.614585Z"
+}
