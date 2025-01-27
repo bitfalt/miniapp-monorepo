@@ -8,7 +8,8 @@ export async function GET(
 ) {
   try {
     const testId = parseInt(params.testId);
-    
+
+    // Validate the test ID
     if (isNaN(testId) || testId <= 0) {
       return NextResponse.json(
         { error: "Invalid test ID" },
@@ -17,36 +18,16 @@ export async function GET(
     }
 
     const xata = getXataClient();
-    
-    // First, verify the total questions in the test
-    const test = await xata.db.Tests
-      .filter({ test_id: testId })
-      .getFirst();
 
-    if (!test) {
-      return NextResponse.json(
-        { error: "Test not found" },
-        { status: 404 }
-      );
-    }
-
-    console.log(`Expected questions for test ${testId}:`, test.total_questions);
-    
-    // Fetch questions with explicit pagination
+    // Fetch all questions for the specified test
     const questions = await xata.db.Questions
-      .filter({
-        "test.test_id": testId
-      })
-      .sort("sort_order", "asc")
-      .getPaginated({
-        pagination: {
-          size: 100 // Increase the limit to ensure we get all questions
-        }
-      });
+      .filter({ "test.test_id": testId }) // Filter by the test ID
+      .select(["question_id", "question", "effect", "sort_order"]) // Select necessary fields
+      .sort("sort_order", "asc") // Sort by sort_order
+      .getAll();
 
-    console.log(`Actually fetched questions:`, questions.records.length);
-
-    if (!questions.records || questions.records.length === 0) {
+    // Check if questions were found
+    if (!questions || questions.length === 0) {
       return NextResponse.json(
         { error: "No questions found for this test" },
         { status: 404 }
@@ -54,26 +35,23 @@ export async function GET(
     }
 
     // Transform the questions to match the expected format
-    const formattedQuestions = questions.records.map(q => ({
+    const formattedQuestions = questions.map((q) => ({
       id: q.question_id,
       question: q.question,
-      effect: {
-        econ: 0, // Add your actual effect values here
-        dipl: 0,
-        govt: 0,
-        scty: 0
-      }
+      effect: q.effect, // Use the effect values from the database
     }));
 
-    return NextResponse.json({
-      questions: formattedQuestions
-    });
+    // Return the formatted questions
+    return NextResponse.json(
+      { questions: formattedQuestions },
+      { status: 200 }
+    );
 
   } catch (error) {
-    console.error("Error in questions API:", error);
+    console.error("Error fetching questions:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to fetch questions" },
       { status: 500 }
     );
   }
-} 
+}
