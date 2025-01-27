@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cubbp4m34skj7mihnaq0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Payments",
+          "column": {
+            "name": "uuid",
+            "type": "text",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cubbp4m34skj7mihnaq0",
+  "parent": "mig_cubbnj634skj7mihnap0",
+  "schema": "public",
+  "startedAt": "2025-01-26T22:52:03.520728Z"
+}
