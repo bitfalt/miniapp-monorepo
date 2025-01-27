@@ -34,11 +34,17 @@ export default function InsightsPage() {
     try {
       // Check user's pro status
       const userResponse = await fetch('/api/user/subscription');
-      const userData = await userResponse.json();
+      if (!userResponse.ok) {
+      throw new Error('Failed to fetch subscription status');
+      }
+      const userData= await userResponse.json();
       setIsProUser(userData.isPro);
 
       // Fetch insights
       const response = await fetch(`/api/insights?econ=${econ}&dipl=${dipl}&govt=${govt}&scty=${scty}`);
+      if (!response.ok) {
+      throw new Error('Failed to fetch insights');
+      }
       const data = await response.json();
       setInsights(data.insights);
 

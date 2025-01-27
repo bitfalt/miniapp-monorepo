@@ -4,6 +4,22 @@ import { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { econ, dipl, govt, scty } = req.body;
+    
+    // Validate required fields
+    if (!econ || !dipl || !govt || !scty) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Validate score ranges
+    const scores = { econ, dipl, govt, scty };
+    for (const [key, value] of Object.entries(scores)) {
+      const score = Number(value);
+      if (isNaN(score) || score < 0 || score > 100) {
+        return res.status(400).json({ 
+          error: `Invalid ${key} score. Must be a number between 0 and 100` 
+        });
+      }
+    }
 
     const prompt = 
     
@@ -58,14 +74,16 @@ Begin immediately with "1. Your Ideological Breakdown"  `;
       });
 
       if (!deepSeekResponse.ok) {
-        throw new Error('Failed to fetch analysis from DeepSeek');
+        const error = await deepSeekResponse.text();
+        throw new Error(`DeepSeek API error: ${error}`);
       }
 
       const data = await deepSeekResponse.json();
       res.status(200).json({ analysis: data.analysis });
     } catch (error) {
-      console.error('Error calling DeepSeek API:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error('DeepSeek API error:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: message });
     }
   } else {
     res.status(405).json({ error: 'Method Not Allowed' });
