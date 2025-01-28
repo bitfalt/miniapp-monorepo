@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuccv57lmd4pfs40ovkg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Categories",
+          "column": {
+            "name": "right_label",
+            "type": "text",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuccv57lmd4pfs40ovkg",
+  "parent": "mig_cuccuqe34skj7mihni40",
+  "schema": "public",
+  "startedAt": "2025-01-28T12:37:41.597069Z"
+}

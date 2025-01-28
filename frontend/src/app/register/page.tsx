@@ -129,7 +129,7 @@ export default function Register() {
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
             >
               <option value="" className="text-gray-500">Select age</option>
-              {Array.from({ length: 120 }, (_, i) => i + 1).map((age) => (
+              {Array.from({ length: 113 }, (_, i) => i + 18).map((age) => (
                 <option key={age} value={age} className="text-black">
                   {age}
                 </option>

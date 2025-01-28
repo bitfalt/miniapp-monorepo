@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
 /**
  * @swagger
@@ -46,23 +48,52 @@ import { getXataClient } from "@/lib/utils";
  *       500:
  *         description: Internal server error
  */
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+export const secret = new TextEncoder().encode(JWT_SECRET);
+
 export async function GET(
   request: Request,
   { params }: { params: { testId: string } }
 ) {
   try {
-    // TODO: Remove this once we have a proper auth system
-    const session = await getServerSession();
-    const userEmail = session?.user?.email;
+    const xata = getXataClient();
+    let user;
 
-    if (!userEmail) {
+    // Get token from cookies
+    const token = cookies().get('session')?.value;
+    
+    if (!token) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const xata = getXataClient();
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.address) {
+        user = await xata.db.Users.filter({ 
+          wallet_address: payload.address 
+        }).getFirst();
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid session" },
+        { status: 401 }
+      );
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
     
     // Validate test ID
     const testId = parseInt(params.testId);
@@ -70,15 +101,6 @@ export async function GET(
       return NextResponse.json(
         { error: "Invalid test ID" },
         { status: 400 }
-      );
-    }
-
-    // Get user
-    const user = await xata.db.Users.filter({ email: userEmail }).getFirst();
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
       );
     }
 
@@ -99,7 +121,11 @@ export async function GET(
       })
       .select([
         "category.category_name",
-        "insight.insight"
+        "insight.insight",
+        "percentage",
+        "description",
+        "category.right_label",
+        "category.left_label"
       ])
       .getMany();
 
@@ -113,12 +139,11 @@ export async function GET(
     // Transform and organize insights
     const insights = userInsights.map(record => ({
       category: record.category?.category_name,
-      // TODO: Calculate these values once schema is updated
-      left_percentage: 0,
-      right_percentage: 0,
-      // TODO: Add logic to determine description based on percentages
-      description: "Pending description",
-      insight: record.insight?.insight
+      percentage: record.percentage,
+      description: record.description,
+      insight: record.insight?.insight,
+      left_label: record.category?.left_label,
+      right_label: record.category?.right_label
     })).filter(insight => insight.category && insight.insight); // Filter out any incomplete records
 
     return NextResponse.json({

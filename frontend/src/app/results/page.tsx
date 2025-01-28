@@ -71,7 +71,7 @@ export default function ResultsPage() {
   }, [])
 
   const handleCardClick = (testId: string) => {
-    router.push(`/tests/results/${testId}`)
+    router.push(`/insights?testId=${testId}`)
   }
 
   if (loading) {

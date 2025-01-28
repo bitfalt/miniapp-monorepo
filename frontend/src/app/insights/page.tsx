@@ -2,13 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { InsightResultCard } from '@/components/ui/InsightResultCard';
-import { useSearchParams } from 'next/navigation';
 import { FilledButton } from '@/components/ui/FilledButton';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface Insight {
-  axis: string;
+  category: string;
   percentage: number;
   insight: string;
+  description: string;
+  left_label: string;
+  right_label: string;
   values: {
     left: number;
     right: number;
@@ -17,6 +20,7 @@ interface Insight {
 }
 
 export default function InsightsPage() {
+  const router = useRouter();
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,12 +28,10 @@ export default function InsightsPage() {
   const [fullAnalysis, setFullAnalysis] = useState<string>('');
   const searchParams = useSearchParams();
 
+  const testId = searchParams.get('testId')
+
   const fetchInsights = async () => {
     setLoading(true);
-    const econ = searchParams.get('econ');
-    const dipl = searchParams.get('dipl');
-    const govt = searchParams.get('govt');
-    const scty = searchParams.get('scty');
 
     try {
       // Check user's pro status
@@ -41,34 +43,45 @@ export default function InsightsPage() {
       setIsProUser(userData.isPro);
 
       // Fetch insights
-      const response = await fetch(`/api/insights?econ=${econ}&dipl=${dipl}&govt=${govt}&scty=${scty}`);
+      const response = await fetch(`/api/insights/${testId}`);
       if (!response.ok) {
-      throw new Error('Failed to fetch insights');
+        throw new Error('Failed to fetch insights');
       }
       const data = await response.json();
       setInsights(data.insights);
 
+      console.log(data.insights);
+
+      // Get scores from database
+      const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
+      const scoresData = await scoresResponse.json();
+      const { scores } = scoresData;
+
       // Call DeepSeek API for full analysis
+      if (isProUser) {
       const deepSeekResponse = await fetch('/api/deepseek', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          econ: parseFloat(econ || '0'),
-          dipl: parseFloat(dipl || '0'),
-          govt: parseFloat(govt || '0'),
-          scty: parseFloat(scty || '0'),
+          econ: parseFloat(scores.econ || '0'),
+          dipl: parseFloat(scores.dipl || '0'),
+          govt: parseFloat(scores.govt || '0'),
+          scty: parseFloat(scores.scty || '0'),
         }),
       });
 
-      if (deepSeekResponse.ok) {
+      if (deepSeekResponse.status === 200) {
         const deepSeekData = await deepSeekResponse.json();
         setFullAnalysis(deepSeekData.analysis);
       } else {
         console.error('Error fetching DeepSeek analysis:', deepSeekResponse.statusText);
-        setFullAnalysis('Failed to generate analysis. Please try again later.');
+          setFullAnalysis('Failed to generate analysis. Please try again later.');
+        }
       }
+
+
     } catch (error) {
       console.error('Error fetching insights:', error);
       setFullAnalysis('Failed to generate analysis. Please try again later.');
@@ -122,9 +135,12 @@ export default function InsightsPage() {
           insights.map((insight, index) => (
             <InsightResultCard
               key={index}
-              title={`${insight.axis.charAt(0).toUpperCase() + insight.axis.slice(1)} Perspective`}
-              description={insight.insight}
-              scale={insight.percentage}
+              title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
+              insight={insight.insight}
+              description={insight.description}
+              percentage={insight.percentage}
+              left_label={insight.left_label}
+              right_label={insight.right_label}
               values={insight.values}
             />
           ))
@@ -181,7 +197,7 @@ export default function InsightsPage() {
                   <FilledButton
                     variant="default"
                     onClick={() => {
-                      window.location.href = '/awaken-pro';
+                      router.push('/awaken-pro');
                     }}
                   >
                     Upgrade to Pro
