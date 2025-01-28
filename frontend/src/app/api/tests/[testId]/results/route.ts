@@ -121,10 +121,10 @@ export async function GET(
     
     // Map scores to categories
     const categoryScores: CategoryScore[] = [
-      { category_xata_id: categories.find(c => c.category_name === "Economic")?.xata_id || "", score: progress.score.economic },
-      { category_xata_id: categories.find(c => c.category_name === "Civil")?.xata_id || "", score: progress.score.civil },
-      { category_xata_id: categories.find(c => c.category_name === "Diplomatic")?.xata_id || "", score: progress.score.diplomatic },
-      { category_xata_id: categories.find(c => c.category_name === "Societal")?.xata_id || "", score: progress.score.societal }
+      { category_xata_id: categories.find(c => c.category_name === "Economic")?.xata_id || "", score: progress.score.econ },
+      { category_xata_id: categories.find(c => c.category_name === "Civil")?.xata_id || "", score: progress.score.govt },
+      { category_xata_id: categories.find(c => c.category_name === "Diplomatic")?.xata_id || "", score: progress.score.dipl },
+      { category_xata_id: categories.find(c => c.category_name === "Societal")?.xata_id || "", score: progress.score.scty }
     ].filter(cs => cs.category_xata_id !== "");
 
     // Process each category score
@@ -137,6 +137,9 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // Round all scores to integers
+    categoryScores.forEach(cs => cs.score = Math.round(cs.score));
 
     for (const categoryScore of categoryScores) {
       // Find matching insight based on score
@@ -157,12 +160,22 @@ export async function GET(
             .getFirst();
           const nextInsightId = (latestInsight?.insight_user_id || 0) + 1;
 
+          // Get range description based on score
+          let range = 'neutral'
+          if (categoryScore.score >= 45 && categoryScore.score <= 55) {
+            range = 'centrist'
+          } else if (categoryScore.score >= 35 && categoryScore.score < 45) {
+            range = 'moderate'
+          } else if (categoryScore.score >= 25 && categoryScore.score < 35) {
+            range = 'balanced'
+          }
+
           await xata.db.InsightsPerUserCategory.create({
             category: category.xata_id,
             insight: insight.xata_id,
             test: test.xata_id,
             user: user.xata_id,
-            description: insight.insight,
+            description: range,
             percentage: categoryScore.score,
             insight_user_id: nextInsightId
           });
@@ -171,7 +184,7 @@ export async function GET(
           results.push({
             category: category.category_name,
             insight: insight.insight,
-            description: insight.insight,
+            description: range,
             percentage: categoryScore.score
           });
         }

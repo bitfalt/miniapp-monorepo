@@ -147,6 +147,22 @@ const tables = [
         comment: "",
       },
       {
+        name: "left_label",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "right_label",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "test",
         type: "link",
         link: { table: "Tests" },

@@ -8,7 +8,7 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
-const secret = new TextEncoder().encode(JWT_SECRET);
+export const secret = new TextEncoder().encode(JWT_SECRET);
 
 export async function GET(
   request: Request,
@@ -53,7 +53,9 @@ export async function GET(
     const progress = await xata.db.UserTestProgress.filter({
       "user.xata_id": user.xata_id,
       "test.test_id": parseInt(params.testId)
-    }).getFirst();
+    })
+    .select(["*", "current_question.question_id"])
+    .getFirst();
 
     if (!progress) {
       return NextResponse.json({
