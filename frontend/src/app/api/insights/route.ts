@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { secret } from "../tests/[testId]/progress/route";
 
 /**
  * @swagger
@@ -35,6 +34,14 @@ import { secret } from "../tests/[testId]/progress/route";
  *       500:
  *         description: Internal server error
  */
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+export const secret = new TextEncoder().encode(JWT_SECRET);
+
 export async function GET(request: Request) {
   try {
     const xata = getXataClient();

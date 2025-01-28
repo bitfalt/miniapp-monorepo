@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const scores = { econ, dipl, govt, scty };
     for (const [key, value] of Object.entries(scores)) {
       const score = Number(value);
-      if (isNaN(score) || score < 0 || score > 100) {
+      if (Number.isNaN(score) || score < 0 || score > 100) {
         return NextResponse.json({ 
           error: `Invalid ${key} score. Must be a number between 0 and 100` 
         }, { status: 400 });
