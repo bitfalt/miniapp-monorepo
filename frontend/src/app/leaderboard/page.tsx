@@ -2,6 +2,8 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface LeaderboardEntry {
   rank: number
@@ -26,6 +28,14 @@ const leaderboardEntries: LeaderboardEntry[] = [
 ]
 
 export default function LeaderboardPage() {
+  const [isModalOpen, setIsModalOpen] = useState(true); // State for modal visibility
+  const router = useRouter(); // Initialize the router
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+    router.back(); // Redirect to the previous page
+  };
+
   return (
     <div className="min-h-screen bg-neutral-bg relative">
       {/* Main Content */}
@@ -95,19 +105,27 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Coming Soon Overlay */}
-      <div className="absolute inset-0 bg-neutral-bg/60 backdrop-blur-sm flex items-center justify-center pb-20">
-        <div className={cn(
-          "bg-brand-secondary p-8 rounded-3xl text-center max-w-sm mx-4",
-          "shadow-[0_14px_28px_rgba(0,0,0,0.25),_0_10px_10px_rgba(0,0,0,0.22)]",
-          "border border-brand-tertiary/10 backdrop-blur-sm"
-        )}>
-          <h2 className="text-2xl font-bold text-white mb-3">Coming Soon</h2>
-          <p className="text-slate-200 text-sm">
-            The leaderboard feature is currently under development. 
-            Check back soon to compete with others!
-          </p>
+      {isModalOpen && (
+        <div className="absolute inset-0 bg-neutral-bg/60 backdrop-blur-sm flex items-center justify-center pb-20">
+          <div className={cn(
+            "bg-brand-secondary p-8 rounded-3xl text-center max-w-sm mx-4",
+            "shadow-[0_14px_28px_rgba(0,0,0,0.25),_0_10px_10px_rgba(0,0,0,0.22)]",
+            "border border-brand-tertiary/10 backdrop-blur-sm"
+          )}>
+            <h2 className="text-2xl font-bold text-white mb-3">Coming Soon</h2>
+            <p className="text-slate-200 text-sm">
+              The leaderboard feature is currently under development. 
+              Check back soon to compete with others!
+            </p>
+            <button 
+              className="mt-4 bg-accent-red text-white rounded-lg px-4 py-2"
+              onClick={handleCloseModal} // Close the modal and redirect
+            >
+              Close
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 } 

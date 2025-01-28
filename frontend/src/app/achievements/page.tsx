@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import AchievementCard from "@/components/ui/AchievementCard"
+import { useRouter } from 'next/navigation'
 
 interface Achievement {
   title: string
@@ -15,6 +16,8 @@ export default function AchievementsPage() {
   const [loading, setLoading] = useState(true)
   const [level, setLevel] = useState({ current: 0, max: 100, title: "" })
   const [achievements, setAchievements] = useState<Achievement[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(true); // State for modal visibility
+  const router = useRouter(); // Initialize the router
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +35,11 @@ export default function AchievementsPage() {
 
     fetchData()
   }, [])
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+    router.back(); // Redirect to the previous page
+  };
 
   if (loading) {
     return <LoadingSpinner />
@@ -92,6 +100,25 @@ export default function AchievementsPage() {
           </div>
         ))}
       </div>
+
+      {/* Coming Soon Overlay */}
+      {isModalOpen && (
+        <div className="absolute inset-0 bg-neutral-bg/60 backdrop-blur-sm flex items-center justify-center pb-20 z-50">
+          <div className="bg-brand-secondary p-8 rounded-3xl text-center max-w-sm mx-4 shadow-[0_14px_28px_rgba(0,0,0,0.25),_0_10px_10px_rgba(0,0,0,0.22)] border border-brand-tertiary/10 backdrop-blur-sm">
+            <h2 className="text-2xl font-bold text-white mb-3">Coming Soon</h2>
+            <p className="text-slate-200 text-sm">
+              The achievements feature is currently under development. 
+              Check back soon to celebrate your progress!
+            </p>
+            <button 
+              className="mt-4 bg-accent-red text-white rounded-lg px-4 py-2"
+              onClick={handleCloseModal}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
