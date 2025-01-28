@@ -3,8 +3,8 @@ import InsightResultTag from '@/components/ui/InsightResultTag';
 
 interface InsightResultCardProps {
   title: string;
+  insight: string;
   description: string;
-  scale: number;
   values: {
     left: number;
     right: number;
@@ -12,11 +12,11 @@ interface InsightResultCardProps {
   };
 }
 
-export function InsightResultCard({ title, description, scale, values }: InsightResultCardProps) {
+export function InsightResultCard({ title, insight, description, values }: InsightResultCardProps) {
   return (
     <div className="bg-brand-secondary rounded-3xl p-8 shadow-lg border border-brand-tertiary/10 hover:shadow-xl transition-all duration-300 ease-in-out">
       <h2 className="text-2xl font-bold text-slate-100 mb-4 tracking-tight">{title}</h2>
-      <p className="text-slate-200/90 mb-8 italic leading-relaxed">"{description}"</p>
+      <p className="text-slate-200/90 mb-8 italic leading-relaxed">"{insight}"</p>
       
       <div className="space-y-4">
         <div className="flex justify-between text-sm text-slate-200/90 font-medium">
@@ -36,7 +36,12 @@ export function InsightResultCard({ title, description, scale, values }: Insight
           />
         </div>
         <div className="flex justify-center mt-6">
-          <InsightResultTag scale={scale} />
+          {/* <InsightResultTag scale={scale} /> */}
+          <div
+            className="inline-flex px-4 py-1.5 bg-emerald-400 text-emerald-950 rounded-full font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-shadow duration-300"
+          >
+            {description.charAt(0).toUpperCase() + description.slice(1)}
+          </div>
         </div>
       </div>
     </div>

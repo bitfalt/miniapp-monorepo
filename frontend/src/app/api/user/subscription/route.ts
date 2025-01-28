@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { secret } from "../../tests/[testId]/progress/route";
 
 /**
  * @swagger
@@ -29,24 +32,32 @@ import { getXataClient } from "@/lib/utils";
  */
 export async function GET(request: Request) {
   try {
-    // TODO: Remove this once we have a proper auth system
-    const session = await getServerSession();
-    const userEmail = session?.user?.email;
+    const xata = getXataClient();
+    let user;
 
-    if (!userEmail) {
+    // Get token from cookies
+    const token = cookies().get('session')?.value;
+    
+    if (!token) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const xata = getXataClient();
-
-    // Get user's subscription info
-    const user = await xata.db.Users
-      .filter({ email: userEmail })
-      .select(["subscription_expires"])
-      .getFirst();
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.address) {
+        user = await xata.db.Users.filter({ 
+          wallet_address: payload.address 
+        }).getFirst();
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid session" },
+        { status: 401 }
+      );
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -57,8 +68,10 @@ export async function GET(request: Request) {
 
     if (!user.subscription_expires) {
       return NextResponse.json(
-        { error: "No active subscription found" },
-        { status: 404 }
+        { 
+          message: "No active subscription found",
+          isPro: false
+        }
       );
     }
 
@@ -66,7 +79,8 @@ export async function GET(request: Request) {
     const nextPaymentDate = user.subscription_expires.toISOString().split('T')[0];
 
     return NextResponse.json({
-      next_payment_date: nextPaymentDate
+      next_payment_date: nextPaymentDate,
+      isPro: true
     });
 
   } catch (error) {

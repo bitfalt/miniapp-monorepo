@@ -121,24 +121,41 @@ export default function IdeologyTest() {
       const govtScore = ((updatedScores.govt + maxGovt) / (2 * maxGovt)) * 100;
       const sctyScore = ((updatedScores.scty + maxScty) / (2 * maxScty)) * 100;
 
-      // Save final results
-      await fetch(`/api/tests/${testId}/complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scores: {
-            economic: econScore,
-            diplomatic: diplScore,
-            civil: govtScore,
-            societal: sctyScore
-          }
-        })
-      });
+      // Round all scores to integers
+      const roundedScores = {
+        econ: Math.round(econScore),
+        dipl: Math.round(diplScore),
+        govt: Math.round(govtScore),
+        scty: Math.round(sctyScore)
+      };
 
-      // Navigate to results page
-      router.push('/results');
+      // Save final answers
+        const response = await fetch(`/api/tests/${testId}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+
+          body: JSON.stringify({
+            questionId: question.id,
+            answer: multiplier,
+            currentQuestion: question.id,
+            scores: roundedScores
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save final answers');
+        }
+      
+      // Save final results
+      const resultsResponse = await fetch(`/api/tests/${testId}/results`);
+      if (!resultsResponse.ok) {
+        throw new Error('Failed to save final results');
+      }
+
+      // Navigate to insights of the test
+      router.push(`/insights?testId=${testId}`);
     }
   } catch (error) {
     console.error('Error saving progress:', error);
@@ -273,7 +290,7 @@ export default function IdeologyTest() {
               Previous
             </FilledButton>
           )}
-
+{/* Check to see if we should remove Next button */}
           {currentQuestion === 0 && <div className="flex-1" />}
 
           <FilledButton
