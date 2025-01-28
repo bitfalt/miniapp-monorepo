@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { ActionCard } from "@/components/ui/ActionCard"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, Brain, Heart, Star, Trophy } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 interface TestResult {
   title: string
@@ -11,18 +12,54 @@ interface TestResult {
   iconBgColor: string
   Icon: LucideIcon
   isEnabled: boolean
+  testId?: string
 }
 
 export default function ResultsPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [testResults, setTestResults] = useState<TestResult[]>([])
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch('/api/results')
+        const response = await fetch('/api/tests')
         const data = await response.json()
-        setTestResults(data)
+        
+        const transformedResults = data.tests.map((test: any) => ({
+          title: test.testName || "Political Values Test",
+          backgroundColor: "#387478",
+          iconBgColor: "#2C5154",
+          Icon: Brain,
+          isEnabled: true,
+          testId: test.testId
+        }))
+        
+        const comingSoonCards = [
+          {
+            title: "Personality Test (Coming Soon)",
+            backgroundColor: "#8B5CF6",
+            iconBgColor: "#7C3AED",
+            Icon: Heart,
+            isEnabled: false
+          },
+          {
+            title: "Coming Soon",
+            backgroundColor: "#EC4899",
+            iconBgColor: "#DB2777",
+            Icon: Star,
+            isEnabled: false
+          },
+          {
+            title: "Coming Soon",
+            backgroundColor: "#F59E0B",
+            iconBgColor: "#D97706",
+            Icon: Trophy,
+            isEnabled: false
+          }
+        ]
+        
+        setTestResults([...transformedResults, ...comingSoonCards])
       } catch (error) {
         console.error('Error fetching results:', error)
       } finally {
@@ -32,6 +69,10 @@ export default function ResultsPage() {
 
     fetchResults()
   }, [])
+
+  const handleCardClick = (testId: string) => {
+    router.push(`/tests/results/${testId}`)
+  }
 
   if (loading) {
     return <LoadingSpinner />
@@ -55,10 +96,12 @@ export default function ResultsPage() {
           {testResults.map((test, index) => (
             <ActionCard
               key={index}
-              title={test.isEnabled ? test.title : `${test.title} (Coming Soon)`}
+              title={test.title}
               backgroundColor={test.backgroundColor}
               iconBgColor={test.iconBgColor}
               Icon={test.Icon}
+              isClickable={test.isEnabled}
+              onClick={() => test.testId && test.isEnabled && handleCardClick(test.testId)}
               className={`transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 ${
                 !test.isEnabled && "opacity-30 cursor-not-allowed"
               }`}

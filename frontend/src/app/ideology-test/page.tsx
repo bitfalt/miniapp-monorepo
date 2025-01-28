@@ -6,8 +6,9 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Question } from "@/app/types";
 import { TestResult } from "@/app/types";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
-const answers = [
+const answerOptions = [
   { label: "Strongly Agree", multiplier: 1.0 },
   { label: "Agree", multiplier: 0.5 },
   { label: "Neutral", multiplier: 0.0 },
@@ -23,6 +24,7 @@ export default function IdeologyTest() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [scores, setScores] = useState({ econ: 0, dipl: 0, govt: 0, scty: 0 });
+  const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,53 +32,43 @@ export default function IdeologyTest() {
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
   useEffect(() => {
-    console.log("Fetching questions...");
-    const fetchQuestions = async () => {
+    const loadProgress = async (loadedQuestions: Question[]) => {
       try {
-        const response = await fetch(`/api/tests/${testId}/questions`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch questions");
+        const response = await fetch(`/api/tests/${testId}/progress`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.answers && Object.keys(data.answers).length > 0) {
+            const lastAnsweredId = Object.keys(data.answers).pop();
+            const lastAnsweredIndex = loadedQuestions.findIndex(q => q.id.toString() === lastAnsweredId);
+            const nextQuestionIndex = Math.min(lastAnsweredIndex + 1, loadedQuestions.length - 1);
+            setCurrentQuestion(nextQuestionIndex);
+            setScores(data.scores || { econ: 0, dipl: 0, govt: 0, scty: 0 });
+            setUserAnswers(data.answers);
+          }
         }
-        const data = await response.json();
-        
-        if (!data.questions || !Array.isArray(data.questions)) {
-          throw new Error("Invalid response format");
-        }
-        
-        console.log("Questions fetched:", data.questions);
-        setQuestions(data.questions);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-        console.error("Error fetching questions:", errorMessage);
-        setError(errorMessage);
+      } catch (error) {
+        console.error('Error loading progress:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (testId) {
-      fetchQuestions();
-    }
-  }, [testId]);
-
-  useEffect(() => {
-    const loadSavedProgress = async () => {
+    const fetchQuestions = async () => {
       try {
-        const response = await fetch(`/api/tests/${testId}/progress`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.currentQuestion > 0) {
-            setCurrentQuestion(data.currentQuestion);
-            setScores(data.scores);
-          }
+        const response = await fetch(`/api/tests/${testId}/questions`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch questions");
         }
-      } catch (error) {
-        console.error('Error loading saved progress:', error);
+        const data = await response.json();
+        setQuestions(data.questions);
+        await loadProgress(data.questions);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        setLoading(false);
       }
     };
 
-    loadSavedProgress();
+    fetchQuestions();
   }, [testId]);
 
   const handleAnswer = async (multiplier: number) => {
@@ -101,7 +93,7 @@ export default function IdeologyTest() {
         body: JSON.stringify({
           questionId: question.id,
           answer: multiplier,
-          currentQuestion: currentQuestion,
+          currentQuestion: question.id,
           scores: updatedScores
         })
       });
@@ -109,10 +101,12 @@ export default function IdeologyTest() {
       if (!response.ok) {
         throw new Error('Failed to save progress');
       }
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      // Optionally show error to user
-    }
+
+      // Update local state after successful save
+      setUserAnswers(prev => ({
+        ...prev,
+        [question.id]: multiplier
+      }));
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -127,46 +121,102 @@ export default function IdeologyTest() {
       const govtScore = ((updatedScores.govt + maxGovt) / (2 * maxGovt)) * 100;
       const sctyScore = ((updatedScores.scty + maxScty) / (2 * maxScty)) * 100;
 
-      const results: TestResult = {
-        econ: econScore,
-        dipl: diplScore,
-        govt: govtScore,
-        scty: sctyScore,
-      };
-
       // Save final results
+      await fetch(`/api/tests/${testId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scores: {
+            economic: econScore,
+            diplomatic: diplScore,
+            civil: govtScore,
+            societal: sctyScore
+          }
+        })
+      });
+
+      // Navigate to results page
+      router.push('/results');
+    }
+  } catch (error) {
+    console.error('Error saving progress:', error);
+  }
+};
+
+  const handleNext = async () => {
+    if (currentQuestion < totalQuestions - 1) {
+      const nextQuestion = currentQuestion + 1;
+      setCurrentQuestion(nextQuestion);
+      
       try {
-        await fetch(`/api/tests/${testId}/complete`, {
+        await fetch(`/api/tests/${testId}/progress`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ results })
+          body: JSON.stringify({
+            currentQuestion: questions[nextQuestion].id,
+            scores
+          })
         });
       } catch (error) {
-        console.error('Error saving final results:', error);
+        console.error('Error saving progress:', error);
       }
-
-      // Redirect to insights page with results
-      router.push(`/insights?econ=${results.econ}&dipl=${results.dipl}&govt=${results.govt}&scty=${results.scty}`);
     }
   };
 
-  const handleNext = () => {
-    if (currentQuestion < totalQuestions - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-    }
-  };
-
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
+      const prevQuestion = currentQuestion - 1;
+      setCurrentQuestion(prevQuestion);
+      
+      try {
+        await fetch(`/api/tests/${testId}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            currentQuestion: questions[prevQuestion].id,
+            scores
+          })
+        });
+      } catch (error) {
+        console.error('Error saving progress:', error);
+      }
     }
   };
 
-  if (loading) return <div className="text-white text-center">Loading questions...</div>;
+  const handleLeaveTest = async () => {
+    try {
+      // Save current progress before leaving
+      await fetch(`/api/tests/${testId}/progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentQuestion: questions[currentQuestion].id,
+          scores
+        })
+      });
+      
+      // Navigate to test selection page
+      router.push('/test-selection');
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      // Navigate anyway even if save fails
+      router.push('/test-selection');
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-white text-center">Error: {error}</div>;
-  if (questions.length === 0) return <div className="text-white text-center">No questions found.</div>;
+  if (!questions || questions.length === 0 || currentQuestion >= questions.length) {
+    return <div className="text-white text-center">No questions found.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-brand-tertiary px-4 py-14 flex flex-col items-center">
@@ -175,7 +225,7 @@ export default function IdeologyTest() {
           variant="default"
           size="sm"
           className="mb-8"
-          onClick={() => router.push("/tests")}
+          onClick={handleLeaveTest}
         >
           Leave Test
         </FilledButton>
@@ -193,17 +243,24 @@ export default function IdeologyTest() {
         </div>
 
         <div className="space-y-4 mb-12">
-          {answers.map((answer, index) => (
-            <FilledButton
-              key={index}
-              variant="secondary"
-              size="lg"
-              className="w-full bg-[#387478] hover:bg-[#387478]/90 rounded-[30px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] text-white text-base font-bold font-spaceGrotesk"
-              onClick={() => handleAnswer(answer.multiplier)}
-            >
-              {answer.label}
-            </FilledButton>
-          ))}
+          {answerOptions.map((answer, index) => {
+            const isSelected = userAnswers[questions[currentQuestion].id] === answer.multiplier;
+            return (
+              <FilledButton
+                key={index}
+                variant="secondary"
+                size="lg"
+                className={`w-full ${
+                  isSelected 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-[#387478] hover:bg-[#387478]/90'
+                } rounded-[30px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] text-white text-base font-bold font-spaceGrotesk`}
+                onClick={() => handleAnswer(answer.multiplier)}
+              >
+                {answer.label}
+              </FilledButton>
+            );
+          })}
         </div>
 
         <div className="flex justify-between">

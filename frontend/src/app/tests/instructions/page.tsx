@@ -27,24 +27,35 @@ export default function TestInstructions() {
   const estimatedTime = Math.ceil(instructions.total_questions * 0.15) // Roughly 9 seconds per question
 
   useEffect(() => {
-    const fetchInstructions = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/tests/${testId}/instructions`)
-        const data = await response.json()
+        // Fetch instructions
+        const instructionsResponse = await fetch(`/api/tests/${testId}/instructions`);
+        const instructionsData = await instructionsResponse.json();
+        
+        // Fetch progress
+        const progressResponse = await fetch(`/api/tests/${testId}/progress`);
+        const progressData = await progressResponse.json();
         
         setInstructions({
-          description: data.description,
-          total_questions: data.total_questions
-        })
-      } catch (error) {
-        console.error('Error fetching instructions:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+          description: instructionsData.description,
+          total_questions: instructionsData.total_questions
+        });
 
-    fetchInstructions()
-  }, [testId])
+        if (progressData.answers) {
+          const answeredCount = Object.keys(progressData.answers).length;
+          setCurrentQuestion(answeredCount);
+        }
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [testId]);
 
   if (loading) {
     return <LoadingSpinner />
