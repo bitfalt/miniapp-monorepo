@@ -1165,6 +1165,14 @@ const tables = [
         comment: '{"xata.link":"Questions"}',
       },
       {
+        name: "score",
+        type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "started_at",
         type: "datetime",
         notNull: true,
