@@ -1,0 +1,22 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cua6g1nlmd4pfs40ocpg",
+    "operations": [
+      {
+        "alter_column": {
+          "up": "(SELECT CASE WHEN \"effect\" IS NULL THEN '{}' ELSE \"effect\" END)",
+          "down": "(SELECT CASE WHEN \"effect\" IS NULL THEN '{}' ELSE \"effect\" END)",
+          "table": "Questions",
+          "column": "effect",
+          "nullable": false
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cua6g1nlmd4pfs40ocpg",
+  "parent": "mig_cua6fkm34skj7mihn0sg",
+  "schema": "public",
+  "startedAt": "2025-01-25T04:26:47.952487Z"
+}

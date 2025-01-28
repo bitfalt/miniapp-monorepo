@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cublhputrfea4ndanvq0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "'{}'",
+          "table": "UserTestProgress",
+          "column": {
+            "name": "score",
+            "type": "json",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cublhputrfea4ndanvq0",
+  "parent": "mig_cubbpcnlmd4pfs40ol60",
+  "schema": "public",
+  "startedAt": "2025-01-27T09:59:03.907268Z"
+}

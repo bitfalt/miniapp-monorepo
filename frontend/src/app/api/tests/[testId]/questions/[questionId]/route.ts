@@ -1,6 +1,8 @@
 import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import type { UserTestProgressRecord } from "@/lib/xata";
+import type { EditableData } from "@xata.io/client";
 
 type Answer = {
   question: string;
@@ -8,8 +10,23 @@ type Answer = {
 };
 
 type UserAnswers = {
-  [key: string]: Answer;
+  [key: string]: {
+    question: string;
+    answer: string;
+  };
 };
+
+interface TestScores {
+  economic: number;
+  civil: number;
+  government: number;
+  societal: number;
+}
+
+interface RequestBody {
+  answer: string;
+  scores?: TestScores;
+}
 
 /**
  * @swagger
@@ -164,7 +181,6 @@ export async function POST(
   { params }: { params: { testId: string; questionId: string } }
 ) {
   try {
-    // TODO: remove this once we have a proper auth system
     const session = await getServerSession();
     const userEmail = session?.user?.email;
 
@@ -211,8 +227,8 @@ export async function POST(
     }
 
     // Parse request body
-    const body = await request.json();
-    const answer = body.answer;
+    const body = await request.json() as RequestBody;
+    const { answer, scores } = body;
 
     if (!answer || typeof answer !== "string") {
       return NextResponse.json(
@@ -256,18 +272,12 @@ export async function POST(
       "test.test_id": testId
     }).getFirst();
 
-
-    // Get the latest user_progress_id
-    const latestProgress = await xata.db.UserTestProgress.sort('user_progress_id', 'desc').getFirst();
-    const nextProgressId = (latestProgress?.user_progress_id || 0) + 1;
-
-
     if (!progress) {
       // Create new progress record
-      progress = await xata.db.UserTestProgress.create({
-        user: userRecord,
-        test: test,
-        question: question,
+      const newProgress: Omit<EditableData<UserTestProgressRecord>, "xata_id"> = {
+        user: { xata_id: userRecord.xata_id },
+        test: { xata_id: test.xata_id },
+        current_question: { xata_id: question.xata_id },
         answers: {
           [questionId]: {
             question: question.question,
@@ -275,13 +285,18 @@ export async function POST(
           }
         },
         started_at: new Date(),
-        status: "in_progress",
-        user_progress_id: nextProgressId
-      });
+        status: "in_progress"
+      };
+
+      if (scores) {
+        newProgress.score = scores;
+      }
+
+      progress = await xata.db.UserTestProgress.create(newProgress);
     } else {
       // Update existing progress
       const currentAnswers = progress.answers as UserAnswers || {};
-      await progress.update({
+      const updateData: Partial<EditableData<UserTestProgressRecord>> = {
         answers: {
           ...currentAnswers,
           [questionId]: {
@@ -289,8 +304,14 @@ export async function POST(
             answer: answer
           }
         },
-        question: question
-      });
+        current_question: { xata_id: question.xata_id }
+      };
+
+      if (scores) {
+        updateData.score = scores;
+      }
+
+      await progress.update(updateData);
     }
 
     return NextResponse.json({
