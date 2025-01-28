@@ -36,19 +36,24 @@ export default function TestsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch test data
         const response = await fetch('/api/tests')
         const data = await response.json()
-        console.log('API Response:', data) // Debug log
         
         if (data.tests && data.tests.length > 0) {
           const firstTest = data.tests[0]
-          console.log('First Test:', firstTest) // Debug log
+          
+          // Fetch progress for this test
+          const progressResponse = await fetch(`/api/tests/${firstTest.testId}/progress`)
+          const progressData = await progressResponse.json()
+          
+          const answeredCount = progressData.answers ? Object.keys(progressData.answers).length : 0
           
           setTestData({
             testId: firstTest.testId,
             title: firstTest.testName,
             totalQuestions: firstTest.totalQuestions || 0,
-            answeredQuestions: firstTest.answeredQuestions || 0,
+            answeredQuestions: answeredCount,
             achievements: firstTest.achievements || []
           })
         } else {

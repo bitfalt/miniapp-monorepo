@@ -1,6 +1,14 @@
 import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 interface CategoryScore {
   category_xata_id: string;
@@ -53,21 +61,34 @@ export async function GET(
   { params }: { params: { testId: string } }
 ) {
   try {
-    // TODO: Remove this once we have a proper auth system
-    const session = await getServerSession();
-    const userEmail = session?.user?.email;
+    const xata = getXataClient();
+    let user;
 
-    if (!userEmail) {
+    // Try JWT session from wallet auth
+    const token = cookies().get('session')?.value;
+    
+    if (!token) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const xata = getXataClient();
-    
-    // Get user
-    const user = await xata.db.Users.filter({ email: userEmail }).getFirst();
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.address) {
+        user = await xata.db.Users.filter({ 
+          wallet_address: payload.address 
+        }).getFirst();
+      }
+    } catch (error) {
+      console.error('JWT verification failed:', error);
+      return NextResponse.json(
+        { error: "Invalid session" },
+        { status: 401 }
+      );
+    }
+
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },

@@ -6,6 +6,8 @@ interface ActionCardProps {
   iconBgColor: string;
   Icon: LucideIcon;
   className?: string;
+  onClick?: () => void;
+  isClickable?: boolean;
 }
 
 export function ActionCard({
@@ -14,9 +16,14 @@ export function ActionCard({
   iconBgColor,
   Icon,
   className = '',
+  onClick,
+  isClickable = false,
 }: ActionCardProps) {
   return (
-    <div className={`relative w-[180px] h-[167px] ${className}`}>
+    <div 
+      className={`relative w-[180px] h-[167px] ${className} ${isClickable ? 'cursor-pointer' : ''}`}
+      onClick={isClickable ? onClick : undefined}
+    >
       <div 
         className="absolute left-0 top-0 w-[180px] h-[167px] rounded-[30px] shadow-lg"
         style={{ backgroundColor }}
@@ -25,11 +32,10 @@ export function ActionCard({
         {title}
       </div>
       <div 
-        className="absolute left-[117px] top-[104px] w-[45px] h-11 rounded-full"
+        className="absolute right-[18px] bottom-[18px] w-[50px] h-[50px] rounded-full flex items-center justify-center"
         style={{ backgroundColor: `${iconBgColor}60` }}
-      />
-      <div className="absolute left-[158.50px] top-[144px] w-[37px] h-[37px] origin-top-left rotate-[179.22deg] overflow-hidden">
-        <Icon className="text-white" size={37} />
+      >
+        <Icon className="text-white" size={28} />
       </div>
     </div>
   );
