@@ -117,6 +117,8 @@ export async function GET(
         "insight.insight",
         "percentage",
         "description",
+        "category.right_label",
+        "category.left_label"
       ])
       .getMany();
 
@@ -132,7 +134,9 @@ export async function GET(
       category: record.category?.category_name,
       percentage: record.percentage,
       description: record.description,
-      insight: record.insight?.insight
+      insight: record.insight?.insight,
+      left_label: record.category?.left_label,
+      right_label: record.category?.right_label
     })).filter(insight => insight.category && insight.insight); // Filter out any incomplete records
 
     return NextResponse.json({

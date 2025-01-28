@@ -6,10 +6,12 @@ import { FilledButton } from '@/components/ui/FilledButton';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface Insight {
-  axis: string;
+  category: string;
   percentage: number;
   insight: string;
   description: string;
+  left_label: string;
+  right_label: string;
   values: {
     left: number;
     right: number;
@@ -47,6 +49,9 @@ export default function InsightsPage() {
       }
       const data = await response.json();
       setInsights(data.insights);
+
+      console.log(data.insights);
+
       // Get scores from database
       const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
       const scoresData = await scoresResponse.json();
@@ -130,9 +135,12 @@ export default function InsightsPage() {
           insights.map((insight, index) => (
             <InsightResultCard
               key={index}
-              title={`${insight.axis.charAt(0).toUpperCase() + insight.axis.slice(1)} Perspective`}
+              title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
               insight={insight.insight}
               description={insight.description}
+              percentage={insight.percentage}
+              left_label={insight.left_label}
+              right_label={insight.right_label}
               values={insight.values}
             />
           ))
