@@ -5,7 +5,6 @@ import { FilledButton } from "@/components/ui/FilledButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Question } from "@/app/types";
-import { TestResult } from "@/app/types";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 const answerOptions = [
@@ -102,7 +101,6 @@ export default function IdeologyTest() {
         throw new Error('Failed to save progress');
       }
 
-      // Update local state after successful save
       setUserAnswers(prev => ({
         ...prev,
         [question.id]: multiplier
@@ -121,7 +119,6 @@ export default function IdeologyTest() {
       const govtScore = ((updatedScores.govt + maxGovt) / (2 * maxGovt)) * 100;
       const sctyScore = ((updatedScores.scty + maxScty) / (2 * maxScty)) * 100;
 
-      // Round all scores to integers
       const roundedScores = {
         econ: Math.round(econScore),
         dipl: Math.round(diplScore),
@@ -129,7 +126,6 @@ export default function IdeologyTest() {
         scty: Math.round(sctyScore)
       };
 
-      // Save final answers
         const response = await fetch(`/api/tests/${testId}/progress`, {
           method: 'POST',
           headers: {
@@ -148,13 +144,11 @@ export default function IdeologyTest() {
           throw new Error('Failed to save final answers');
         }
       
-      // Save final results
       const resultsResponse = await fetch(`/api/tests/${testId}/results`);
       if (!resultsResponse.ok) {
         throw new Error('Failed to save final results');
       }
 
-      // Navigate to insights of the test
       router.push(`/insights?testId=${testId}`);
     }
   } catch (error) {
@@ -208,7 +202,6 @@ export default function IdeologyTest() {
 
   const handleLeaveTest = async () => {
     try {
-      // Save current progress before leaving
       await fetch(`/api/tests/${testId}/progress`, {
         method: 'POST',
         headers: {
@@ -220,11 +213,9 @@ export default function IdeologyTest() {
         })
       });
       
-      // Navigate to test selection page
       router.push('/test-selection');
     } catch (error) {
       console.error('Error saving progress:', error);
-      // Navigate anyway even if save fails
       router.push('/test-selection');
     }
   };
@@ -236,71 +227,86 @@ export default function IdeologyTest() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-tertiary px-4 py-14 flex flex-col items-center">
-      <div className="w-full max-w-md">
-        <FilledButton
-          variant="default"
-          size="sm"
-          className="mb-8"
-          onClick={handleLeaveTest}
-        >
-          Leave Test
-        </FilledButton>
-
-        <h1 className="text-center text-white text-3xl font-bold font-spaceGrotesk mb-6">
-          Question {currentQuestion + 1} of {totalQuestions}
-        </h1>
-
-        <div className="flex justify-center mb-8">
-          <ProgressBar progress={progress} variant="warning" />
-        </div>
-
-        <div className="text-center text-white text-2xl font-bold font-spaceGrotesk mb-10">
-          {questions[currentQuestion].question}
-        </div>
-
-        <div className="space-y-4 mb-12">
-          {answerOptions.map((answer, index) => {
-            const isSelected = userAnswers[questions[currentQuestion].id] === answer.multiplier;
-            return (
-              <FilledButton
-                key={index}
-                variant="secondary"
-                size="lg"
-                className={`w-full ${
-                  isSelected 
-                    ? 'bg-green-600 hover:bg-green-700' 
-                    : 'bg-[#387478] hover:bg-[#387478]/90'
-                } rounded-[30px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] text-white text-base font-bold font-spaceGrotesk`}
-                onClick={() => handleAnswer(answer.multiplier)}
-              >
-                {answer.label}
-              </FilledButton>
-            );
-          })}
-        </div>
-
-        <div className="flex justify-between">
-          {currentQuestion > 0 && (
-            <FilledButton
-              variant="default"
-              size="sm"
-              onClick={handlePrevious}
-            >
-              Previous
-            </FilledButton>
-          )}
-{/* Check to see if we should remove Next button */}
-          {currentQuestion === 0 && <div className="flex-1" />}
-
+    <div className="fixed inset-0 bg-brand-tertiary overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 bg-brand-tertiary z-10 px-4 pt-4">
           <FilledButton
             variant="default"
             size="sm"
-            onClick={handleNext}
-            disabled={currentQuestion === totalQuestions - 1}
+            onClick={handleLeaveTest}
           >
-            Next
+            Leave Test
           </FilledButton>
+        </div>
+
+        <div className="absolute inset-0 pt-20 pb-[280px] overflow-y-auto">
+          <div className="w-full max-w-md mx-auto px-4">
+            <div className="space-y-6">
+              <h1 className="text-center text-white text-2xl font-bold font-spaceGrotesk">
+                Question {currentQuestion + 1} of {totalQuestions}
+              </h1>
+
+              <div className="flex justify-center">
+                <ProgressBar 
+                  progress={progress} 
+                  variant="warning" 
+                  totalQuestions={totalQuestions}
+                  currentQuestion={currentQuestion}
+                />
+              </div>
+
+              <div className="text-center text-white text-xl font-bold font-spaceGrotesk min-h-[4rem] pt-4">
+                {questions[currentQuestion].question}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Answer Buttons Section - Fixed at bottom */}
+        <div className="absolute bottom-16 left-0 right-0 bg-brand-tertiary/95 backdrop-blur-sm border-t border-white/10">
+          <div className="w-full max-w-md mx-auto px-4 py-4 space-y-2.5">
+            {answerOptions.map((answer, index) => {
+              const isSelected = userAnswers[questions[currentQuestion].id] === answer.multiplier;
+              return (
+                <FilledButton
+                  key={index}
+                  variant="secondary"
+                  size="lg"
+                  className={`w-full ${
+                    isSelected 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-[#387478] hover:bg-[#387478]/90'
+                  } rounded-[30px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] text-white text-base font-bold font-spaceGrotesk`}
+                  onClick={() => handleAnswer(answer.multiplier)}
+                >
+                  {answer.label}
+                </FilledButton>
+              );
+            })}
+
+            <div className="flex justify-between pt-2">
+              <div>
+                {currentQuestion > 0 && (
+                  <FilledButton
+                    variant="default"
+                    size="sm"
+                    onClick={handlePrevious}
+                  >
+                    Previous
+                  </FilledButton>
+                )}
+              </div>
+
+              <FilledButton
+                variant="default"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentQuestion === totalQuestions - 1}
+              >
+                Next
+              </FilledButton>
+            </div>
+          </div>
         </div>
       </div>
     </div>

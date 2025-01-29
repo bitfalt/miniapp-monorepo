@@ -24,6 +24,11 @@ export default function MobileBottomNav() {
     }
   }, [pathname])
 
+  // Hide bottom nav on ideology test page
+  if (pathname.includes('/ideology-test')) {
+    return null
+  }
+
   return (
     <nav className="fixed bottom-4 left-4 right-4 h-16 bg-brand-tertiary rounded-[25px] shadow-lg">
       <div className="flex justify-around items-center h-full px-4">
