@@ -58,7 +58,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center md:p-6">
+      <div className="flex flex-col items-center md:p-6 pb-12">
         <div className="w-full max-w-7xl px-4">
           <div className="flex flex-col gap-6 items-center w-full">
             <div className="w-full flex justify-center">
