@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import crypto from 'crypto';
 
 export function GET() {
   try {
     // Generate a simple alphanumeric nonce
-    const nonce = Math.random().toString(36).substring(2, 15);
+    const nonce = crypto.randomBytes(32).toString('base64url');
     console.log('Generated nonce:', nonce);
 
     // Store nonce in cookie with proper settings
