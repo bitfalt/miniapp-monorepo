@@ -6,7 +6,6 @@ export function GET() {
   try {
     // Generate a simple alphanumeric nonce
     const nonce = crypto.randomBytes(32).toString('base64url');
-    console.log('Generated nonce:', nonce);
 
     // Store nonce in cookie with proper settings
     cookies().set("siwe", nonce, { 
