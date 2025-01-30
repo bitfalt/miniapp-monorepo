@@ -1,71 +1,120 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required')
-}
-
-// Convert secret to Uint8Array for jose
-const secret = new TextEncoder().encode(JWT_SECRET)
-
-interface JWTPayload {
-  address: string;
-  isRegistered: boolean;
-}
-
-// Add all public paths including API endpoints
+// List of public paths that don't require authentication
 const publicPaths = [
   '/sign-in',
-  '/register',
+  '/api/auth/session',
   '/api/user',
+  '/api/user/check',
   '/api/nonce',
   '/api/complete-siwe',
-  '/api/check-registration',
-  '/welcome'
+  '/_next',
+  '/favicon.ico',
+  '/register'
 ]
 
-const createSignInUrl = (request: NextRequest) => {
-  const signInUrl = new URL("/sign-in", request.url)
-  signInUrl.searchParams.set("callbackUrl", request.url)
-  return signInUrl
+// Get the secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
 }
 
-const verifySession = async (sessionValue: string): Promise<JWTPayload> => {
-  const { payload } = await jwtVerify(sessionValue, secret)
-  return payload as JWTPayload
+// Create secret for JWT tokens
+const secret = new TextEncoder().encode(JWT_SECRET);
+
+// Function to verify JWT token
+async function verifyToken(token: string) {
+  try {
+    console.log('Verifying token in middleware...');
+    if (!token || typeof token !== 'string') {
+      console.error('Invalid token format');
+      return null;
+    }
+
+    const verified = await jwtVerify(token, secret, {
+      algorithms: ['HS256']
+    });
+
+    // Validate payload structure
+    const payload = verified.payload;
+    if (!payload || typeof payload !== 'object') {
+      console.error('Invalid payload structure');
+      return null;
+    }
+
+    // Ensure required fields exist
+    if (!payload.walletAddress || !payload.sub) {
+      console.error('Missing required fields in payload');
+      return null;
+    }
+
+    console.log('Token verified successfully in middleware:', {
+      sub: payload.sub,
+      walletAddress: payload.walletAddress,
+      exp: payload.exp
+    });
+    return payload;
+  } catch (err) {
+    console.error('Token verification failed in middleware:', err);
+    return null;
+  }
 }
 
+// Middleware function
 export async function middleware(request: NextRequest) {
-  const session = request.cookies.get('session')
   const { pathname } = request.nextUrl
 
-  // Check if the current path is public
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
-
-  // Allow all public paths without any checks
-  if (isPublicPath) {
+  // Allow public paths
+  if (publicPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.next()
   }
 
-  // For protected routes, check session
-  if (!session?.value) {
-    return NextResponse.redirect(new URL("/sign-in", request.url))
+  // Get session token and registration status
+  const sessionToken = request.cookies.get('session')?.value
+  const registrationStatus = request.cookies.get('registration_status')?.value
+
+  // For all protected routes
+  if (!sessionToken) {
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
   try {
-    const decoded = await verifySession(session.value)
+    const decoded = await verifyToken(sessionToken)
+    if (!decoded) {
+      const response = NextResponse.redirect(new URL('/sign-in', request.url))
+      response.cookies.delete('session')
+      response.cookies.delete('registration_status')
+      return response
+    }
 
-    // If user is not registered, redirect to register page
-    if (!decoded.isRegistered && !pathname.startsWith('/register')) {
-      return NextResponse.redirect(new URL("/register", request.url))
+    // Handle registration flow
+    if (pathname !== '/register' && registrationStatus !== 'complete') {
+      return NextResponse.redirect(new URL('/register', request.url))
+    }
+
+    // Add user info to request headers for API routes
+    if (pathname.startsWith('/api/')) {
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set('x-user-id', decoded.sub as string)
+      requestHeaders.set('x-wallet-address', decoded.walletAddress as string)
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      })
     }
 
     return NextResponse.next()
   } catch (error) {
-    console.error('Invalid token:', error)
-    return NextResponse.redirect(new URL("/sign-in", request.url))
+    console.error('Middleware error:', error)
+    // Clear invalid session
+    const response = NextResponse.redirect(new URL('/sign-in', request.url))
+    response.cookies.delete('session')
+    response.cookies.delete('registration_status')
+    return response
   }
 }
 

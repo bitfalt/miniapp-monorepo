@@ -10,6 +10,7 @@ import { NotificationsToggle } from "@/components/ui/NotificationsToggle"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
+import { clearVerificationSession } from "@/hooks/useVerification"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -29,6 +30,25 @@ export default function SettingsPage() {
 
     fetchSettings()
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      // Clear verification session data
+      clearVerificationSession()
+      
+      // Clear session cookie
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        // Redirect to sign-in page
+        window.location.href = '/sign-in'
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   if (loading) {
     return <LoadingSpinner />
@@ -121,10 +141,10 @@ export default function SettingsPage() {
 
         <div className="mt-8 mb-20">
           <FilledButton
-            variant="default"
+            variant="warning"
             size="lg"
-            icon={LogOut}
-            className="w-full"
+            onClick={handleLogout}
+            className="w-full bg-red-500 hover:bg-red-600"
           >
             Log Out
           </FilledButton>

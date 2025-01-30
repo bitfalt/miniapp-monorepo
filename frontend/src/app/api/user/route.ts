@@ -1,20 +1,9 @@
 import { getXataClient } from "@/lib/utils";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
-
-/**
- * Type definition for user update data
- * Contains all required fields for user profile creation/update
- */
-type UserUpdateData = {
-  age: number;
-  name: string;
-  country: string;
-  email: string;
-  last_name: string;
-  username: string;
-  wallet_address: string;
-};
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { createHash } from "@/lib/crypto";
 
 /**
  * Validation functions for user data
@@ -33,23 +22,12 @@ const validateEmail = (email: string): boolean =>
 const validateWalletAddress = (address: string): boolean =>
   /^0x[a-fA-F0-9]{40}$/.test(address);
 
-// Function to generate UUID using Web Crypto API
-const generateUUID = () => {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  array[6] = (array[6] & 0x0f) | 0x40;
-  array[8] = (array[8] & 0x3f) | 0x80;
-  
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-};
-
-// Function to create hash using Web Crypto API
-async function createHash(text: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
 }
+
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 /**
  * @swagger
@@ -87,23 +65,34 @@ async function createHash(text: string): Promise<string> {
  */
 export async function GET() {
   try {
-    const session = await getServerSession();
-    const userEmail = session?.user?.email;
+    const xata = getXataClient();
+    let user = null;
 
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    // Try NextAuth session first
+    const session = await getServerSession();
+    if (session?.user?.email) {
+      user = await xata.db.Users.filter('email', session.user.email).getFirst();
     }
 
-    const xata = getXataClient();
-    const user = await xata.db.Users.filter({ email: userEmail }).getFirst();
+    // If no user found, try JWT wallet auth
+    if (!user) {
+      const token = cookies().get('session')?.value;
+      if (token) {
+        try {
+          const { payload: jwtPayload } = await jwtVerify(token, secret);
+          if (jwtPayload.address) {
+            user = await xata.db.Users.filter('wallet_address', jwtPayload.address as string).getFirst();
+          }
+        } catch (error) {
+          console.error('JWT verification failed:', error);
+        }
+      }
+    }
 
     if (!user) {
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
@@ -137,7 +126,28 @@ export async function GET() {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserUpdateData'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 50
+ *               last_name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 50
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               age:
+ *                 type: number
+ *                 minimum: 18
+ *                 maximum: 120
+ *               subscription:
+ *                 type: boolean
+ *               wallet_address:
+ *                 type: string
+ *                 pattern: ^0x[a-fA-F0-9]{40}$
  *     responses:
  *       200:
  *         description: User profile created successfully
@@ -148,94 +158,141 @@ export async function GET() {
  *       500:
  *         description: Internal server error
  */
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json() as UserUpdateData;
     const xata = getXataClient();
+    const data = await req.json();
+    
+    // Validate all input data
+    if (!validateAge(data.age)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid age. Must be between 18 and 120.' }),
+        { status: 400 }
+      );
+    }
 
-    // Check if user already exists
+    if (!validateString(data.name) || !validateString(data.last_name)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid name or last name. Must be between 2 and 50 characters.' }),
+        { status: 400 }
+      );
+    }
+
+    if (!validateEmail(data.email)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid email format.' }),
+        { status: 400 }
+      );
+    }
+
+    if (!validateWalletAddress(data.wallet_address)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid wallet address format.' }),
+        { status: 400 }
+      );
+    }
+
+    // Check if a non-temporary user already exists with this wallet address
     const existingUser = await xata.db.Users.filter({
-      $any: [
-        { email: body.email },
-        { wallet_address: body.wallet_address }
-      ]
+      'wallet_address': data.wallet_address,
+      'name': { $isNot: 'Temporary' }
     }).getFirst();
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
+      return new NextResponse(
+        JSON.stringify({ 
+          error: 'A user with this wallet address already exists',
+          isRegistered: true,
+          userId: existingUser.user_id,
+          userUuid: existingUser.user_uuid
+        }),
         { status: 400 }
       );
     }
 
-    // Validate all input data
-    if (!validateAge(body.age)) {
-      return NextResponse.json(
-        { error: "Invalid age. Must be between 18 and 120." },
-        { status: 400 }
-      );
+    // Delete any temporary users with this wallet address
+    const tempUsers = await xata.db.Users.filter({
+      'wallet_address': data.wallet_address,
+      'name': 'Temporary'
+    }).getMany();
+    
+    for (const tempUser of tempUsers) {
+      await xata.db.Users.delete(tempUser.xata_id);
     }
 
-    if (!validateString(body.name) || !validateString(body.last_name)) {
-      return NextResponse.json(
-        { error: "Invalid name or last name. Must be between 2 and 50 characters." },
-        { status: 400 }
-      );
-    }
+    // Generate user_uuid and username
+    const userUuid = await createHash(data.wallet_address + Date.now().toString());
+    const username = `${data.name.toLowerCase()}_${userUuid.slice(0, 5)}`;
 
-    if (!validateUsername(body.username)) {
-      return NextResponse.json(
-        { error: "Invalid username. Must be 3-30 characters and contain only letters, numbers, underscores, and hyphens." },
-        { status: 400 }
-      );
-    }
-
-    if (!validateEmail(body.email)) {
-      return NextResponse.json(
-        { error: "Invalid email format." },
-        { status: 400 }
+    // Validate username
+    if (!validateUsername(username)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Failed to generate valid username.' }),
+        { status: 500 }
       );
     }
 
     // Get the latest user_id
     const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
     const nextUserId = (latestUser?.user_id || 0) + 1;
-    
-    // Generate user_uuid using Web Crypto API
-    const userUuid = body.wallet_address 
-      ? await createHash(body.wallet_address)
-      : generateUUID();
 
-    // Validate and get country record
-    const country = await xata.db.Countries.filter({ country_name: body.country }).getFirst();
-    if (!country) {
-      return NextResponse.json(
-        { error: "Invalid country name provided" },
-        { status: 400 }
+    // Get default country
+    const countryRecord = await xata.db.Countries.filter({ country_name: "Costa Rica" }).getFirst();
+    if (!countryRecord) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Failed to get default country.' }),
+        { status: 500 }
       );
     }
 
-    // Create new user
-    await xata.db.Users.create({
-      ...body,
-      country: country.xata_id,
+    // Create the new user
+    const newUser = await xata.db.Users.create({
       user_id: nextUserId,
       user_uuid: userUuid,
+      username: username,
+      name: data.name,
+      last_name: data.last_name,
+      email: data.email,
+      age: data.age,
+      subscription: data.subscription,
+      wallet_address: data.wallet_address,
+      country: countryRecord.xata_id,
       created_at: new Date(),
       updated_at: new Date(),
-      subscription: false,
-      verified: false,
+      verified: false
     });
 
-    return NextResponse.json(
-      { message: "User profile created successfully" },
+    if (!newUser) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Failed to create user profile' }),
+        { status: 500 }
+      );
+    }
+
+    // Set registration cookie
+    const response = new NextResponse(
+      JSON.stringify({ 
+        message: 'User profile created successfully',
+        userId: newUser.user_id,
+        userUuid: newUser.user_uuid,
+        isRegistered: true
+      }),
       { status: 200 }
     );
 
+    response.cookies.set('registration_status', 'complete', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
+
+    return response;
+
   } catch (error) {
-    console.error("Error creating user:", error);
-    return NextResponse.json(
-      { error: "Failed to create user" },
+    console.error('Error creating user:', error);
+    return new NextResponse(
+      JSON.stringify({ error: 'Failed to create user profile' }),
       { status: 500 }
     );
   }

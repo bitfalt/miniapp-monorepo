@@ -1,84 +1,69 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { SignJWT } from 'jose';
-import { verifySiweMessage } from '@worldcoin/minikit-js';
-import { getXataClient } from '@/lib/utils';
-
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required')
-}
-
-const xata = getXataClient();
+import { MiniAppWalletAuthSuccessPayload, verifySiweMessage } from '@worldcoin/minikit-js';
 
 interface IRequestPayload {
-  payload: any;
+  payload: MiniAppWalletAuthSuccessPayload;
   nonce: string;
 }
 
-export const POST = async (req: NextRequest) => {
-  const { payload, nonce } = (await req.json()) as IRequestPayload;
-  const storedNonce = cookies().get('siwe')?.value;
-
-  console.log('Received SIWE payload:', {
-    payload,
-    nonce,
-    storedNonce
-  });
-
-  if (nonce !== storedNonce) {
-    console.error('Nonce mismatch:', { received: nonce, stored: storedNonce });
-    return NextResponse.json({ error: 'Invalid nonce' }, { status: 401 });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    console.log('Verifying SIWE message...');
-    const validMessage = await verifySiweMessage(payload, nonce);
-    console.log('SIWE verification result:', validMessage);
-    
-    const isValid = validMessage.isValid;
-    const address = validMessage.siweMessageData.address;
-    
-    if (!isValid) {
-      console.error('Invalid SIWE signature:', validMessage);
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    const { payload, nonce } = (await req.json()) as IRequestPayload;
+    const storedNonce = cookies().get('siwe')?.value;
+
+    console.log('SIWE verification request:', {
+      payload,
+      nonce,
+      storedNonce
+    });
+
+    // Strict nonce comparison
+    if (!storedNonce || storedNonce.trim() !== nonce.trim()) {
+      console.error('Nonce mismatch:', { 
+        received: nonce, 
+        stored: storedNonce,
+        receivedLength: nonce?.length,
+        storedLength: storedNonce?.length
+      });
+      return NextResponse.json({
+        status: 'error',
+        isValid: false,
+        message: 'Invalid nonce',
+      });
     }
 
-    console.log('Checking user in database...');
-    const existingUser = await xata.db.Users.filter({
-      wallet_address: address
-    }).getFirst();
-    console.log('Database lookup result:', existingUser);
+    try {
+      console.log('Verifying SIWE message...');
+      const validMessage = await verifySiweMessage(payload, storedNonce);
+      console.log('SIWE verification result:', validMessage);
 
-    const secret = new TextEncoder().encode(JWT_SECRET);
+      if (!validMessage.isValid || !validMessage.siweMessageData?.address) {
+        throw new Error('Invalid SIWE message');
+      }
 
-    const token = await new SignJWT({ 
-      address,
-      isRegistered: !!existingUser 
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('24h')
-      .sign(secret);
-    
-    const response = NextResponse.json({ 
-      success: true, 
-      address,
-      isRegistered: !!existingUser
-    });
+      // Clear the nonce cookie after successful verification
+      cookies().delete('siwe');
 
-    response.cookies.set('session', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 86400 // 24 hours
-    });
-
-    return response;
+      return NextResponse.json({
+        status: 'success',
+        isValid: true,
+        address: validMessage.siweMessageData.address
+      });
+    } catch (error) {
+      console.error('SIWE verification error:', error);
+      return NextResponse.json({
+        status: 'error',
+        isValid: false,
+        message: error instanceof Error ? error.message : 'SIWE verification failed',
+      });
+    }
   } catch (error) {
-    console.error('SIWE Verification error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Verification failed' },
-      { status: 500 }
-    );
+    console.error('Request processing error:', error);
+    return NextResponse.json({
+      status: 'error',
+      isValid: false,
+      message: error instanceof Error ? error.message : 'Request processing failed',
+    });
   }
-}; 
+} 
