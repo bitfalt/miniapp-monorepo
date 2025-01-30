@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import dynamic from "next/dynamic";
 import MiniKitProvider from "@/providers/MiniKitProvider";
-import NextAuthProvider from "@/providers/next-auth-provider";
 import LayoutContent from "@/components/LayoutContent";
 import { ThemeProvider } from "@/providers/ThemeProvider"
 import { NotificationsProvider } from "@/providers/NotificationsProvider"
@@ -36,15 +35,13 @@ export default function RootLayout({
       <body className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}>
         <ThemeProvider>
           <NotificationsProvider>
-            <NextAuthProvider>
-              <ErudaProvider>
-                <MiniKitProvider>
-                  <LayoutContent>
-                    {children}
-                  </LayoutContent>
-                </MiniKitProvider>
-              </ErudaProvider>
-            </NextAuthProvider>
+            <ErudaProvider>
+              <MiniKitProvider>
+                <LayoutContent>
+                  {children}
+                </LayoutContent>
+              </MiniKitProvider>
+            </ErudaProvider>
           </NotificationsProvider>
         </ThemeProvider>
       </body>

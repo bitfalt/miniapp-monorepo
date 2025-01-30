@@ -1,15 +1,81 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FilledButton } from "@/components/ui/FilledButton";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import Image from 'next/image'
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 export default function Welcome() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const name = searchParams.get("name") || "User";
+  const { isAuthenticated, isRegistered } = useAuth();
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const response = await fetch('/api/user/me', {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUserName(userData.name || "User");
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+
+    fetchUserData();
+  }, []);
+
+  const handleGetStarted = async () => {
+    try {
+      // Verify session is still valid before navigating
+      const sessionResponse = await fetch('/api/auth/session', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+
+      if (!sessionResponse.ok) {
+        throw new Error('Session verification failed');
+      }
+
+      // Clear registration completion flag
+      sessionStorage.removeItem('registration_complete');
+      
+      // Navigate to home page
+      router.replace('/');
+
+    } catch (error) {
+      console.error('Error during navigation:', error);
+      // If session is invalid, redirect to sign-in
+      router.replace('/sign-in');
+    }
+  };
+
+  // Only redirect if user manually navigates to welcome page
+  useEffect(() => {
+    const registrationComplete = sessionStorage.getItem('registration_complete');
+    
+    // Allow viewing welcome page if registration was just completed or has valid session
+    if (registrationComplete || (isAuthenticated && isRegistered)) {
+      return; // Exit early without redirecting
+    }
+    
+    // Otherwise, redirect unauthorized users
+    router.replace('/sign-in');
+  }, [isAuthenticated, isRegistered, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2c5154] to-[#1d3638] relative overflow-hidden flex items-center justify-center">
@@ -31,7 +97,7 @@ export default function Welcome() {
             transition={{ delay: 0.1, duration: 0.5 }}
           >
             <Image 
-              src="/logo.svg" 
+              src="/mindvault-logo.png" 
               alt="Vault Logo" 
               width={64}
               height={64}
@@ -53,7 +119,7 @@ export default function Welcome() {
             </motion.div>
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">
-              Welcome, <span className="text-[#e36c59]">{name}</span>!
+              Welcome, <span className="text-[#e36c59]">{userName}</span>!
             </h1>
           </div>
 
@@ -66,7 +132,7 @@ export default function Welcome() {
           >
             <p className="text-xl sm:text-2xl text-white/90 font-light max-w-2xl mx-auto leading-relaxed">
               Your journey toward understanding your true self begins here.
-              Let's unlock your potential together!
+              Let&apos;s unlock your potential together!
             </p>
 
             {/* Get Started Button */}
@@ -80,7 +146,7 @@ export default function Welcome() {
                 variant="default"
                 size="lg"
                 className="bg-[#e36c59] hover:bg-[#e36c59]/90 text-white px-12 py-4 text-lg font-semibold rounded-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl w-full max-w-[280px]"
-                onClick={() => router.push("/")}
+                onClick={handleGetStarted}
               >
                 Get Started
               </FilledButton>

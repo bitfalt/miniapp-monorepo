@@ -1,101 +1,52 @@
-import NextAuth, { NextAuthOptions, Session } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { SignJWT, jwtVerify } from 'jose';
+import { NextRequest, NextResponse } from 'next/server';
+import { getXataClient } from "@/lib/utils";
 
-declare module "next-auth" {
-  interface Session {
-    customToken?: string
+// Helper function to get user from headers
+async function getUserFromHeaders(req: NextRequest) {
+  const userId = req.headers.get('x-user-id');
+  const walletAddress = req.headers.get('x-wallet-address');
+
+  if (!userId || !walletAddress) {
+    return null;
   }
+
+  const xata = getXataClient();
+  return await xata.db.Users.filter({
+    wallet_address: walletAddress,
+    xata_id: userId
+  }).getFirst();
 }
 
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET must be set');
-}
-if (!process.env.WLD_CLIENT_ID) {
-  throw new Error('WLD_CLIENT_ID must be set');
-}
-if (!process.env.WLD_CLIENT_SECRET) {
-  throw new Error('WLD_CLIENT_SECRET must be set');
-}
-if (!process.env.GOOGLE_CLIENT_ID) {
-  throw new Error('GOOGLE_CLIENT_ID must be set');
-}
-if (!process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error('GOOGLE_CLIENT_SECRET must be set');
-}
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET must be set');
-}
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-
-const WorldcoinProvider = {
-  id: "worldcoin",
-  name: "Worldcoin",
-  type: "oauth" as const,
-  wellKnown: "https://id.worldcoin.org/.well-known/openid-configuration",
-  authorization: { params: { scope: "openid" } },
-  clientId: process.env.WLD_CLIENT_ID,
-  clientSecret: process.env.WLD_CLIENT_SECRET,
-  idToken: true,
-  profile(profile) {
-    return {
-      id: profile.sub,
-      name: profile.sub,
-      email: profile.email
-    };
-  },
-};
-
-const authOptions: NextAuthOptions = {
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    WorldcoinProvider
-  ],
-  pages: {
-    signIn: '/sign-in',
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.userId = user.id;
-        // Sign a custom JWT token
-        const customToken = await new SignJWT(token)
-          .setProtectedHeader({ alg: 'HS256' })
-          .setExpirationTime('24h')
-          .sign(secret);
-        token.customToken = customToken;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token.customToken) {
-        session.customToken = token.customToken as string;
-      }
-      return session;
+export async function GET(req: NextRequest) {
+  try {
+    const user = await getUserFromHeaders(req);
+    
+    if (!user) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401 }
+      );
     }
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-  jwt: {
-    async encode({ token }) {
-      return await new SignJWT(token)
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('24h')
-        .sign(secret);
-    },
-    async decode({ token }) {
-      try {
-        const { payload } = await jwtVerify(token!, secret);
-        return payload;
-      } catch {
-        return null;
-      }
-    },
-  }
-}
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+    return new NextResponse(
+      JSON.stringify({
+        user: {
+          id: user.xata_id,
+          name: user.name,
+          email: user.email,
+          walletAddress: user.wallet_address,
+          subscription: user.subscription,
+          verified: user.verified
+        }
+      }),
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Auth error:', error);
+    return new NextResponse(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500 }
+    );
+  }
+} 

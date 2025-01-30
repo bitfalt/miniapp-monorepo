@@ -1,30 +1,29 @@
-import { cn } from "@/lib/utils"
+'use client'
 
-interface BannerTopProps {
-  message?: string;
-  variant?: 'warning' | 'success';
-  className?: string;
-}
+import { FilledButton } from './FilledButton'
+import { useVerification } from '@/hooks/useVerification'
 
-export function BannerTop({ 
-  message = "Unverified",
-  variant = 'warning',
-  className
-}: BannerTopProps) {
+export function BannerTop() {
+  const { isVerifying, isVerified, isLoading, error, handleVerify } = useVerification()
+
+  if (isLoading || isVerified) return null
+
   return (
-    <div className={cn(
-      "relative w-full h-[43px] overflow-hidden",
-      className
-    )}>
-      <div className={cn(
-        "absolute inset-x-0 top-0 h-full",
-        variant === 'warning' ? 'bg-accent-red' : 'bg-brand-primary'
-      )} />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-white text-xl font-bold font-spaceGrotesk">
-          {message}
-        </span>
-      </div>
+    <div className="fixed top-0 left-0 right-0 bg-brand-tertiary z-50 px-4 py-2 flex flex-col items-center justify-center">
+      {error && (
+        <p className="text-red-400 text-xs mb-2">
+          {error}
+        </p>
+      )}
+      <FilledButton
+        variant="default"
+        size="sm"
+        className="bg-[#e36c59] hover:bg-[#e36c59]/90 text-sm"
+        onClick={handleVerify}
+        disabled={isVerifying}
+      >
+        {isVerifying ? 'Verifying...' : 'Verify your World ID'}
+      </FilledButton>
     </div>
   )
 }
