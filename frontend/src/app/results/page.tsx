@@ -3,8 +3,15 @@
 import { useState, useEffect } from 'react'
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { ActionCard } from "@/components/ui/ActionCard"
-import { LucideIcon, Brain, Heart, Star, Trophy } from "lucide-react"
+import { LucideIcon, FileChartColumn, Heart, Star, Trophy, Globe} from "lucide-react"
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
+
+interface Test {
+  testId: string
+  testName: string
+}
 
 interface TestResult {
   title: string
@@ -26,11 +33,11 @@ export default function ResultsPage() {
         const response = await fetch('/api/tests')
         const data = await response.json()
         
-        const transformedResults = data.tests.map((test: any) => ({
+        const transformedResults = data.tests.map((test: Test) => ({
           title: test.testName || "Political Values Test",
           backgroundColor: "#387478",
           iconBgColor: "#2C5154",
-          Icon: Brain,
+          Icon: Globe,
           isEnabled: true,
           testId: test.testId
         }))
@@ -38,22 +45,22 @@ export default function ResultsPage() {
         const comingSoonCards = [
           {
             title: "Personality Test (Coming Soon)",
-            backgroundColor: "#8B5CF6",
-            iconBgColor: "#7C3AED",
+            backgroundColor: "#778BAD",
+            iconBgColor: "#4A5A7A",
             Icon: Heart,
             isEnabled: false
           },
           {
             title: "Coming Soon",
-            backgroundColor: "#EC4899",
-            iconBgColor: "#DB2777",
+            backgroundColor: "#DA9540",
+            iconBgColor: "#A66B1E",
             Icon: Star,
             isEnabled: false
           },
           {
             title: "Coming Soon",
-            backgroundColor: "#F59E0B",
-            iconBgColor: "#D97706",
+            backgroundColor: "#D87566",
+            iconBgColor: "#A44C3D",
             Icon: Trophy,
             isEnabled: false
           }
@@ -79,36 +86,63 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8">
-        <div className="w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20">
-          <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold font-spaceGrotesk leading-tight sm:leading-[50px] mb-3 sm:mb-4">
-            Tests Results
-          </h1>
+    <div className="min-h-screen">
+      <div className="bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
+        <motion.div 
+          className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20 space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center space-y-3">
+            <FileChartColumn className="h-10 w-10 mx-auto text-[#E36C59]" />
+            <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold font-spaceGrotesk leading-tight sm:leading-[50px] mb-3 sm:mb-4">
+              Tests Results
+            </h1>
+          </div>
+          
           <p className="text-center text-[#C9CDCE] text-lg font-normal font-spaceGrotesk leading-[25px]">
             Insights based on <span className="font-bold">your results</span>
           </p>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 pb-20">
+      <motion.div 
+        className="w-full max-w-7xl mx-auto px-4 pb-20"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <div className="grid grid-cols-2 gap-6 justify-items-center max-w-[400px] mx-auto">
           {testResults.map((test, index) => (
-            <ActionCard
+            <motion.div
               key={index}
-              title={test.title}
-              backgroundColor={test.backgroundColor}
-              iconBgColor={test.iconBgColor}
-              Icon={test.Icon}
-              isClickable={test.isEnabled}
-              onClick={() => test.testId && test.isEnabled && handleCardClick(test.testId)}
-              className={`transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 ${
-                !test.isEnabled && "opacity-30 cursor-not-allowed"
-              }`}
-            />
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ 
+                duration: 0.3, 
+                delay: 0.3 + (index * 0.1)
+              }}
+              className="contents"
+            >
+              <ActionCard
+                title={test.title}
+                backgroundColor={test.backgroundColor}
+                iconBgColor={test.iconBgColor}
+                Icon={test.Icon}
+                isClickable={test.isEnabled}
+                onClick={() => test.testId && test.isEnabled && handleCardClick(test.testId)}
+                className={cn(
+                  "transform transition-all duration-300",
+                  "hover:scale-105 hover:-translate-y-1",
+                  !test.isEnabled && "opacity-30 cursor-not-allowed"
+                )}
+              />
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 } 

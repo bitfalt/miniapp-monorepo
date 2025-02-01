@@ -109,9 +109,11 @@ export default function LayoutContent({
     <div className="flex flex-col min-h-screen bg-neutral-bg">
       <BackgroundEffect variant={getBackgroundVariant()} />
       {showBanner && <BannerTop />}
-      <div className={`flex-grow ${showNav ? 'pb-16' : ''}`}>
-        {children}
-      </div>
+      <main className="scroll-container">
+        <div className={`flex-grow ${showNav ? 'pb-16' : ''}`}>
+          {children}
+        </div>
+      </main>
       {showNav && <MobileBottomNav />}
     </div>
   );
