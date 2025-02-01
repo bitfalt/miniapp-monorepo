@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FilledButton } from "@/components/ui/FilledButton"
-import { LogOut, Moon, Bell, HelpCircle, Flag, FileText, Crown } from "lucide-react"
+import { Moon, Bell, HelpCircle, Flag, FileText, Crown } from "lucide-react"
 import { SettingsCard } from "@/components/ui/SettingsCard"
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch"
 import { MembershipCard } from "@/components/ui/MembershipCard"
@@ -11,6 +11,15 @@ import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
 import { clearVerificationSession } from "@/hooks/useVerification"
+import { motion } from 'framer-motion'
+import { LucideIcon, Settings } from 'lucide-react'
+
+interface SettingItem {
+  Icon: LucideIcon
+  label: string
+  element?: React.ReactNode
+  onClick?: () => void
+}
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -55,23 +64,49 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-bg">
-      <div className="bg-brand-tertiary p-10 pt-20 pb-16 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
-        <div className="relative z-10 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4 font-spaceGrotesk">
-            Settings
-          </h1>
-          <div className="inline-block bg-accent-red px-6 py-1.5 rounded-full">
-            <span className="text-white text-sm font-bold font-spaceGrotesk">
-              Premium Member
-            </span>
+    <div className="min-h-screen">
+      <div className="bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
+        <motion.div 
+          className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20 space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center space-y-3">
+            <Settings className="h-10 w-10 mx-auto text-[#E36C59]" />
+            <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold font-spaceGrotesk leading-tight sm:leading-[50px] mb-3 sm:mb-4">
+              Settings
+            </h1>
           </div>
-        </div>
+          
+          <p className="text-center text-[#C9CDCE] text-lg font-normal font-spaceGrotesk leading-[25px]">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full"
+            >
+              <Crown className="w-5 h-5 text-[#e36c59]" />
+              <span className="text-white/90 font-medium">Premium Member</span>
+            </motion.div>
+          </p>
+        </motion.div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 -mt-8">
+      <motion.div 
+        className="max-w-md mx-auto px-4 mt-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         {/* Membership Section */}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
           <MembershipCard 
             expiryDate="March 15, 2024"
             isActive={true}
@@ -109,37 +144,43 @@ export default function SettingsPage() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="space-y-4">
-          <SettingsCard
-            icon={Bell}
-            label="Notifications"
-            rightElement={<NotificationsToggle />}
-          />
-          <SettingsCard
-            icon={Moon}
-            label="Dark Theme"
-            rightElement={<ToggleSwitch />}
-          />
-          <SettingsCard
-            icon={FileText}
-            label="View Privacy Policy"
-            onClick={() => {}}
-          />
-          <SettingsCard
-            icon={HelpCircle}
-            label="Help Center"
-            onClick={() => {}}
-          />
-          <SettingsCard
-            icon={Flag}
-            label="Report an Issue"
-            onClick={() => {}}
-          />
-        </div>
+        <motion.div 
+          className="space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {([
+            { Icon: Bell, label: "Notifications", element: <NotificationsToggle /> },
+            { Icon: Moon, label: "Dark Theme", element: <ToggleSwitch /> },
+            { Icon: FileText, label: "View Privacy Policy", onClick: () => {} },
+            { Icon: HelpCircle, label: "Help Center", onClick: () => {} },
+            { Icon: Flag, label: "Report an Issue", onClick: () => {} }
+          ] as SettingItem[]).map((setting, index) => (
+            <motion.div
+              key={setting.label}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 + (index * 0.1) }}
+            >
+              <SettingsCard
+                icon={setting.Icon}
+                label={setting.label}
+                rightElement={setting.element}
+                onClick={setting.onClick}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
 
-        <div className="mt-8 mb-20">
+        <motion.div 
+          className="mt-8 mb-20"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.8 }}
+        >
           <FilledButton
             variant="warning"
             size="lg"
@@ -148,8 +189,8 @@ export default function SettingsPage() {
           >
             Log Out
           </FilledButton>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 } 
