@@ -78,7 +78,7 @@ export default function TestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-bg">
+    <div className="min-h-screen">
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-8">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
         

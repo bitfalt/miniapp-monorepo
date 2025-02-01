@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  width: 100vw;
+  height: 100dvh;
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+
+/* Replace 100vh with 100dvh for dynamic viewport height */
+.min-h-screen {
+  min-height: 100dvh;
+}
+
+/* Add scrolling container for content */
+.scroll-container {
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -127,6 +147,51 @@
 
   .scrollbar-custom::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in-delayed {
+    animation: fadeIn 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .delay-300 {
+    animation-delay: 0.3s;
   }
 }
 

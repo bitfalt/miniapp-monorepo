@@ -6,6 +6,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Question } from "@/app/types";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { cn } from "@/lib/utils";
 
 const answerOptions = [
   { label: "Strongly Agree", multiplier: 1.0 },
@@ -26,6 +27,7 @@ export default function IdeologyTest() {
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
@@ -70,8 +72,59 @@ export default function IdeologyTest() {
     fetchQuestions();
   }, [testId]);
 
+  const handleEndTest = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true);
+
+    try {
+      const maxEcon = questions.reduce((sum, q) => sum + Math.abs(q.effect.econ), 0);
+      const maxDipl = questions.reduce((sum, q) => sum + Math.abs(q.effect.dipl), 0);
+      const maxGovt = questions.reduce((sum, q) => sum + Math.abs(q.effect.govt), 0);
+      const maxScty = questions.reduce((sum, q) => sum + Math.abs(q.effect.scty), 0);
+
+      const econScore = ((scores.econ + maxEcon) / (2 * maxEcon)) * 100;
+      const diplScore = ((scores.dipl + maxDipl) / (2 * maxDipl)) * 100;
+      const govtScore = ((scores.govt + maxGovt) / (2 * maxGovt)) * 100;
+      const sctyScore = ((scores.scty + maxScty) / (2 * maxScty)) * 100;
+
+      const roundedScores = {
+        econ: Math.round(econScore),
+        dipl: Math.round(diplScore),
+        govt: Math.round(govtScore),
+        scty: Math.round(sctyScore)
+      };
+
+      const response = await fetch(`/api/tests/${testId}/progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: questions[currentQuestion].id,
+          currentQuestion: questions[currentQuestion].id,
+          scores: roundedScores,
+          isComplete: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save final answers');
+      }
+    
+      const resultsResponse = await fetch(`/api/tests/${testId}/results`);
+      if (!resultsResponse.ok) {
+        throw new Error('Failed to save final results');
+      }
+
+      router.push(`/insights?testId=${testId}`);
+    } catch (error) {
+      console.error('Error ending test:', error);
+      setIsSubmitting(false);
+    }
+  };
+
   const handleAnswer = async (multiplier: number) => {
-    if (questions.length === 0) return;
+    if (questions.length === 0 || isSubmitting) return;
 
     const question = questions[currentQuestion];
     const updatedScores = {
@@ -82,7 +135,6 @@ export default function IdeologyTest() {
     };
     setScores(updatedScores);
 
-    // Save progress to database
     try {
       const response = await fetch(`/api/tests/${testId}/progress`, {
         method: 'POST',
@@ -106,55 +158,13 @@ export default function IdeologyTest() {
         [question.id]: multiplier
       }));
 
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      const maxEcon = questions.reduce((sum, q) => sum + Math.abs(q.effect.econ), 0);
-      const maxDipl = questions.reduce((sum, q) => sum + Math.abs(q.effect.dipl), 0);
-      const maxGovt = questions.reduce((sum, q) => sum + Math.abs(q.effect.govt), 0);
-      const maxScty = questions.reduce((sum, q) => sum + Math.abs(q.effect.scty), 0);
-
-      const econScore = ((updatedScores.econ + maxEcon) / (2 * maxEcon)) * 100;
-      const diplScore = ((updatedScores.dipl + maxDipl) / (2 * maxDipl)) * 100;
-      const govtScore = ((updatedScores.govt + maxGovt) / (2 * maxGovt)) * 100;
-      const sctyScore = ((updatedScores.scty + maxScty) / (2 * maxScty)) * 100;
-
-      const roundedScores = {
-        econ: Math.round(econScore),
-        dipl: Math.round(diplScore),
-        govt: Math.round(govtScore),
-        scty: Math.round(sctyScore)
-      };
-
-        const response = await fetch(`/api/tests/${testId}/progress`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-
-          body: JSON.stringify({
-            questionId: question.id,
-            answer: multiplier,
-            currentQuestion: question.id,
-            scores: roundedScores
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to save final answers');
-        }
-      
-      const resultsResponse = await fetch(`/api/tests/${testId}/results`);
-      if (!resultsResponse.ok) {
-        throw new Error('Failed to save final results');
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
       }
-
-      router.push(`/insights?testId=${testId}`);
+    } catch (error) {
+      console.error('Error saving progress:', error);
     }
-  } catch (error) {
-    console.error('Error saving progress:', error);
-  }
-};
+  };
 
   const handleNext = async () => {
     if (currentQuestion < totalQuestions - 1) {
@@ -297,14 +307,28 @@ export default function IdeologyTest() {
                 )}
               </div>
 
-              <FilledButton
-                variant="default"
-                size="sm"
-                onClick={handleNext}
-                disabled={currentQuestion === totalQuestions - 1}
-              >
-                Next
-              </FilledButton>
+              {currentQuestion === totalQuestions - 1 ? (
+                <FilledButton
+                  variant="default"
+                  size="sm"
+                  onClick={handleEndTest}
+                  disabled={isSubmitting}
+                  className={cn(
+                    "bg-green-600 hover:bg-green-700",
+                    isSubmitting && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {isSubmitting ? "Saving..." : "End Test"}
+                </FilledButton>
+              ) : (
+                <FilledButton
+                  variant="default"
+                  size="sm"
+                  onClick={handleNext}
+                >
+                  Next
+                </FilledButton>
+              )}
             </div>
           </div>
         </div>

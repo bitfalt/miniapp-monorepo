@@ -4,6 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { InsightResultCard } from '@/components/ui/InsightResultCard';
 import { FilledButton } from '@/components/ui/FilledButton';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { BookOpen } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Insight {
   category: string;
@@ -99,63 +103,100 @@ export default function InsightsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-bg">
-        <p className="text-slate-200">Loading insights...</p>
-      </div>
-    );
+    return <LoadingSpinner />
   }
 
   return (
     <div className="min-h-screen bg-neutral-bg">
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/50 to-transparent"></div>
-        <div className="relative z-10 text-center max-w-md mx-auto">
-          <h1 className="text-4xl font-bold text-slate-100 mb-4 tracking-tight">
-            Your Ideology Insights
-          </h1>
+        <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
+        <motion.div 
+          className="relative z-10 text-center max-w-md mx-auto space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center space-y-3">
+            <BookOpen className="h-10 w-10 mx-auto text-[#E36C59]" />
+            <h1 className="text-4xl font-bold text-slate-100 mb-4 tracking-tight">
+              Your Ideology Insights
+            </h1>
+          </div>
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
             Explore how your values align across key ideological dimensions.
           </p>
           
-          <div className="flex justify-center">
+          <motion.div 
+            className="flex justify-center"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
             <FilledButton
               onClick={handleAdvancedInsightsClick}
               variant={isProUser ? 'default' : 'default'}
-              className="mt-4"
+              className={cn(
+                "mt-4",
+                "transform transition-all duration-300 hover:scale-105"
+              )}
             >
               {isProUser ? 'Advanced Insights' : 'Unlock Advanced Insights'}
             </FilledButton>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 space-y-8 pb-16">
+      <motion.div 
+        className="max-w-3xl mx-auto px-6 space-y-8 pb-16"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         {Array.isArray(insights) && insights.length > 0 ? (
           insights.map((insight, index) => (
-            <InsightResultCard
+            <motion.div
               key={index}
-              title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
-              insight={insight.insight}
-              description={insight.description}
-              percentage={insight.percentage}
-              left_label={insight.left_label}
-              right_label={insight.right_label}
-              values={insight.values}
-            />
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.3 + (index * 0.1) }}
+            >
+              <InsightResultCard
+                title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
+                insight={insight.insight}
+                description={insight.description}
+                percentage={insight.percentage}
+                left_label={insight.left_label}
+                right_label={insight.right_label}
+                values={insight.values}
+              />
+            </motion.div>
           ))
         ) : (
-          <p className="text-slate-200">No insights available. Please try again later.</p>
+          <motion.p 
+            className="text-slate-200 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            No insights available. Please try again later.
+          </motion.p>
         )}
-      </div>
+      </motion.div>
 
       {isModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+        <motion.div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           onClick={() => setIsModalOpen(false)}
         >
-          <div 
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden animate-modal-scale"
+          <motion.div 
+            className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
             <button 
@@ -174,7 +215,11 @@ export default function InsightsPage() {
             </button>
 
             {isProUser ? (
-              <>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
                 <h2 className="text-3xl font-bold text-white mb-6 text-center">
                   Advanced Ideological Analysis
                 </h2>
@@ -184,9 +229,14 @@ export default function InsightsPage() {
                     {fullAnalysis}
                   </p>
                 </div>
-              </>
+              </motion.div>
             ) : (
-              <div className="text-center">
+              <motion.div 
+                className="text-center"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
                 <h2 className="text-3xl font-bold text-white mb-4">
                   Unlock Advanced Insights
                 </h2>
@@ -199,14 +249,15 @@ export default function InsightsPage() {
                     onClick={() => {
                       router.push('/awaken-pro');
                     }}
+                    className="transform transition-all duration-300 hover:scale-105"
                   >
                     Upgrade to Pro
                   </FilledButton>
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
