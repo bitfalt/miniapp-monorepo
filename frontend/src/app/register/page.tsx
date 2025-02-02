@@ -5,6 +5,7 @@ import { FilledButton } from "@/components/ui/FilledButton";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { COUNTRIES, type CountryCode } from "@/constants/countries";
+import { MiniKit } from "@worldcoin/minikit-js";
 
 export default function Register() {
   const router = useRouter();
@@ -32,10 +33,10 @@ export default function Register() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Get wallet address from URL
-      const params = new URLSearchParams(window.location.search);
-      const walletAddress = params.get('userId');
-      
+      // Get wallet address and username from MiniKit
+      const walletAddress = MiniKit.user?.walletAddress;
+      const username = MiniKit.user?.username;
+
       if (!walletAddress) {
         throw new Error('No wallet address provided');
       }
@@ -48,6 +49,7 @@ export default function Register() {
         age: parseInt(formData.age),
         subscription: false,
         wallet_address: walletAddress,
+        username: username,
         country: COUNTRIES.find(c => c.countryCode === formData.country)?.country || "Costa Rica"
       };
 

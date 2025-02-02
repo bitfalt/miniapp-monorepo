@@ -141,11 +141,6 @@ export function useVerification() {
       console.log('Backend verification response:', verifyResponseJson)
       
       if (verifyResponse.ok) {
-        console.log('Verification successful, refreshing session...')
-        await fetch('/api/auth/session', { 
-          method: 'POST',
-          credentials: 'include'
-        })
         setIsVerified(true)
         setError(null)
         await checkVerificationStatus()
