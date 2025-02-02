@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
     const newUser = await xata.db.Users.create({
       user_id: nextUserId,
       user_uuid: userUuid,
-      username: username,
+      username: data.username,
       name: data.name,
       last_name: data.last_name,
       email: data.email,
