@@ -201,7 +201,7 @@ export default function SignIn() {
       } else {
         // User doesn't exist, redirect to registration
         console.log('User not found, redirecting to registration...');
-        router.push('/register');
+        router.push(`/register?userId=${encodeURIComponent(userWalletAddress)}`);
       }
 
     } catch (error) {

@@ -91,7 +91,11 @@ export async function middleware(request: NextRequest) {
 
     // Handle registration flow
     if (pathname !== '/register' && registrationStatus !== 'complete') {
-      return NextResponse.redirect(new URL('/register', request.url))
+      const url = new URL('/register', request.url);
+      if (decoded.walletAddress) {
+        url.searchParams.set('walletAddress', decoded.walletAddress as string);
+      }
+      return NextResponse.redirect(url);
     }
 
     // Add user info to request headers for API routes

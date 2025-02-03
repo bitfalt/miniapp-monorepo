@@ -17,7 +17,8 @@ export default function Register() {
     lastName: "",
     email: "",
     age: "",
-    country: "CR" as CountryCode
+    country: "CR" as CountryCode,
+    wallet_address: ""
   });
 
   const [error, setError] = useState("");
@@ -26,16 +27,25 @@ export default function Register() {
   useEffect(() => {
     if (!userId) {
       router.push('/sign-in');
+      return;
     }
+
+    // Set the wallet address from URL parameter
+    setFormData(prev => ({
+      ...prev,
+      wallet_address: userId
+    }));
   }, [userId, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Get wallet address and username from MiniKit
-      const walletAddress = MiniKit.user?.walletAddress;
+      // Get username from MiniKit if available
       const username = MiniKit.user?.username;
+
+      // Use the wallet address from form data (set from URL parameter)
+      const walletAddress = formData.wallet_address;
 
       if (!walletAddress) {
         throw new Error('No wallet address provided');
