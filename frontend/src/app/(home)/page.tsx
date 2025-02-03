@@ -62,9 +62,8 @@ export default function Home() {
         setUserData(data.user)
         
         // Check if user is verified
-        if (!data.user.verified && !sessionStorage.getItem('verify-modal-shown')) {
+        if (!data.user.verified) {
           setShowVerifyModal(true)
-          sessionStorage.setItem('verify-modal-shown', 'true')
         }
       } catch (error) {
         console.error('Error fetching home data:', error)
