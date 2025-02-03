@@ -50,10 +50,11 @@ export async function GET() {
       user: {
         name: user.name,
         last_name: user.last_name,
-        // TODO: add level and points
-        // level: "Coming Soon",
-        // points: 45,
-        // maxPoints: 100
+        verified: user.verified,
+        // TODO: add level and points in db and code
+        level: "Coming Soon",
+        points: 0,
+        maxPoints: 100
       }
     });
   } catch (error) {
