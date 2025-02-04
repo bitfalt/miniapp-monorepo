@@ -24,21 +24,39 @@ interface SettingItem {
 export default function SettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [subscriptionData, setSubscriptionData] = useState<{
+    next_payment_date: string | null;
+    isPro: boolean;
+  }>({
+    next_payment_date: null,
+    isPro: false
+  });
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings')
-        await response.json()
+        // Fetch subscription data
+        const subscriptionResponse = await fetch('/api/user/subscription');
+        if (subscriptionResponse.ok) {
+          const data = await subscriptionResponse.json();
+          setSubscriptionData({
+            next_payment_date: data.next_payment_date || null,
+            isPro: data.isPro || false
+          });
+        }
       } catch (error) {
-        console.error('Error fetching settings:', error)
+        console.error('Error fetching settings:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
     fetchSettings()
   }, [])
+
+  const handleUpgradeClick = () => {
+    router.push('/awaken-pro');
+  };
 
   const handleLogout = async () => {
     try {
@@ -75,7 +93,7 @@ export default function SettingsPage() {
         >
           <div className="text-center space-y-3">
             <Settings className="h-10 w-10 mx-auto text-[#E36C59]" />
-            <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold font-spaceGrotesk leading-tight sm:leading-[50px] mb-3 sm:mb-4">
+            <h1 className="text-3xl sm:text-4xl font-bold text-slate-100 tracking-tight">
               Settings
             </h1>
           </div>
@@ -87,8 +105,10 @@ export default function SettingsPage() {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full"
             >
-              <Crown className="w-5 h-5 text-[#e36c59]" />
-              <span className="text-white/90 font-medium">Premium Member</span>
+              {subscriptionData.isPro && <Crown className="w-5 h-5 text-[#e36c59]" />}
+              <span className="text-white/90 font-medium">
+                {subscriptionData.isPro ? 'Premium Member' : 'Basic Member'}
+              </span>
             </motion.div>
           </p>
         </motion.div>
@@ -108,44 +128,45 @@ export default function SettingsPage() {
           transition={{ duration: 0.3, delay: 0.3 }}
         >
           <MembershipCard 
-            expiryDate="March 15, 2024"
-            isActive={true}
-            cost={3}
+            expiryDate={subscriptionData.next_payment_date || '0 days'}
+            isActive={subscriptionData.isPro}
+            cost={3.50}
           />
           
-          {/* Upgrade Button with Enhanced Styling */}
-          <div className="mt-4 relative">
-            <div className="absolute -inset-3 bg-accent-red/20 blur-xl rounded-2xl animate-pulse"></div>
-            <FilledButton
-              variant="default"
-              size="lg"
-              className={cn(
-                "w-full bg-accent-red hover:bg-accent-red/90",
-                "transform transition-all duration-300 hover:scale-[1.02]",
-                "shadow-[0_10px_20px_rgba(227,108,89,0.3)]",
-                "hover:shadow-[0_14px_28px_rgba(227,108,89,0.4)]",
-                "relative z-10"
-              )}
-              onClick={() => router.push('/awaken-pro')}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Crown className="w-5 h-5" />
-                <span>Upgrade to Awaken Pro</span>
+          {!subscriptionData.isPro && (
+            <div className="mt-4 relative">
+              <div className="absolute -inset-3 bg-accent-red/20 blur-xl rounded-2xl animate-pulse"></div>
+              <FilledButton
+                variant="default"
+                size="lg"
+                className={cn(
+                  "w-full bg-accent-red hover:bg-accent-red/90",
+                  "transform transition-all duration-300 hover:scale-[1.02]",
+                  "shadow-[0_10px_20px_rgba(227,108,89,0.3)]",
+                  "hover:shadow-[0_14px_28px_rgba(227,108,89,0.4)]",
+                  "relative z-10"
+                )}
+                onClick={handleUpgradeClick}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Crown className="w-5 h-5" />
+                  <span>Upgrade to Awaken Pro</span>
+                </div>
+              </FilledButton>
+              
+              <div className="relative z-10 mt-3 mb-4 text-center py-2 px-4">
+                <p className="text-sm font-medium">
+                  <span className="text-neutral-black">Unlock</span>
+                  <span className="text-accent-red"> advanced features </span>
+                  <span className="text-neutral-black">and</span>
+                  <span className="text-accent-red"> exclusive content </span>
+                </p>
               </div>
-            </FilledButton>
-            
-            {/* Enhanced Promotional Text */}
-            <div className="relative z-10 mt-3 mb-4 text-center py-2 px-4">
-              <p className="text-sm font-medium">
-                <span className="text-neutral-black">Unlock</span>
-                <span className="text-accent-red"> advanced features </span>
-                <span className="text-neutral-black">and</span>
-                <span className="text-accent-red"> exclusive content </span>
-              </p>
             </div>
-          </div>
+          )}
         </motion.div>
 
+        {/* Settings Items */}
         <motion.div 
           className="space-y-4"
           initial={{ y: 20, opacity: 0 }}

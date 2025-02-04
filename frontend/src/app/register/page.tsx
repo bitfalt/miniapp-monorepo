@@ -29,7 +29,8 @@ export default function Register() {
     lastName: "",
     email: "",
     age: "",
-    country: "CR" as CountryCode
+    country: "CR" as CountryCode,
+    wallet_address: ""
   });
 
   const [error, setError] = useState("");
@@ -40,7 +41,14 @@ export default function Register() {
   useEffect(() => {
     if (!userId) {
       router.push('/sign-in');
+      return;
     }
+
+    // Set the wallet address from URL parameter
+    setFormData(prev => ({
+      ...prev,
+      wallet_address: userId
+    }));
   }, [userId, router]);
 
   // TODO update database on notifications: true 
@@ -68,9 +76,12 @@ export default function Register() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Get wallet address from URL
-      const params = new URLSearchParams(window.location.search);
-      const walletAddress = params.get('userId');
+
+      // Get username from MiniKit if available
+      const username = MiniKit.user?.username;
+
+      // Use the wallet address from form data (set from URL parameter)
+      const walletAddress = formData.wallet_address;
 
       if (!walletAddress) {
         throw new Error('No wallet address provided');
@@ -84,6 +95,7 @@ export default function Register() {
         age: parseInt(formData.age),
         subscription: false,
         wallet_address: walletAddress,
+        username: username,
         country: COUNTRIES.find(c => c.countryCode === formData.country)?.country || "Costa Rica"
       };
 

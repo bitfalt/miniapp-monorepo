@@ -96,7 +96,7 @@ export default function SignIn() {
       console.log('SIWE payload:', finalPayload);
 
       // Get the wallet address from MiniKit after successful auth
-      const walletAddress = MiniKit.walletAddress;
+      const walletAddress = MiniKit.user?.walletAddress;
       console.log('Wallet address from MiniKit:', walletAddress);
 
       console.log('Completing SIWE verification...');
@@ -201,7 +201,7 @@ export default function SignIn() {
       } else {
         // User doesn't exist, redirect to registration
         console.log('User not found, redirecting to registration...');
-        router.push(`/register?userId=${userWalletAddress}`);
+        router.push(`/register?userId=${encodeURIComponent(userWalletAddress)}`);
       }
 
     } catch (error) {
