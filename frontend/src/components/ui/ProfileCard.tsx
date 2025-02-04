@@ -9,7 +9,7 @@ interface User {
   name: string
   last_name: string
   level: string
-  points: number
+  level_points: number
   maxPoints: number
 }
 
@@ -58,7 +58,7 @@ export function ProfileCard({
     name: "John",
     last_name: "Doe",
     level: "Conscious Explorer",
-    points: 45,
+    level_points: 45,
     maxPoints: 100,
   },
 }: ProfileCardProps) {

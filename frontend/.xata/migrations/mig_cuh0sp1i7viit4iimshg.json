@@ -1,0 +1,31 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh0sp1i7viit4iimshg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "IdeologyPerUser",
+          "column": {
+            "name": "user",
+            "type": "text",
+            "unique": true,
+            "comment": "{\"xata.link\":\"Users\"}",
+            "references": {
+              "name": "user_link",
+              "table": "Users",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh0sp1i7viit4iimshg",
+  "parent": "mig_cuh0sgpi7viit4iimsgg",
+  "schema": "public",
+  "startedAt": "2025-02-04T12:56:06.063647Z"
+}

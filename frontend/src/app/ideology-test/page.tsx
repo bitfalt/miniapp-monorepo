@@ -116,6 +116,19 @@ export default function IdeologyTest() {
         throw new Error('Failed to save final results');
       }
 
+      // Calculate ideology based on final scores
+      const ideologyResponse = await fetch('/api/ideology', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roundedScores)
+      });
+
+      if (!ideologyResponse.ok) {
+        throw new Error('Failed to calculate ideology');
+      }
+
       router.push(`/insights?testId=${testId}`);
     } catch (error) {
       console.error('Error ending test:', error);
@@ -260,8 +273,6 @@ export default function IdeologyTest() {
                 <ProgressBar 
                   progress={progress} 
                   variant="warning" 
-                  totalQuestions={totalQuestions}
-                  currentQuestion={currentQuestion}
                 />
               </div>
 
