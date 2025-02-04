@@ -18,7 +18,7 @@ interface User {
   name: string;
   last_name: string;
   level: string;
-  points: number;
+  level_points: number;
   maxPoints: number;
 }
 
