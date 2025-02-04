@@ -21,8 +21,8 @@ const ErudaProvider = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "MiniKit Next.js Example",
-  description: "Example application using MiniKit with Next.js",
+  title: "MindVault",
+  description: "Your journey toward understanding your true self begins here.",
 };
 
 export default function RootLayout({
