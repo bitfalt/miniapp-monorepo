@@ -5,7 +5,19 @@ import { FilledButton } from "@/components/ui/FilledButton";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { COUNTRIES, type CountryCode } from "@/constants/countries";
-import { MiniKit } from "@worldcoin/minikit-js";
+import { MiniKit, RequestPermissionPayload, Permission } from '@worldcoin/minikit-js'
+import NotificationError from "@/components/ui/NotificationError";
+
+type NotificationErrorCode = 
+  | "user_rejected" 
+  | "generic_error" 
+  | "already_requested" 
+  | "permission_disabled" 
+  | "already_granted" 
+  | "unsupported_permission";
+
+const API_KEY = process.env.DEV_PORTAL_API_KEY;
+const APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
 export default function Register() {
   const router = useRouter();
@@ -23,6 +35,8 @@ export default function Register() {
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorCode, setErrorCode] = useState<NotificationErrorCode | undefined>(undefined);
+
 
   useEffect(() => {
     if (!userId) {
@@ -37,10 +51,32 @@ export default function Register() {
     }));
   }, [userId, router]);
 
+  // TODO update database on notifications: true 
+  
+  // Function to request notification permission
+  const requestPermission = async () => {
+    const requestPermissionPayload: RequestPermissionPayload = {
+      permission: Permission.Notifications,
+    };
+    try {
+      const payload = await MiniKit.commandsAsync.requestPermission(requestPermissionPayload);
+      console.log('Permission granted:', payload);
+      return payload;
+    } catch (error) {
+      console.error('Permission request failed:', error);
+      // Set error code instead of message
+      if (error instanceof Error) {
+        setErrorCode(error.message as NotificationErrorCode);
+      }
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+
       // Get username from MiniKit if available
       const username = MiniKit.user?.username;
 
@@ -119,6 +155,9 @@ export default function Register() {
         throw new Error(sessionError.error || 'Failed to create session');
       }
 
+      // Request notification permission after successful registration
+      await requestPermission();
+
       // Set registration completion flag and redirect to welcome page
       sessionStorage.setItem('registration_complete', 'true');
       router.push('/welcome');
@@ -126,6 +165,9 @@ export default function Register() {
     } catch (error) {
       console.error('Registration error:', error);
       setError(error instanceof Error ? error.message : 'Failed to complete registration');
+      if (error instanceof Error) {
+        setErrorCode(error.message as NotificationErrorCode);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -137,6 +179,13 @@ export default function Register() {
 
   return (
     <div className="flex flex-col items-center overflow-x-hidden">
+      {/* Render NotificationError if errorCode is set */}
+      {errorCode && (
+        <NotificationError
+          errorCode={errorCode}
+          onProceed={() => setErrorCode(undefined)}
+        />
+      )}
       <div className="relative w-screen h-[354px] -mt-4">
         <div className="w-screen absolute top-0 bg-white rounded-b-[65px] shadow-[inset_-5px_-5px_25px_0px_rgba(134,152,183,1.00),inset_5px_5px_25px_0px_rgba(248,248,246,1.00)]" />
         <div className="w-screen h-full px-[34px] pt-[104px] pb-[70px] absolute top-0 bg-[#2c5154] rounded-b-[65px] shadow-[21px_38px_64.69999694824219px_3px_rgba(0,0,0,0.25)] overflow-hidden">
