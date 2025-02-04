@@ -30,6 +30,7 @@ export default function InsightsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
   const [fullAnalysis, setFullAnalysis] = useState<string>('');
+  const [ideology, setIdeology] = useState<string>('');
   const searchParams = useSearchParams();
 
   const testId = searchParams.get('testId')
@@ -41,10 +42,17 @@ export default function InsightsPage() {
       // Check user's pro status
       const userResponse = await fetch('/api/user/subscription');
       if (!userResponse.ok) {
-      throw new Error('Failed to fetch subscription status');
+        throw new Error('Failed to fetch subscription status');
       }
-      const userData= await userResponse.json();
+      const userData = await userResponse.json();
       setIsProUser(userData.isPro);
+
+      // Fetch ideology
+      const ideologyResponse = await fetch('/api/ideology');
+      if (ideologyResponse.ok) {
+        const ideologyData = await ideologyResponse.json();
+        setIdeology(ideologyData.ideology);
+      }
 
       // Fetch insights
       const response = await fetch(`/api/insights/${testId}`);
@@ -54,8 +62,6 @@ export default function InsightsPage() {
       const data = await response.json();
       setInsights(data.insights);
 
-      console.log(data.insights);
-
       // Get scores from database
       const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
       const scoresData = await scoresResponse.json();
@@ -63,28 +69,27 @@ export default function InsightsPage() {
 
       // Call DeepSeek API for full analysis
       if (isProUser) {
-      const deepSeekResponse = await fetch('/api/deepseek', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          econ: parseFloat(scores.econ || '0'),
-          dipl: parseFloat(scores.dipl || '0'),
-          govt: parseFloat(scores.govt || '0'),
-          scty: parseFloat(scores.scty || '0'),
-        }),
-      });
+        const deepSeekResponse = await fetch('/api/deepseek', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            econ: parseFloat(scores.econ || '0'),
+            dipl: parseFloat(scores.dipl || '0'),
+            govt: parseFloat(scores.govt || '0'),
+            scty: parseFloat(scores.scty || '0'),
+          }),
+        });
 
-      if (deepSeekResponse.status === 200) {
-        const deepSeekData = await deepSeekResponse.json();
-        setFullAnalysis(deepSeekData.analysis);
-      } else {
-        console.error('Error fetching DeepSeek analysis:', deepSeekResponse.statusText);
+        if (deepSeekResponse.status === 200) {
+          const deepSeekData = await deepSeekResponse.json();
+          setFullAnalysis(deepSeekData.analysis);
+        } else {
+          console.error('Error fetching DeepSeek analysis:', deepSeekResponse.statusText);
           setFullAnalysis('Failed to generate analysis. Please try again later.');
         }
       }
-
 
     } catch (error) {
       console.error('Error fetching insights:', error);
@@ -122,6 +127,21 @@ export default function InsightsPage() {
               Your Ideology Insights
             </h1>
           </div>
+          {ideology && (
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20"
+            >
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
+                Your Ideology
+              </h2>
+              <p className="text-slate-200 text-lg font-medium">
+                {ideology}
+              </p>
+            </motion.div>
+          )}
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
             Explore how your values align across key ideological dimensions.
           </p>
