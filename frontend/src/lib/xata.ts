@@ -311,6 +311,183 @@ const tables = [
     ],
   },
   {
+    name: "Ideologies",
+    checkConstraints: {
+      Ideologies_xata_id_length_xata_id: {
+        name: "Ideologies_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {},
+    primaryKey: [],
+    uniqueConstraints: {
+      Ideologies__pgroll_new_name_key: {
+        name: "Ideologies__pgroll_new_name_key",
+        columns: ["name"],
+      },
+      _pgroll_new_Ideologies_xata_id_key: {
+        name: "_pgroll_new_Ideologies_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "ideology_id",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "name",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "scores",
+        type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "IdeologyPerUser",
+    checkConstraints: {
+      IdeologyPerUser_xata_id_length_xata_id: {
+        name: "IdeologyPerUser_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      ideology_link: {
+        name: "ideology_link",
+        columns: ["ideology"],
+        referencedTable: "Ideologies",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      user_link: {
+        name: "user_link",
+        columns: ["user"],
+        referencedTable: "Users",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      IdeologyPerUser__pgroll_new_user_key: {
+        name: "IdeologyPerUser__pgroll_new_user_key",
+        columns: ["user"],
+      },
+      _pgroll_new_IdeologyPerUser_xata_id_key: {
+        name: "_pgroll_new_IdeologyPerUser_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "ideology",
+        type: "link",
+        link: { table: "Ideologies" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Ideologies"}',
+      },
+      {
+        name: "ideology_user_id",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "user",
+        type: "link",
+        link: { table: "Users" },
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: '{"xata.link":"Users"}',
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
     name: "Insights",
     checkConstraints: {
       Insights_xata_id_length_xata_id: {
@@ -1020,6 +1197,66 @@ const tables = [
     ],
   },
   {
+    name: "SubscriptionPrice",
+    checkConstraints: {
+      SubscriptionPrice_xata_id_length_xata_id: {
+        name: "SubscriptionPrice_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {},
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_SubscriptionPrice_xata_id_key: {
+        name: "_pgroll_new_SubscriptionPrice_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "world_amount",
+        type: "float",
+        notNull: true,
+        unique: false,
+        defaultValue: "'3.5'::double precision",
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
     name: "Tests",
     checkConstraints: {
       Tests_xata_id_length_xata_id: {
@@ -1341,6 +1578,22 @@ const tables = [
         comment: "",
       },
       {
+        name: "level",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "1",
+        comment: "",
+      },
+      {
+        name: "level_points",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+      {
         name: "name",
         type: "text",
         notNull: true,
@@ -1581,6 +1834,12 @@ export type CategoriesRecord = Categories & XataRecord;
 export type Countries = InferredTypes["Countries"];
 export type CountriesRecord = Countries & XataRecord;
 
+export type Ideologies = InferredTypes["Ideologies"];
+export type IdeologiesRecord = Ideologies & XataRecord;
+
+export type IdeologyPerUser = InferredTypes["IdeologyPerUser"];
+export type IdeologyPerUserRecord = IdeologyPerUser & XataRecord;
+
 export type Insights = InferredTypes["Insights"];
 export type InsightsRecord = Insights & XataRecord;
 
@@ -1603,6 +1862,9 @@ export type RegionsRecord = Regions & XataRecord;
 export type StandardAnswers = InferredTypes["StandardAnswers"];
 export type StandardAnswersRecord = StandardAnswers & XataRecord;
 
+export type SubscriptionPrice = InferredTypes["SubscriptionPrice"];
+export type SubscriptionPriceRecord = SubscriptionPrice & XataRecord;
+
 export type Tests = InferredTypes["Tests"];
 export type TestsRecord = Tests & XataRecord;
 
@@ -1619,6 +1881,8 @@ export type DatabaseSchema = {
   Areas: AreasRecord;
   Categories: CategoriesRecord;
   Countries: CountriesRecord;
+  Ideologies: IdeologiesRecord;
+  IdeologyPerUser: IdeologyPerUserRecord;
   Insights: InsightsRecord;
   InsightsPerUserCategory: InsightsPerUserCategoryRecord;
   Payments: PaymentsRecord;
@@ -1626,6 +1890,7 @@ export type DatabaseSchema = {
   Questions: QuestionsRecord;
   Regions: RegionsRecord;
   StandardAnswers: StandardAnswersRecord;
+  SubscriptionPrice: SubscriptionPriceRecord;
   Tests: TestsRecord;
   UserTestProgress: UserTestProgressRecord;
   Users: UsersRecord;

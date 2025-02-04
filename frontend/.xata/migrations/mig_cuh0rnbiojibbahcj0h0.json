@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh0rnbiojibbahcj0h0",
+    "operations": [
+      {
+        "add_column": {
+          "table": "SubscriptionPrice",
+          "column": {
+            "name": "world_amount",
+            "type": "float",
+            "comment": "",
+            "default": "'3.5'"
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh0rnbiojibbahcj0h0",
+  "parent": "mig_cuh0rghi7viit4iimseg",
+  "schema": "public",
+  "startedAt": "2025-02-04T12:53:51.038038Z"
+}

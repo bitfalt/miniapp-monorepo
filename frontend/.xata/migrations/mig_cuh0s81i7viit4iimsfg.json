@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh0s81i7viit4iimsfg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Ideologies",
+          "column": {
+            "name": "name",
+            "type": "text",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh0s81i7viit4iimsfg",
+  "parent": "mig_cuh0s43iojibbahcj0j0",
+  "schema": "public",
+  "startedAt": "2025-02-04T12:54:57.512564Z"
+}

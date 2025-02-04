@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh0t9jiojibbahcj0n0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "Ideologies",
+          "column": {
+            "name": "ideology_id",
+            "type": "int",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh0t9jiojibbahcj0n0",
+  "parent": "mig_cuh0t5hi7viit4iimsjg",
+  "schema": "public",
+  "startedAt": "2025-02-04T12:57:10.452145Z"
+}

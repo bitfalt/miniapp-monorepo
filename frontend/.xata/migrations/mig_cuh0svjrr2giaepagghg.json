@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh0svjrr2giaepagghg",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "IdeologyPerUser",
+          "column": {
+            "name": "ideology",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Ideologies\"}",
+            "references": {
+              "name": "ideology_link",
+              "table": "Ideologies",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh0svjrr2giaepagghg",
+  "parent": "mig_cuh0sp1i7viit4iimshg",
+  "schema": "public",
+  "startedAt": "2025-02-04T12:56:31.134057Z"
+}
