@@ -28,7 +28,6 @@ export async function GET(req: NextRequest) {
 
     return new NextResponse(
       JSON.stringify({
-        id: user.xata_id,
         name: user.name,
         lastName: user.last_name,
         email: user.email,
