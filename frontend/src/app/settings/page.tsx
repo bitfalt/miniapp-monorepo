@@ -65,21 +65,23 @@ export default function SettingsPage() {
       }
     }
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    };
+
     // Fetch immediately when component mounts
     fetchSettings();
 
     // Add event listener for focus and visibility change
     window.addEventListener('focus', fetchSettings);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        fetchSettings();
-      }
-    });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup
     return () => {
       window.removeEventListener('focus', fetchSettings);
-      document.removeEventListener('visibilitychange', () => {});
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
