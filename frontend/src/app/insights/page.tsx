@@ -132,14 +132,11 @@ export default function InsightsPage() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20"
+              className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20 flex items-center justify-center min-h-[100px] mt-4"
             >
-              <h2 className="text-xl font-semibold text-slate-100 mb-2">
-                Your Ideology
-              </h2>
-              <p className="text-slate-200 text-lg font-medium">
+              <h2 className="text-3xl font-semibold text-slate-100 m-0">
                 {ideology}
-              </p>
+              </h2>
             </motion.div>
           )}
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">

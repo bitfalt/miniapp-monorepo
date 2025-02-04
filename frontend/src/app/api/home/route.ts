@@ -51,7 +51,7 @@ export async function GET() {
         name: user.name,
         last_name: user.last_name,
         verified: user.verified,
-        level: user.level + " Coming Soon",
+        level: user.level + " - Coming Soon",
         points: user.level_points,
         maxPoints: 100
       }
