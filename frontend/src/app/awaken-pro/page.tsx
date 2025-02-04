@@ -12,6 +12,7 @@ export default function AwakenProPage() {
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<'Basic' | 'Pro'>('Basic')
+  const [payAmount, setPayAmount] = useState(0)
 
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
@@ -26,7 +27,20 @@ export default function AwakenProPage() {
       }
     }
 
+    const fetchPayAmount = async () => {
+      try {
+        const response = await fetch('/api/fetch-pay-amount')
+        if (response.ok) {
+          const data = await response.json()
+          setPayAmount(data.amount)
+        }
+      } catch (error) {
+        console.error('Error fetching pay amount:', error)
+      }
+    }
+
     fetchSubscriptionStatus()
+    fetchPayAmount()
   }, [])
 
   const handleUpgrade = async () => {
@@ -50,7 +64,7 @@ export default function AwakenProPage() {
         tokens: [
           {
             symbol: Tokens.WLD,
-            token_amount: tokenToDecimals(0.1, Tokens.WLD).toString(),
+            token_amount: tokenToDecimals(payAmount, Tokens.WLD).toString(),
           }
         ],
         description: 'Upgrade to Awaken Pro - 1 Month Subscription'
@@ -125,7 +139,7 @@ export default function AwakenProPage() {
           </div>
 
           <div className="mb-8">
-            <div className="text-4xl font-bold text-white mb-2">3.50 WLD</div>
+            <div className="text-4xl font-bold text-white mb-2">{payAmount} WLD</div>
             <div className="text-slate-300 text-sm">Per month, billed monthly</div>
           </div>
 
