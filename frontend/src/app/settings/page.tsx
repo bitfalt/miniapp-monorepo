@@ -27,21 +27,35 @@ export default function SettingsPage() {
   const [subscriptionData, setSubscriptionData] = useState<{
     next_payment_date: string | null;
     isPro: boolean;
+    subscription_start: string | null;
+    subscription_expires: string | null;
   }>({
     next_payment_date: null,
-    isPro: false
+    isPro: false,
+    subscription_start: null,
+    subscription_expires: null
   });
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        // Fetch subscription data
-        const subscriptionResponse = await fetch('/api/user/subscription');
+        const subscriptionResponse = await fetch('/api/user/subscription', {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          credentials: 'include'
+        });
+        
         if (subscriptionResponse.ok) {
           const data = await subscriptionResponse.json();
           setSubscriptionData({
             next_payment_date: data.next_payment_date || null,
-            isPro: data.isPro || false
+            isPro: data.isPro || false,
+            subscription_start: data.subscription_start || null,
+            subscription_expires: data.subscription_expires || null
           });
         }
       } catch (error) {
@@ -51,8 +65,23 @@ export default function SettingsPage() {
       }
     }
 
-    fetchSettings()
-  }, [])
+    // Fetch immediately when component mounts
+    fetchSettings();
+
+    // Add event listener for focus and visibility change
+    window.addEventListener('focus', fetchSettings);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    });
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('focus', fetchSettings);
+      document.removeEventListener('visibilitychange', () => {});
+    };
+  }, []);
 
   const handleUpgradeClick = () => {
     router.push('/awaken-pro');
@@ -128,7 +157,7 @@ export default function SettingsPage() {
           transition={{ duration: 0.3, delay: 0.3 }}
         >
           <MembershipCard 
-            expiryDate={subscriptionData.next_payment_date || '0 days'}
+            expiryDate={subscriptionData.next_payment_date || 'No active subscription'}
             isActive={subscriptionData.isPro}
             cost={3.50}
           />
@@ -168,7 +197,7 @@ export default function SettingsPage() {
 
         {/* Settings Items */}
         <motion.div 
-          className="space-y-4"
+          className="space-y-4 mt-8"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}

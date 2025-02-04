@@ -14,42 +14,12 @@ if (!JWT_SECRET) {
 }
 
 export const secret = new TextEncoder().encode(JWT_SECRET);
-const POLLING_ATTEMPTS = 10; // Maximum number of polling attempts
-const POLLING_INTERVAL = 2000; // 2 seconds between attempts
-
-async function pollTransaction(transactionId: string, reference: string): Promise<boolean> {
-  for (let i = 0; i < POLLING_ATTEMPTS; i++) {
-    const response = await fetch(
-      `https://developer.worldcoin.org/api/v2/minikit/transaction/${transactionId}?app_id=${process.env.APP_ID}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${process.env.DEV_PORTAL_API_KEY}`,
-        },
-      }
-    );
-    
-    const transaction = await response.json();
-    
-    if (transaction.reference === reference) {
-      if (transaction.status === "mined") {
-        return true;
-      }
-      if (transaction.status === "failed") {
-        return false;
-      }
-    }
-
-    // Wait before next polling attempt
-    await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
-  }
-
-  return false; // Polling timeout
-}
 
 export async function POST(req: NextRequest) {
   try {
     const { payload } = (await req.json()) as IRequestPayload;
+    console.log('Received payment confirmation payload:', payload);
+    
     const xata = getXataClient();
     let user;
 
@@ -57,6 +27,7 @@ export async function POST(req: NextRequest) {
     const token = cookies().get('session')?.value;
     
     if (!token) {
+      console.log('No session token found');
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -64,13 +35,17 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
+      const { payload: tokenPayload } = await jwtVerify(token, secret);
+      console.log('Token payload:', tokenPayload);
+      
+      if (tokenPayload.address) {
         user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
+          wallet_address: tokenPayload.address 
         }).getFirst();
+        console.log('Found user:', user?.xata_id);
       }
     } catch (error) {
+      console.error('Token verification failed:', error);
       return NextResponse.json(
         { error: "Invalid session" },
         { status: 401 }
@@ -78,46 +53,76 @@ export async function POST(req: NextRequest) {
     }
 
     if (!user) {
+      console.log('User not found');
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    // Fetch the payment record from database
-    const payment = await xata.db.Payments.filter({
-      user: user.xata_id,
-      uuid: payload.reference
-    }).getFirst();
+    try {
+      // Get the latest payment_id
+      const latestPayment = await xata.db.Payments.sort('payment_id', 'desc').getFirst();
+      const nextPaymentId = (latestPayment?.payment_id || 0) + 1;
 
-    if (!payment) {
-      console.error("Payment record not found for reference:", payload.reference);
-      return NextResponse.json(
-        { error: "Payment not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify the transaction by polling until mined
-    const isSuccess = await pollTransaction(payload.transaction_id, payment.uuid);
-
-    if (isSuccess) {
-      // Update user's subscription status
-      await xata.db.Users.update(user.xata_id, {
-        subscription: true,
-        subscription_expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      // Create payment record first
+      const paymentRecord = await xata.db.Payments.create({
+        payment_id: nextPaymentId,
+        user: user.xata_id,
+        uuid: payload.transaction_id
       });
 
-      return NextResponse.json({ success: true });
-    }
+      console.log('Created payment record:', paymentRecord);
 
-    return NextResponse.json({ success: false });
+      // Check if user already has an active subscription
+      if (user.subscription && user.subscription_expires && new Date(user.subscription_expires) > new Date()) {
+        // Extend the existing subscription
+        const newExpiryDate = new Date(user.subscription_expires);
+        newExpiryDate.setDate(newExpiryDate.getDate() + 30);
+        
+        await xata.db.Users.update(user.xata_id, {
+          subscription_expires: newExpiryDate
+        });
+        
+        console.log('Extended subscription to:', newExpiryDate);
+        
+        return NextResponse.json({ 
+          success: true,
+          message: "Subscription extended",
+          next_payment_date: newExpiryDate.toISOString().split('T')[0]
+        });
+      }
+
+      // Update user's subscription status for new subscription
+      const subscriptionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      
+      await xata.db.Users.update(user.xata_id, {
+        subscription: true,
+        subscription_expires: subscriptionExpiry
+      });
+      
+      console.log('Activated new subscription until:', subscriptionExpiry);
+
+      return NextResponse.json({ 
+        success: true,
+        message: "Subscription activated",
+        next_payment_date: subscriptionExpiry.toISOString().split('T')[0]
+      });
+      
+    } catch (error) {
+      console.error('Database operation failed:', error);
+      return NextResponse.json(
+        { error: "Failed to process payment" },
+        { status: 500 }
+      );
+    }
 
   } catch (error) {
     console.error("Error confirming payment:", error);
     return NextResponse.json(
-      { error: "Failed to confirm payment" },
+      { error: "Failed to confirm payment", details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
 }
+
