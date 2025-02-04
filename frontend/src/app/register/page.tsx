@@ -64,11 +64,6 @@ export default function Register() {
     }
   };
 
-  // Call requestPermission when the component mounts
-  useEffect(() => {
-    requestPermission();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
