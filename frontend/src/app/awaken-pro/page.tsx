@@ -5,12 +5,29 @@ import { Crown, CheckCircle2, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MiniKit, tokenToDecimals, Tokens, PayCommandInput } from '@worldcoin/minikit-js'
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 
 export default function AwakenProPage() {
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<'Basic' | 'Pro'>('Basic')
+
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const response = await fetch('/api/user/subscription')
+        if (response.ok) {
+          const data = await response.json()
+          setCurrentPlan(data.isPro ? 'Pro' : 'Basic')
+        }
+      } catch (error) {
+        console.error('Error fetching subscription status:', error)
+      }
+    }
+
+    fetchSubscriptionStatus()
+  }, [])
 
   const handleUpgrade = async () => {
     setIsProcessing(true)
@@ -33,7 +50,7 @@ export default function AwakenProPage() {
         tokens: [
           {
             symbol: Tokens.WLD,
-            token_amount: tokenToDecimals(3.50, Tokens.WLD).toString(),
+            token_amount: tokenToDecimals(0.1, Tokens.WLD).toString(),
           }
         ],
         description: 'Upgrade to Awaken Pro - 1 Month Subscription'
@@ -51,7 +68,11 @@ export default function AwakenProPage() {
 
         const payment = await confirmRes.json()
         if (payment.success) {
+          // Force refresh subscription data on settings page
+          router.refresh()
           router.push('/settings?upgrade=success')
+        } else {
+          console.error('Payment confirmation failed:', payment.error)
         }
       }
     } catch (error) {
@@ -70,12 +91,18 @@ export default function AwakenProPage() {
             Step Into the Next Level
           </h1>
           <p className="text-slate-200 text-lg mb-4 max-w-sm mx-auto font-medium">
-            Current plan: <span className="text-accent-red font-bold">Basic</span>
+            Current plan: {' '}
+            <span className={cn(
+              "font-bold",
+              currentPlan === 'Pro' ? "text-accent-green" : "text-accent-red"
+            )}>
+              {currentPlan}
+            </span>
           </p>
         </div>
       </div>
 
-
+      {/* Upgrade Card */}
       <div className="max-w-md mx-auto px-6 mb-8">
         <motion.div 
           className={cn(
@@ -105,11 +132,12 @@ export default function AwakenProPage() {
 
           <div className="space-y-4 mb-8">
             {[
-              "Advanced analytics",
-              "Exclusive badges and titles",
-              "Shareable results",
-              "High quality graphs",
-              "Priority support"
+              "Advanced Insights",
+              "Early access to new features",
+              "Exclusive Community Access",
+              "Priority support",
+              "Soon chat with AI",
+              "More coming soon...",
             ].map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <CheckCircle2 className="w-6 h-6 text-accent-red" />
@@ -181,7 +209,6 @@ export default function AwakenProPage() {
                 "h-16" // Increased height for better visibility
               )}
             >
-              {/* Shimmer effect */}
               <div 
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                 style={{
