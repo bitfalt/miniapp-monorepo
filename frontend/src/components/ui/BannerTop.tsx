@@ -18,7 +18,7 @@ export function BannerTop() {
       <FilledButton
         variant="default"
         size="sm"
-        className="bg-[#e36c59] hover:bg-[#e36c59]/90 text-sm"
+        className="w-full bg-[#e36c59] hover:bg-[#e36c59]/90 text-sm"
         onClick={handleVerify}
         disabled={isVerifying}
       >
