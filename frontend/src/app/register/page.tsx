@@ -1,23 +1,23 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { FilledButton } from "@/components/ui/FilledButton";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { NotificationDialog } from "@/components/ui/NotificationError";
+import { Input } from "@/components/ui/input";
 import { COUNTRIES, type CountryCode } from "@/constants/countries";
-import { MiniKit, RequestPermissionPayload, Permission } from '@worldcoin/minikit-js'
-import NotificationError from "@/components/ui/NotificationError";
+import { MiniKit } from "@worldcoin/minikit-js";
+import type { RequestPermissionPayload } from "@worldcoin/minikit-js";
+import { Permission } from "@worldcoin/minikit-js";
+import { useRouter, useSearchParams } from "next/navigation";
+import type * as React from "react";
+import { useEffect, useState } from "react";
 
-type NotificationErrorCode = 
-  | "user_rejected" 
-  | "generic_error" 
-  | "already_requested" 
-  | "permission_disabled" 
-  | "already_granted" 
+type NotificationErrorCode =
+  | "user_rejected"
+  | "generic_error"
+  | "already_requested"
+  | "permission_disabled"
+  | "already_granted"
   | "unsupported_permission";
-
-const API_KEY = process.env.DEV_PORTAL_API_KEY;
-const APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
 export default function Register() {
   const router = useRouter();
@@ -30,41 +30,42 @@ export default function Register() {
     email: "",
     age: "",
     country: "CR" as CountryCode,
-    wallet_address: ""
+    wallet_address: "",
   });
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorCode, setErrorCode] = useState<NotificationErrorCode | undefined>(undefined);
-
+  const [errorCode, setErrorCode] = useState<NotificationErrorCode | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!userId) {
-      router.push('/sign-in');
+      router.push("/sign-in");
       return;
     }
 
     // Set the wallet address from URL parameter
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      wallet_address: userId
+      wallet_address: userId,
     }));
   }, [userId, router]);
 
-  // TODO update database on notifications: true 
-  
+  // TODO update database on notifications: true
+
   // Function to request notification permission
   const requestPermission = async () => {
     const requestPermissionPayload: RequestPermissionPayload = {
       permission: Permission.Notifications,
     };
     try {
-      const payload = await MiniKit.commandsAsync.requestPermission(requestPermissionPayload);
-      console.log('Permission granted:', payload);
+      const payload = await MiniKit.commandsAsync.requestPermission(
+        requestPermissionPayload,
+      );
       return payload;
     } catch (error) {
-      console.error('Permission request failed:', error);
-      // Set error code instead of message
+      console.error("Permission request failed:", error);
       if (error instanceof Error) {
         setErrorCode(error.message as NotificationErrorCode);
       }
@@ -76,7 +77,6 @@ export default function Register() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-
       // Get username from MiniKit if available
       const username = MiniKit.user?.username;
 
@@ -84,7 +84,7 @@ export default function Register() {
       const walletAddress = formData.wallet_address;
 
       if (!walletAddress) {
-        throw new Error('No wallet address provided');
+        throw new Error("No wallet address provided");
       }
 
       // Get form data
@@ -92,79 +92,90 @@ export default function Register() {
         name: formData.name,
         last_name: formData.lastName,
         email: formData.email,
-        age: parseInt(formData.age),
+        age: Number.parseInt(formData.age),
         subscription: false,
         wallet_address: walletAddress,
-        username: username,
-        country: COUNTRIES.find(c => c.countryCode === formData.country)?.country || "Costa Rica"
+        username,
+        country:
+          COUNTRIES.find((c) => c.countryCode === formData.country)?.country ||
+          "Costa Rica",
       };
 
       // Client-side validation
-      if (!userData.name || userData.name.length < 2 || userData.name.length > 50) {
-        throw new Error('Name must be between 2 and 50 characters');
+      if (
+        !userData.name ||
+        userData.name.length < 2 ||
+        userData.name.length > 50
+      ) {
+        throw new Error("Name must be between 2 and 50 characters");
       }
 
-      if (!userData.last_name || userData.last_name.length < 2 || userData.last_name.length > 50) {
-        throw new Error('Last name must be between 2 and 50 characters');
+      if (
+        !userData.last_name ||
+        userData.last_name.length < 2 ||
+        userData.last_name.length > 50
+      ) {
+        throw new Error("Last name must be between 2 and 50 characters");
       }
 
-      if (!userData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-        throw new Error('Please enter a valid email address');
+      if (
+        !userData.email ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)
+      ) {
+        throw new Error("Please enter a valid email address");
       }
 
       if (!userData.age || userData.age < 18 || userData.age > 120) {
-        throw new Error('Age must be between 18 and 120');
+        throw new Error("Age must be between 18 and 120");
       }
 
       if (!/^0x[a-fA-F0-9]{40}$/.test(userData.wallet_address)) {
-        throw new Error('Invalid wallet address format');
+        throw new Error("Invalid wallet address format");
       }
 
-      console.log('Submitting user data:', userData);
-
       // Create user
-      const response = await fetch('/api/user', {
-        method: 'POST',
+      const response = await fetch("/api/user", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       });
 
       const result = await response.json();
-      console.log('User creation response:', result);
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create user profile');
+        throw new Error(result.error || "Failed to create user profile");
       }
 
       // Create session
-      console.log('Creating session for user:', walletAddress);
-      const sessionResponse = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const sessionResponse = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           walletAddress,
-          isSiweVerified: true
-        })
+          isSiweVerified: true,
+        }),
       });
 
       if (!sessionResponse.ok) {
         const sessionError = await sessionResponse.json();
-        throw new Error(sessionError.error || 'Failed to create session');
+        throw new Error(sessionError.error || "Failed to create session");
       }
 
       // Request notification permission after successful registration
       await requestPermission();
 
       // Set registration completion flag and redirect to welcome page
-      sessionStorage.setItem('registration_complete', 'true');
-      router.push('/welcome');
-
+      sessionStorage.setItem("registration_complete", "true");
+      router.push("/welcome");
     } catch (error) {
-      console.error('Registration error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to complete registration');
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to complete registration",
+      );
       if (error instanceof Error) {
         setErrorCode(error.message as NotificationErrorCode);
       }
@@ -181,7 +192,7 @@ export default function Register() {
     <div className="flex flex-col items-center overflow-x-hidden">
       {/* Render NotificationError if errorCode is set */}
       {errorCode && (
-        <NotificationError
+        <NotificationDialog
           errorCode={errorCode}
           onProceed={() => setErrorCode(undefined)}
         />
@@ -204,12 +215,12 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-6 mb-20">
           {error && (
-            <div className="text-red-500 text-sm text-center">
-              {error}
-            </div>
+            <div className="text-red-500 text-sm text-center">{error}</div>
           )}
           <div className="space-y-2">
-            <label htmlFor="name" className="text-[#232931] text-base">Name</label>
+            <label htmlFor="name" className="text-[#232931] text-base">
+              Name
+            </label>
             <Input
               id="name"
               name="name"
@@ -218,13 +229,17 @@ export default function Register() {
               minLength={2}
               maxLength={50}
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="last_name" className="text-[#232931] text-base">Last Name</label>
+            <label htmlFor="last_name" className="text-[#232931] text-base">
+              Last Name
+            </label>
             <Input
               id="last_name"
               name="last_name"
@@ -233,35 +248,47 @@ export default function Register() {
               minLength={2}
               maxLength={50}
               value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, lastName: e.target.value })
+              }
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-[#232931] text-base">Email</label>
+            <label htmlFor="email" className="text-[#232931] text-base">
+              Email
+            </label>
             <Input
               id="email"
               name="email"
               type="email"
               required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="age" className="text-[#232931] text-base">Age</label>
+            <label htmlFor="age" className="text-[#232931] text-base">
+              Age
+            </label>
             <select
               id="age"
               name="age"
               required
               value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, age: e.target.value })
+              }
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
             >
-              <option value="" className="text-gray-500">Select age</option>
+              <option value="" className="text-gray-500">
+                Select age
+              </option>
               {Array.from({ length: 113 }, (_, i) => i + 18).map((age) => (
                 <option key={age} value={age} className="text-black">
                   {age}
@@ -271,17 +298,28 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="country" className="text-[#232931] text-base">Country</label>
+            <label htmlFor="country" className="text-[#232931] text-base">
+              Country
+            </label>
             <select
               id="country"
               name="country"
               required
               value={formData.country}
-              onChange={(e) => setFormData({ ...formData, country: e.target.value as CountryCode })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  country: e.target.value as CountryCode,
+                })
+              }
               className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
             >
               {COUNTRIES.map(({ countryCode, country, flag }) => (
-                <option key={countryCode} value={countryCode} className="text-black">
+                <option
+                  key={countryCode}
+                  value={countryCode}
+                  className="text-black"
+                >
                   {flag} {country}
                 </option>
               ))}
@@ -300,7 +338,7 @@ export default function Register() {
                   Registering...
                 </div>
               ) : (
-                'Complete Registration'
+                "Complete Registration"
               )}
             </FilledButton>
           </div>
@@ -308,4 +346,4 @@ export default function Register() {
       </div>
     </div>
   );
-} 
+}

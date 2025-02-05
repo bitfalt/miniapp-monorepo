@@ -1,18 +1,29 @@
 import { getXataClient } from "@/lib/utils";
+import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
+import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+interface TokenPayload extends JWTPayload {
+	address?: string;
 }
 
-const secret = new TextEncoder().encode(JWT_SECRET);
-
 interface CategoryScore {
-  category_xata_id: string;
-  score: number;
+	category_xata_id: string;
+	score: number;
+}
+
+interface TestResult {
+	category: string;
+	insight: string;
+	description: string;
+	percentage: number;
+}
+
+interface ResultResponse {
+	results?: TestResult[];
+	error?: string;
 }
 
 /**
@@ -56,154 +67,177 @@ interface CategoryScore {
  *       500:
  *         description: Internal server error
  */
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+	throw new Error("JWT_SECRET environment variable is required");
+}
+
+const secret = new TextEncoder().encode(JWT_SECRET);
+
 export async function GET(
-  request: Request,
-  { params }: { params: { testId: string } }
+	request: NextRequest,
+	{ params }: { params: { testId: string } },
 ) {
-  try {
-    const xata = getXataClient();
-    let user;
+	try {
+		const xata = getXataClient();
+		const token = cookies().get("session")?.value;
 
-    // Try JWT session from wallet auth
-    const token = cookies().get('session')?.value;
-    
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+		if (!token) {
+			const response: ResultResponse = { error: "Unauthorized" };
+			return NextResponse.json(response, { status: 401 });
+		}
 
-    try {
-      const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
-      }
-    } catch (error) {
-      console.error('JWT verification failed:', error);
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
+		try {
+			const { payload } = await jwtVerify(token, secret);
+			const typedPayload = payload as TokenPayload;
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+			if (!typedPayload.address) {
+				const response: ResultResponse = { error: "Invalid session" };
+				return NextResponse.json(response, { status: 401 });
+			}
 
-    // Get test progress
-    const progress = await xata.db.UserTestProgress.filter({
-      "user.xata_id": user.xata_id,
-      "test.test_id": parseInt(params.testId)
-    }).getFirst();
+			const user = await xata.db.Users.filter({
+				wallet_address: typedPayload.address,
+			}).getFirst();
 
-    if (!progress) {
-      return NextResponse.json(
-        { error: "Test progress not found" },
-        { status: 404 }
-      );
-    }
+			if (!user) {
+				const response: ResultResponse = { error: "User not found" };
+				return NextResponse.json(response, { status: 404 });
+			}
 
-    if (!progress.score) {
-      return NextResponse.json(
-        { error: "Test not completed" },
-        { status: 400 }
-      );
-    }
+			// Get test progress
+			const progress = await xata.db.UserTestProgress.filter({
+				"user.xata_id": user.xata_id,
+				"test.test_id": Number.parseInt(params.testId, 10),
+			}).getFirst();
 
-    // Get all categories with their names
-    const categories = await xata.db.Categories.getAll();
-    
-    // Map scores to categories
-    const categoryScores: CategoryScore[] = [
-      { category_xata_id: categories.find(c => c.category_name === "Economic")?.xata_id || "", score: progress.score.econ },
-      { category_xata_id: categories.find(c => c.category_name === "Civil")?.xata_id || "", score: progress.score.govt },
-      { category_xata_id: categories.find(c => c.category_name === "Diplomatic")?.xata_id || "", score: progress.score.dipl },
-      { category_xata_id: categories.find(c => c.category_name === "Societal")?.xata_id || "", score: progress.score.scty }
-    ].filter(cs => cs.category_xata_id !== "");
+			if (!progress) {
+				const response: ResultResponse = { error: "Test progress not found" };
+				return NextResponse.json(response, { status: 404 });
+			}
 
-    // Process each category score
-    const results = [];
-    const test = await xata.db.Tests.filter({ test_id: parseInt(params.testId) }).getFirst();
+			if (!progress.score) {
+				const response: ResultResponse = { error: "Test not completed" };
+				return NextResponse.json(response, { status: 400 });
+			}
 
-    if (!test) {
-      return NextResponse.json(
-        { error: "Test not found" },
-        { status: 404 }
-      );
-    }
+			// Get all categories with their names
+			const categories = await xata.db.Categories.getAll();
 
-    // Round all scores to integers
-    categoryScores.forEach(cs => cs.score = Math.round(cs.score));
+			// Map scores to categories
+			const categoryScores: CategoryScore[] = [
+				{
+					category_xata_id:
+						categories.find((c) => c.category_name === "Economic")?.xata_id ||
+						"",
+					score: progress.score.econ,
+				},
+				{
+					category_xata_id:
+						categories.find((c) => c.category_name === "Civil")?.xata_id || "",
+					score: progress.score.govt,
+				},
+				{
+					category_xata_id:
+						categories.find((c) => c.category_name === "Diplomatic")?.xata_id ||
+						"",
+					score: progress.score.dipl,
+				},
+				{
+					category_xata_id:
+						categories.find((c) => c.category_name === "Societal")?.xata_id ||
+						"",
+					score: progress.score.scty,
+				},
+			].filter((cs) => cs.category_xata_id !== "");
 
-    for (const categoryScore of categoryScores) {
-      // Find matching insight based on score
-      const insight = await xata.db.Insights.filter({
-        "category.xata_id": categoryScore.category_xata_id,
-        lower_limit: { $le: categoryScore.score },
-        upper_limit: { $gt: categoryScore.score }
-      }).getFirst();
+			// Process each category score
+			const results: TestResult[] = [];
+			const test = await xata.db.Tests.filter({
+				test_id: Number.parseInt(params.testId, 10),
+			}).getFirst();
 
-      if (insight) {
-        // Get category details
-        const category = categories.find(c => c.xata_id === categoryScore.category_xata_id);
-        
-        if (category) {
-          // Save to InsightsPerUserCategory
-          const latestInsight = await xata.db.InsightsPerUserCategory
-            .sort("insight_user_id", "desc")
-            .getFirst();
-          const nextInsightId = (latestInsight?.insight_user_id || 0) + 1;
+			if (!test) {
+				const response: ResultResponse = { error: "Test not found" };
+				return NextResponse.json(response, { status: 404 });
+			}
 
-          // Get range description based on score
-          let range = 'neutral'
-          if (categoryScore.score >= 45 && categoryScore.score <= 55) {
-            range = 'centrist'
-          } else if (categoryScore.score >= 35 && categoryScore.score < 45) {
-            range = 'moderate'
-          } else if (categoryScore.score >= 25 && categoryScore.score < 35) {
-            range = 'balanced'
-          }
+			// Round all scores to integers
+			for (const cs of categoryScores) {
+				cs.score = Math.round(cs.score);
+			}
 
-          await xata.db.InsightsPerUserCategory.create({
-            category: category.xata_id,
-            insight: insight.xata_id,
-            test: test.xata_id,
-            user: user.xata_id,
-            description: range,
-            percentage: categoryScore.score,
-            insight_user_id: nextInsightId
-          });
+			for (const categoryScore of categoryScores) {
+				// Find matching insight based on score
+				const insight = await xata.db.Insights.filter({
+					"category.xata_id": categoryScore.category_xata_id,
+					lower_limit: { $le: categoryScore.score },
+					upper_limit: { $gt: categoryScore.score },
+				}).getFirst();
 
-          // Add to results
-          results.push({
-            category: category.category_name,
-            insight: insight.insight,
-            description: range,
-            percentage: categoryScore.score
-          });
-        }
-      }
-    }
+				if (insight) {
+					// Get category details
+					const category = categories.find(
+						(c) => c.xata_id === categoryScore.category_xata_id,
+					);
 
-    // Update progress status to completed
-    await progress.update({
-      status: "completed",
-      completed_at: new Date()
-    });
+					if (category) {
+						// Save to InsightsPerUserCategory
+						const latestInsight = await xata.db.InsightsPerUserCategory.sort(
+							"insight_user_id",
+							"desc",
+						).getFirst();
+						const nextInsightId = (latestInsight?.insight_user_id || 0) + 1;
 
-    return NextResponse.json(results);
+						// Get range description based on score
+						let range = "neutral";
+						if (categoryScore.score >= 45 && categoryScore.score <= 55) {
+							range = "centrist";
+						} else if (categoryScore.score >= 35 && categoryScore.score < 45) {
+							range = "moderate";
+						} else if (categoryScore.score >= 25 && categoryScore.score < 35) {
+							range = "balanced";
+						}
 
-  } catch (error) {
-    console.error("Error processing test results:", error);
-    return NextResponse.json(
-      { error: "Failed to process test results" },
-      { status: 500 }
-    );
-  }
+						await xata.db.InsightsPerUserCategory.create({
+							category: category.xata_id,
+							insight: insight.xata_id,
+							test: test.xata_id,
+							user: user.xata_id,
+							description: range,
+							percentage: categoryScore.score,
+							insight_user_id: nextInsightId,
+						});
+
+						// Add to results
+						results.push({
+							category: category.category_name,
+							insight: insight.insight,
+							description: range,
+							percentage: categoryScore.score,
+						});
+					}
+				}
+			}
+
+			// Update progress status to completed
+			await progress.update({
+				status: "completed",
+				completed_at: new Date(),
+			});
+
+			const response: ResultResponse = { results };
+			return NextResponse.json(response);
+		} catch {
+			const response: ResultResponse = { error: "Invalid session" };
+			return NextResponse.json(response, { status: 401 });
+		}
+	} catch (error) {
+		console.error("Error processing test results:", error);
+		const response: ResultResponse = {
+			error: "Failed to process test results",
+		};
+		return NextResponse.json(response, { status: 500 });
+	}
 }

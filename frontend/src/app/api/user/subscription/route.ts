@@ -1,8 +1,19 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
 import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+	address?: string;
+}
+
+interface SubscriptionResponse {
+	next_payment_date?: string;
+	isPro: boolean;
+	message?: string;
+	error?: string;
+}
 
 /**
  * @swagger
@@ -32,69 +43,79 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+	throw new Error("JWT_SECRET environment variable is required");
 }
 
-export const secret = new TextEncoder().encode(JWT_SECRET);
+const secret = new TextEncoder().encode(JWT_SECRET);
 
-export async function GET(request: Request) {
-  try {
-    const xata = getXataClient();
-    let user;
+export async function GET() {
+	try {
+		const xata = getXataClient();
+		const token = cookies().get("session")?.value;
 
-    // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+		if (!token) {
+			const response: SubscriptionResponse = {
+				error: "Unauthorized",
+				isPro: false,
+			};
+			return NextResponse.json(response, { status: 401 });
+		}
 
-    try {
-      const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
-      }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
+		try {
+			const { payload } = await jwtVerify(token, secret);
+			const typedPayload = payload as TokenPayload;
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+			if (!typedPayload.address) {
+				const response: SubscriptionResponse = {
+					error: "Invalid session",
+					isPro: false,
+				};
+				return NextResponse.json(response, { status: 401 });
+			}
 
-    if (!user.subscription_expires) {
-      return NextResponse.json(
-        { 
-          message: "No active subscription found",
-          isPro: false
-        }
-      );
-    }
+			const user = await xata.db.Users.filter({
+				wallet_address: typedPayload.address,
+			}).getFirst();
 
-    // Format the date to YYYY-MM-DD
-    const nextPaymentDate = user.subscription_expires.toISOString().split('T')[0];
+			if (!user) {
+				const response: SubscriptionResponse = {
+					error: "User not found",
+					isPro: false,
+				};
+				return NextResponse.json(response, { status: 404 });
+			}
 
-    return NextResponse.json({
-      next_payment_date: nextPaymentDate,
-      isPro: true
-    });
+			if (!user.subscription_expires) {
+				const response: SubscriptionResponse = {
+					message: "No active subscription found",
+					isPro: false,
+				};
+				return NextResponse.json(response);
+			}
 
-  } catch (error) {
-    console.error("Error fetching subscription:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-} 
+			// Format the date to YYYY-MM-DD
+			const nextPaymentDate = user.subscription_expires
+				.toISOString()
+				.split("T")[0];
+
+			const response: SubscriptionResponse = {
+				next_payment_date: nextPaymentDate,
+				isPro: true,
+			};
+			return NextResponse.json(response);
+		} catch {
+			const response: SubscriptionResponse = {
+				error: "Invalid session",
+				isPro: false,
+			};
+			return NextResponse.json(response, { status: 401 });
+		}
+	} catch (error) {
+		console.error("Error fetching subscription:", error);
+		const response: SubscriptionResponse = {
+			error: "Internal server error",
+			isPro: false,
+		};
+		return NextResponse.json(response, { status: 500 });
+	}
+}

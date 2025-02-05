@@ -1,15 +1,19 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ReactNode } from "react";
+import type * as React from "react";
+
+interface ErudaProviderProps {
+  children: React.ReactNode;
+}
 
 const Eruda = dynamic(() => import("./eruda-provider").then((c) => c.Eruda), {
   ssr: false,
 });
 
-export const ErudaProvider = (props: { children: ReactNode }) => {
+export function ErudaProvider({ children }: ErudaProviderProps) {
   if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
-    return props.children;
+    return children;
   }
-  return <Eruda>{props.children}</Eruda>;
-}; 
+  return <Eruda>{children}</Eruda>;
+}

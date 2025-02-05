@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { FilledButton } from "@/components/ui/FilledButton";
+import { MiniKit } from "@worldcoin/minikit-js";
+import { AnimatePresence, motion } from "framer-motion";
 import { Wallet } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MiniKit } from '@worldcoin/minikit-js';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
 
 const headingConfig = {
   firstLine: {
@@ -16,7 +16,7 @@ const headingConfig = {
   secondLine: {
     prefix: "Transform Your",
     words: ["View", "Lens", "Vision", "Mind", "Path", "Light", "World"],
-  }
+  },
 };
 
 export default function SignIn() {
@@ -28,18 +28,22 @@ export default function SignIn() {
 
   useEffect(() => {
     // Clear any old session data
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       sessionStorage.clear();
-      document.cookie.split(";").forEach(function(c) { 
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-      });
+      for (const c of document.cookie.split(";")) {
+        document.cookie = `${c.replace(/^ +/, "").replace(/=.*/, "=;expires=")}${new Date().toUTCString()};path=/`;
+      }
     }
   }, []);
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
-      setCurrentTrueWord(prev => (prev + 1) % headingConfig.firstLine.words.length);
-      setCurrentPerspectiveWord(prev => (prev + 1) % headingConfig.secondLine.words.length);
+      setCurrentTrueWord(
+        (prev) => (prev + 1) % headingConfig.firstLine.words.length,
+      );
+      setCurrentPerspectiveWord(
+        (prev) => (prev + 1) % headingConfig.secondLine.words.length,
+      );
     }, 3000);
 
     return () => clearInterval(wordInterval);
@@ -49,190 +53,191 @@ export default function SignIn() {
     setIsConnecting(true);
     try {
       setError(null);
-      
+
       if (!MiniKit.isInstalled()) {
         router.push("https://worldcoin.org/download-app");
         return;
       }
 
-      console.log('Requesting nonce...');
-      const nonceResponse = await fetch(`/api/nonce`, {
-        credentials: 'include'
+      const nonceResponse = await fetch("/api/nonce", {
+        credentials: "include",
       });
       if (!nonceResponse.ok) {
         const errorText = await nonceResponse.text();
-        console.error('Nonce fetch failed:', errorText);
+        console.error("Nonce fetch failed:", errorText);
         throw new Error(`Failed to fetch nonce: ${errorText}`);
       }
-      
+
       const { nonce } = await nonceResponse.json();
-      console.log('Nonce received:', nonce);
 
       if (!nonce) {
-        throw new Error('Invalid nonce received');
+        throw new Error("Invalid nonce received");
       }
 
-      console.log('Initiating wallet auth...');
-      const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
-        nonce,
-        statement: 'Sign in with your Ethereum wallet'
-      }).catch(error => {
-        console.error('Wallet auth command failed:', error);
-        if (error instanceof DOMException) {
-          if (error.name === 'SyntaxError') {
-            throw new Error('Invalid SIWE message format');
+      const { finalPayload } = await MiniKit.commandsAsync
+        .walletAuth({
+          nonce,
+          statement: "Sign in with your Ethereum wallet",
+        })
+        .catch((error) => {
+          console.error("Wallet auth command failed:", error);
+          if (error instanceof DOMException) {
+            if (error.name === "SyntaxError") {
+              throw new Error("Invalid SIWE message format");
+            }
+            throw new Error("Authentication cancelled");
           }
-          console.log('World ID auth cancelled by user');
-          throw new Error('Authentication cancelled');
-        }
-        throw error;
-      });
+          throw error;
+        });
 
-      if (!finalPayload || finalPayload.status !== 'success') {
-        console.error('Wallet auth failed:', finalPayload);
-        throw new Error('Authentication failed');
+      if (!finalPayload || finalPayload.status !== "success") {
+        console.error("Wallet auth failed:", finalPayload);
+        throw new Error("Authentication failed");
       }
-
-      console.log('SIWE payload:', finalPayload);
 
       // Get the wallet address from MiniKit after successful auth
       const walletAddress = MiniKit.user?.walletAddress;
-      console.log('Wallet address from MiniKit:', walletAddress);
 
-      console.log('Completing SIWE verification...');
-      const response = await fetch('/api/complete-siwe', {
-        method: 'POST',
+      const response = await fetch("/api/complete-siwe", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           payload: finalPayload,
-          nonce
+          nonce,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error || 'Failed to complete SIWE verification');
+        throw new Error(
+          errorData.message ||
+            errorData.error ||
+            "Failed to complete SIWE verification",
+        );
       }
 
       const data = await response.json();
-      console.log('SIWE completion response:', data);
-      
-      if (data.status === 'error' || !data.isValid) {
-        throw new Error(data.message || 'Failed to verify SIWE message');
+
+      if (data.status === "error" || !data.isValid) {
+        throw new Error(data.message || "Failed to verify SIWE message");
       }
 
       // Get the normalized wallet address
       const userWalletAddress = (walletAddress || data.address)?.toLowerCase();
-      
+
       if (!userWalletAddress) {
-        throw new Error('No wallet address available');
+        throw new Error("No wallet address available");
       }
 
       // Check if user exists using the API endpoint
-      const userCheckResponse = await fetch('/api/user/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: userWalletAddress })
+      const userCheckResponse = await fetch("/api/user/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: userWalletAddress }),
       });
 
       if (!userCheckResponse.ok) {
         const errorData = await userCheckResponse.json();
-        throw new Error(errorData.error || 'Failed to check user existence');
+        throw new Error(errorData.error || "Failed to check user existence");
       }
 
       const userCheckData = await userCheckResponse.json();
 
       if (userCheckData.exists) {
         // User exists, create session and redirect to home
-        console.log('User exists, creating session...');
         try {
-          const sessionResponse = await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
+          const sessionResponse = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
               walletAddress: userWalletAddress,
-              isSiweVerified: data.isValid
-            })
+              isSiweVerified: data.isValid,
+            }),
           });
 
-        if (!sessionResponse.ok) {
-          const sessionError = await sessionResponse.json();
-          throw new Error(sessionError.error || 'Failed to create session');
-        }
+          if (!sessionResponse.ok) {
+            const sessionError = await sessionResponse.json();
+            throw new Error(sessionError.error || "Failed to create session");
+          }
 
           // Add a small delay to ensure session is properly set
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Check if this is the user's first login
-          const userResponse = await fetch('/api/user/me', {
-            method: 'GET',
-            credentials: 'include',
+          const userResponse = await fetch("/api/user/me", {
+            method: "GET",
+            credentials: "include",
             headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            }
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+            },
           });
-          
+
           if (!userResponse.ok) {
-            console.error('Failed to fetch user data:', await userResponse.text());
+            console.error(
+              "Failed to fetch user data:",
+              await userResponse.text(),
+            );
             // If we can't fetch user data, just redirect to home
-            router.push('/');
+            router.push("/");
             return;
           }
 
           const userData = await userResponse.json();
-          console.log('User data fetched:', userData);
-          
+
           // If this is their first login (checking created_at vs updated_at)
           if (userData.createdAt === userData.updatedAt) {
-            router.push('/welcome');
+            router.push("/welcome");
           } else {
-            router.push('/');
+            router.push("/");
           }
         } catch (error) {
-          console.error('Session/User data error:', error);
+          console.error("Session/User data error:", error);
           // If something goes wrong after session creation, redirect to home
-          router.push('/');
+          router.push("/");
         }
       } else {
         // User doesn't exist, redirect to registration
-        console.log('User not found, redirecting to registration...');
-        router.push(`/register?userId=${encodeURIComponent(userWalletAddress)}`);
+        router.push(
+          `/register?userId=${encodeURIComponent(userWalletAddress)}`,
+        );
       }
-
     } catch (error) {
-      if (error instanceof Error && error.message === 'Authentication cancelled') {
-        console.log('Authentication cancelled by user');
-        setError('Authentication was cancelled');
+      if (
+        error instanceof Error &&
+        error.message === "Authentication cancelled"
+      ) {
+        setError("Authentication was cancelled");
         return;
       }
-      
-      console.error('WorldID auth failed:', {
+
+      console.error("WorldID auth failed:", {
         error,
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
         type: error?.constructor?.name,
         code: error instanceof DOMException ? error.code : undefined,
-        name: error instanceof DOMException ? error.name : undefined
+        name: error instanceof DOMException ? error.name : undefined,
       });
-      
-      let errorMessage = 'Authentication failed';
+
+      let errorMessage = "Authentication failed";
       if (error instanceof Error) {
-        if (error.message === 'Invalid SIWE message format') {
-          errorMessage = 'Failed to create authentication message. Please try again.';
+        if (error.message === "Invalid SIWE message format") {
+          errorMessage =
+            "Failed to create authentication message. Please try again.";
         } else {
           errorMessage = error.message;
         }
-      } else if (typeof error === 'string') {
+      } else if (typeof error === "string") {
         errorMessage = error;
-      } else if (error && typeof error === 'object' && 'message' in error) {
+      } else if (error && typeof error === "object" && "message" in error) {
         errorMessage = String(error.message);
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsConnecting(false);
@@ -240,13 +245,13 @@ export default function SignIn() {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="flex flex-col items-center"
     >
-      <motion.div 
+      <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
@@ -261,16 +266,16 @@ export default function SignIn() {
               transition={{ delay: 0.1, duration: 0.5 }}
               className="flex justify-center mb-8"
             >
-              <Image 
-                src="/mindvault-logo.png" 
-                alt="MindVault Logo" 
+              <Image
+                src="/mindvault-logo.png"
+                alt="MindVault Logo"
                 width={64}
                 height={64}
                 className="h-16 w-auto"
                 priority
               />
             </motion.div>
-            
+
             <h1 className="text-white text-[clamp(3rem,9vw,5.5rem)] font-medium leading-[1] mb-8">
               {headingConfig.firstLine.prefix}{" "}
               <AnimatePresence mode="wait">
@@ -305,17 +310,13 @@ export default function SignIn() {
         </div>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
         className="w-full max-w-md space-y-4 text-center mt-auto p-4"
       >
-        {error && (
-          <div className="text-red-500 text-sm mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
 
         <FilledButton
           variant="default"
@@ -332,7 +333,7 @@ export default function SignIn() {
                 <Wallet className="w-5 h-5" />
               )}
             </div>
-            <span>{isConnecting ? 'Connecting...' : 'World ID'}</span>
+            <span>{isConnecting ? "Connecting..." : "World ID"}</span>
           </div>
         </FilledButton>
 
@@ -342,4 +343,4 @@ export default function SignIn() {
       </motion.div>
     </motion.div>
   );
-} 
+}

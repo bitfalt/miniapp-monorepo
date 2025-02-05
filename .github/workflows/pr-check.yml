@@ -1,0 +1,117 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality:
+    name: Code Quality & Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Run Biome lint
+        working-directory: frontend
+        run: pnpm biome lint ./src
+
+      - name: Run Biome format check
+        working-directory: frontend
+        run: pnpm biome format --check ./src
+
+      - name: Type check
+        working-directory: frontend
+        run: pnpm type-check
+
+      - name: Run tests
+        working-directory: frontend
+        run: pnpm test
+
+      - name: Build application
+        working-directory: frontend
+        run: pnpm build
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Run security audit
+        run: pnpm audit
+
+      - name: Check for outdated dependencies
+        run: pnpm outdated
+
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build and analyze bundle
+        working-directory: frontend
+        run: pnpm build
+        env:
+          ANALYZE: true
+          # You might want to add these for better visualization
+          BUNDLE_ANALYZE_MODE: 'static'
+          BUNDLE_ANALYZE_REPORT: 'bundle-analysis.html' 

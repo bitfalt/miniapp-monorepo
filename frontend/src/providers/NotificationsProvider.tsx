@@ -1,24 +1,40 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState } from "react"
+import type * as React from "react";
+import { createContext, useContext, useState } from "react";
 
-const NotificationsContext = createContext({
-  notificationsEnabled: true,
-  toggleNotifications: () => {}
-})
-
-export function NotificationsProvider({ children }: { children: React.ReactNode }) {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-
-  const toggleNotifications = () => {
-    setNotificationsEnabled(prev => !prev)
-  }
-
-  return (
-    <NotificationsContext.Provider value={{ notificationsEnabled, toggleNotifications }}>
-      {children}
-    </NotificationsContext.Provider>
-  )
+interface NotificationsContextType {
+	notificationsEnabled: boolean;
+	toggleNotifications: () => void;
 }
 
-export const useNotifications = () => useContext(NotificationsContext) 
+const NotificationsContext = createContext<NotificationsContextType>({
+	notificationsEnabled: true,
+	toggleNotifications: () => undefined,
+});
+
+interface NotificationsProviderProps {
+	children: React.ReactNode;
+}
+
+export function NotificationsProvider({
+	children,
+}: NotificationsProviderProps) {
+	const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+	const toggleNotifications = () => {
+		setNotificationsEnabled((prev) => !prev);
+	};
+
+	return (
+		<NotificationsContext.Provider
+			value={{ notificationsEnabled, toggleNotifications }}
+		>
+			{children}
+		</NotificationsContext.Provider>
+	);
+}
+
+export function useNotifications() {
+	return useContext(NotificationsContext);
+}

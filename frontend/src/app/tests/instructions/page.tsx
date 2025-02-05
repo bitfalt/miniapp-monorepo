@@ -1,179 +1,180 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/card'
-import { Brain, ArrowLeft, FileQuestion } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
-import { FilledButton } from "@/components/ui/FilledButton"
+import { FilledButton } from "@/components/ui/FilledButton";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { ArrowLeft, Brain, FileQuestion } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface TestInstructions {
-  description: string
-  total_questions: number
+	description: string;
+	total_questions: number;
 }
 
 export default function TestInstructions() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const testId = searchParams.get('testId') || '1' // Fallback to 1 for now
-  
-  const [loading, setLoading] = useState(true)
-  const [instructions, setInstructions] = useState<TestInstructions>({
-    description: '',
-    total_questions: 0
-  })
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const estimatedTime = Math.ceil(instructions.total_questions * 0.15) // Roughly 9 seconds per question
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const testId = searchParams.get("testId") || "1"; // Fallback to 1 for now
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch instructions
-        const instructionsResponse = await fetch(`/api/tests/${testId}/instructions`);
-        const instructionsData = await instructionsResponse.json();
-        
-        // Fetch progress
-        const progressResponse = await fetch(`/api/tests/${testId}/progress`);
-        const progressData = await progressResponse.json();
-        
-        setInstructions({
-          description: instructionsData.description,
-          total_questions: instructionsData.total_questions
-        });
+	const [loading, setLoading] = useState(true);
+	const [instructions, setInstructions] = useState<TestInstructions>({
+		description: "",
+		total_questions: 0,
+	});
+	const [currentQuestion, setCurrentQuestion] = useState(0);
+	const estimatedTime = Math.ceil(instructions.total_questions * 0.15); // Roughly 9 seconds per question
 
-        if (progressData.answers) {
-          const answeredCount = Object.keys(progressData.answers).length;
-          setCurrentQuestion(answeredCount);
-        }
-        
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const instructionsResponse = await fetch(
+					`/api/tests/${testId}/instructions`,
+				);
+				const instructionsData = await instructionsResponse.json();
 
-    fetchData();
-  }, [testId]);
+				const progressResponse = await fetch(`/api/tests/${testId}/progress`);
+				const progressData = await progressResponse.json();
 
-  if (loading) {
-    return <LoadingSpinner />
-  }
+				setInstructions({
+					description: instructionsData.description,
+					total_questions: instructionsData.total_questions,
+				});
 
-  const progress = (currentQuestion / instructions.total_questions) * 100
+				if (progressData.answers) {
+					const answeredCount = Object.keys(progressData.answers).length;
+					setCurrentQuestion(answeredCount);
+				}
+			} catch (error) {
+				console.error("Error fetching data:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
 
-  return (
-    <div className="fixed inset-0 bg-gradient-to-br from-[#387478] to-[#2C5154] overflow-hidden">
-      <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-      
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className="min-h-full w-full flex items-start justify-center p-4 sm:p-6 md:p-8 pt-12">
-          <div className="w-full max-w-[421px] mx-auto relative">
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="absolute top-2 left-0"
-            >
-              <FilledButton 
-                variant="default"
-                size="sm"
-                className="text-white hover:bg-white/10"
-                onClick={() => router.back()}
-              >
-                <ArrowLeft className="h-6 w-6" />
-                <span className="sr-only">Back</span>
-              </FilledButton>
-            </motion.div>
+		void fetchData();
+	}, [testId]);
 
-            <motion.div 
-              className="space-y-6 sm:space-y-8 mt-12 sm:mt-14"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <div className="text-center space-y-4">
-                <Brain className="h-12 w-12 mx-auto text-[#E36C59]" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight px-4">
-                  Uncover Your Political Values
-                </h1>
-              </div>
+	if (loading) {
+		return <LoadingSpinner />;
+	}
 
-              <Card className="backdrop-blur-md bg-white/10 border-white/20 text-white p-5 sm:p-6 mx-4">
-                <div className="space-y-3 sm:space-y-4">
-                  <h2 className="text-lg sm:text-xl font-semibold text-center">
-                    Before you start
-                  </h2>
+	const progress = (currentQuestion / instructions.total_questions) * 100;
 
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <FileQuestion className="h-5 w-5 text-[#E36C59] mt-1 flex-shrink-0" />
-                      <p className="text-sm text-white/90">
-                        This test consists of {instructions.total_questions} thought-provoking statements designed to explore your political beliefs. Your answers will reflect your position across eight core values.
-                      </p>
-                    </div>
+	return (
+		<div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-[#387478] to-[#2C5154]">
+			<div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
 
-                    <div className="bg-white/5 p-2 sm:p-3 rounded-lg border border-white/10">
-                      <p className="text-center text-sm text-white/90 font-medium">
-                        Please respond honestly, based on your true opinions.
-                      </p>
-                    </div>
+			<div className="absolute inset-0 overflow-y-auto">
+				<div className="flex min-h-full w-full items-start justify-center p-4 pt-12 sm:p-6 md:p-8">
+					<div className="relative mx-auto w-full max-w-[421px]">
+						<motion.div
+							initial={{ x: -20, opacity: 0 }}
+							animate={{ x: 0, opacity: 1 }}
+							transition={{ duration: 0.3 }}
+							className="absolute left-0 top-2"
+						>
+							<FilledButton
+								variant="default"
+								size="sm"
+								className="text-white hover:bg-white/10"
+								onClick={() => router.back()}
+							>
+								<ArrowLeft className="h-6 w-6" />
+								<span className="sr-only">Back</span>
+							</FilledButton>
+						</motion.div>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
-                      <p className="text-xs sm:text-sm text-white/90">
-                        Estimated Time: <span className="font-semibold text-white">{estimatedTime} min</span>
-                      </p>
-                      <p className="text-xs sm:text-sm text-white/90">
-                        Progress: <span className="font-semibold text-white">{currentQuestion}/{instructions.total_questions}</span>
-                      </p>
-                    </div>
-                  </div>
+						<motion.div
+							className="mt-12 space-y-6 sm:mt-14 sm:space-y-8"
+							initial={{ y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ duration: 0.5, delay: 0.2 }}
+						>
+							<div className="space-y-4 text-center">
+								<Brain className="mx-auto h-12 w-12 text-[#E36C59]" />
+								<h1 className="px-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+									Uncover Your Political Values
+								</h1>
+							</div>
 
-                  {currentQuestion > 0 && (
-                    <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[#E36C59]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
+							<Card className="mx-4 space-y-3 border-white/20 bg-white/10 p-5 backdrop-blur-md sm:p-6 sm:space-y-4">
+								<h2 className="text-center text-lg font-semibold text-white sm:text-xl">
+									Before you start
+								</h2>
 
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex justify-center px-4"
-              >
-                <FilledButton 
-                  variant="default"
-                  size="lg"
-                  className="w-full sm:w-auto px-8 bg-gradient-to-r from-[#E36C59] to-[#E36C59]/90 hover:from-[#E36C59]/90 hover:to-[#E36C59] text-white relative overflow-hidden group"
-                  onClick={async () => {
-                    try {
-                      // Skip saving progress initially and just navigate
-                      router.push(`/ideology-test?testId=${testId}`);
-                    } catch (error) {
-                      console.error('Error starting test:', error);
-                    }
-                  }}
-                >
-                  <span className="relative z-10">
-                    {currentQuestion > 0 ? 'Continue test' : 'Start test'}
-                  </span>
-                </FilledButton>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
+								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<FileQuestion className="mt-1 h-5 w-5 flex-shrink-0 text-[#E36C59]" />
+										<p className="text-sm text-white/90">
+											This test consists of {instructions.total_questions}{" "}
+											thought-provoking statements designed to explore your
+											political beliefs. Your answers will reflect your position
+											across eight core values.
+										</p>
+									</div>
 
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent" />
-      <div className="absolute -bottom-48 -left-48 w-96 h-96 bg-[#387478]/20 rounded-full blur-3xl" />
-      <div className="absolute -bottom-48 -right-48 w-96 h-96 bg-[#2C5154]/40 rounded-full blur-3xl" />
-    </div>
-  )
+									<div className="rounded-lg border border-white/10 bg-white/5 p-2 sm:p-3">
+										<p className="text-center text-sm font-medium text-white/90">
+											Please respond honestly, based on your true opinions.
+										</p>
+									</div>
+
+									<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+										<p className="text-xs text-white/90 sm:text-sm">
+											Estimated Time:{" "}
+											<span className="font-semibold text-white">
+												{estimatedTime} min
+											</span>
+										</p>
+										<p className="text-xs text-white/90 sm:text-sm">
+											Progress:{" "}
+											<span className="font-semibold text-white">
+												{currentQuestion}/{instructions.total_questions}
+											</span>
+										</p>
+									</div>
+								</div>
+
+								{currentQuestion > 0 && (
+									<div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+										<motion.div
+											className="h-full bg-[#E36C59]"
+											initial={{ width: 0 }}
+											animate={{ width: `${progress}%` }}
+											transition={{ duration: 0.5 }}
+										/>
+									</div>
+								)}
+							</Card>
+
+							<motion.div
+								whileHover={{ scale: 1.02 }}
+								whileTap={{ scale: 0.98 }}
+								className="flex justify-center px-4"
+							>
+								<FilledButton
+									variant="default"
+									size="lg"
+									className="relative w-full overflow-hidden bg-gradient-to-r from-[#E36C59] to-[#E36C59]/90 px-8 text-white hover:from-[#E36C59]/90 hover:to-[#E36C59] sm:w-auto"
+									onClick={() => {
+										void router.push(`/ideology-test?testId=${testId}`);
+									}}
+								>
+									<span className="relative z-10">
+										{currentQuestion > 0 ? "Continue test" : "Start test"}
+									</span>
+								</FilledButton>
+							</motion.div>
+						</motion.div>
+					</div>
+				</div>
+			</div>
+
+			<div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-black/20 to-transparent" />
+			<div className="absolute -bottom-48 -left-48 h-96 w-96 rounded-full bg-[#387478]/20 blur-3xl" />
+			<div className="absolute -bottom-48 -right-48 h-96 w-96 rounded-full bg-[#2C5154]/40 blur-3xl" />
+		</div>
+	);
 }

@@ -1,69 +1,78 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { MiniAppWalletAuthSuccessPayload, verifySiweMessage } from '@worldcoin/minikit-js';
+import {
+	type MiniAppWalletAuthSuccessPayload,
+	verifySiweMessage,
+} from "@worldcoin/minikit-js";
+import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 
 interface IRequestPayload {
-  payload: MiniAppWalletAuthSuccessPayload;
-  nonce: string;
+	payload: MiniAppWalletAuthSuccessPayload;
+	nonce: string;
+}
+
+interface SiweResponse {
+	status: "success" | "error";
+	isValid: boolean;
+	address?: string;
+	message?: string;
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const { payload, nonce } = (await req.json()) as IRequestPayload;
-    const storedNonce = cookies().get('siwe')?.value;
+	try {
+		const { payload, nonce } = (await req.json()) as IRequestPayload;
+		const storedNonce = cookies().get("siwe")?.value;
 
-    console.log('SIWE verification request:', {
-      payload,
-      nonce,
-      storedNonce
-    });
+		console.log("SIWE verification request:", {
+			payload,
+			nonce,
+			storedNonce,
+		});
 
-    // Strict nonce comparison
-    if (!storedNonce || storedNonce.trim() !== nonce.trim()) {
-      console.error('Nonce mismatch:', { 
-        received: nonce, 
-        stored: storedNonce,
-        receivedLength: nonce?.length,
-        storedLength: storedNonce?.length
-      });
-      return NextResponse.json({
-        status: 'error',
-        isValid: false,
-        message: 'Invalid nonce',
-      });
-    }
+		if (!storedNonce || storedNonce.trim() !== nonce.trim()) {
+			console.error("Nonce mismatch:", {
+				received: nonce,
+				stored: storedNonce,
+				receivedLength: nonce?.length,
+				storedLength: storedNonce?.length,
+			});
 
-    try {
-      console.log('Verifying SIWE message...');
-      const validMessage = await verifySiweMessage(payload, storedNonce);
-      console.log('SIWE verification result:', validMessage);
+			const response: SiweResponse = {
+				status: "error",
+				isValid: false,
+				message: "Invalid nonce",
+			};
 
-      if (!validMessage.isValid || !validMessage.siweMessageData?.address) {
-        throw new Error('Invalid SIWE message');
-      }
+			return NextResponse.json(response);
+		}
 
-      // Clear the nonce cookie after successful verification
-      cookies().delete('siwe');
+		console.log("Verifying SIWE message...");
+		const validMessage = await verifySiweMessage(payload, storedNonce);
+		console.log("SIWE verification result:", validMessage);
 
-      return NextResponse.json({
-        status: 'success',
-        isValid: true,
-        address: validMessage.siweMessageData.address
-      });
-    } catch (error) {
-      console.error('SIWE verification error:', error);
-      return NextResponse.json({
-        status: 'error',
-        isValid: false,
-        message: error instanceof Error ? error.message : 'SIWE verification failed',
-      });
-    }
-  } catch (error) {
-    console.error('Request processing error:', error);
-    return NextResponse.json({
-      status: 'error',
-      isValid: false,
-      message: error instanceof Error ? error.message : 'Request processing failed',
-    });
-  }
-} 
+		if (!validMessage.isValid || !validMessage.siweMessageData?.address) {
+			throw new Error("Invalid SIWE message");
+		}
+
+		// Clear the nonce cookie after successful verification
+		cookies().delete("siwe");
+
+		const response: SiweResponse = {
+			status: "success",
+			isValid: true,
+			address: validMessage.siweMessageData.address,
+		};
+
+		return NextResponse.json(response);
+	} catch (error) {
+		console.error("SIWE verification error:", error);
+
+		const response: SiweResponse = {
+			status: "error",
+			isValid: false,
+			message:
+				error instanceof Error ? error.message : "SIWE verification failed",
+		};
+
+		return NextResponse.json(response);
+	}
+}
