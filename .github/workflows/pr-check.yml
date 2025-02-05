@@ -40,7 +40,7 @@ jobs:
         run: |
           cd frontend
           pnpm install
-          pnpm add -D @biomejs/biome
+          pnpm add -D @biomejs/biome @next/bundle-analyzer
 
       - name: Run Biome lint
         working-directory: frontend
@@ -115,6 +115,7 @@ jobs:
         run: |
           cd frontend
           pnpm install
+          pnpm add -D @next/bundle-analyzer
         
       - name: Build and analyze bundle
         working-directory: frontend
