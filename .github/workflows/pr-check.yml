@@ -48,7 +48,7 @@ jobs:
 
       - name: Run Biome format check
         working-directory: frontend
-        run: pnpm exec biome format ./src --write=false
+        run: pnpm exec biome ci ./src
 
       - name: Type check
         working-directory: frontend
@@ -123,8 +123,10 @@ jobs:
           ANALYZE: 'true'
 
       - name: Upload bundle analysis
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bundle-analysis
           path: |
-            frontend/.next/analyze/*.html 
+            frontend/.next/analyze/*.html
+          compression-level: 9
+          retention-days: 14 
