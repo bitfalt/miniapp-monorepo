@@ -37,15 +37,18 @@ jobs:
             ${{ runner.os }}-pnpm-store-
           
       - name: Install dependencies
-        run: pnpm install
-        
+        run: |
+          cd frontend
+          pnpm install
+          pnpm add -D @biomejs/biome
+
       - name: Run Biome lint
         working-directory: frontend
-        run: pnpm biome lint ./src
+        run: pnpm exec biome lint ./src
 
       - name: Run Biome format check
         working-directory: frontend
-        run: pnpm biome format --check ./src
+        run: pnpm exec biome format --check ./src
 
       - name: Type check
         working-directory: frontend
@@ -78,12 +81,16 @@ jobs:
           run_install: false
           
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          cd frontend
+          pnpm install
         
       - name: Run security audit
+        working-directory: frontend
         run: pnpm audit
 
       - name: Check for outdated dependencies
+        working-directory: frontend
         run: pnpm outdated
 
   bundle-analysis:
@@ -105,13 +112,14 @@ jobs:
           run_install: false
           
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          cd frontend
+          pnpm install
         
       - name: Build and analyze bundle
         working-directory: frontend
         run: pnpm build
         env:
           ANALYZE: true
-          # You might want to add these for better visualization
           BUNDLE_ANALYZE_MODE: 'static'
           BUNDLE_ANALYZE_REPORT: 'bundle-analysis.html' 
