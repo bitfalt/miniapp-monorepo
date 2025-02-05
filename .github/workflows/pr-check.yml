@@ -48,7 +48,7 @@ jobs:
 
       - name: Run Biome format check
         working-directory: frontend
-        run: pnpm exec biome format --check ./src
+        run: pnpm exec biome format ./src --write=false
 
       - name: Type check
         working-directory: frontend
@@ -120,6 +120,11 @@ jobs:
         working-directory: frontend
         run: pnpm build
         env:
-          ANALYZE: true
-          BUNDLE_ANALYZE_MODE: 'static'
-          BUNDLE_ANALYZE_REPORT: 'bundle-analysis.html' 
+          ANALYZE: 'true'
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: bundle-analysis
+          path: |
+            frontend/.next/analyze/*.html 
