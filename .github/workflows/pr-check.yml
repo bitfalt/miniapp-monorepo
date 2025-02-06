@@ -41,6 +41,7 @@ jobs:
           cd frontend
           pnpm install
           pnpm add -D @biomejs/biome @next/bundle-analyzer
+          cp ../biome.json .
 
       - name: Run Biome lint
         working-directory: frontend
