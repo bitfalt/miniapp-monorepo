@@ -1,0 +1,74 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "include": [
+      "src/**/*.{ts,tsx}",
+      "src/**/*.{js,jsx}",
+      "src/**/*.json",
+      "*.config.{ts,js,mjs}",
+      "*.d.ts",
+      "eslint.config.mjs",
+      "next.config.mjs",
+      "tailwind.config.ts",
+      "postcss.config.js"
+    ],
+    "ignore": [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}",
+      "**/coverage/**",
+      "**/storybook-static/**",
+      "src/app/api-docs/**",
+      "src/components/ui/icons/**",
+      ".xata/**",
+      "**/generated/**"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "formatWithErrors": false
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useImportType": "error",
+        "useNodejsImportProtocol": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUndeclaredVariables": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsoleLog": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 80,
+      "quoteStyle": "double",
+      "semicolons": "always"
+    }
+  }
+}

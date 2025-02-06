@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { FilledButton } from "@/components/ui/FilledButton"
-import Image from "next/image"
-import { useVerification } from "@/hooks/useVerification"
+import { FilledButton } from "@/components/ui/FilledButton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useVerification } from "@/hooks/useVerification";
+import Image from "next/image";
+import type * as React from "react";
 
 interface VerifyModalProps {
   isOpen: boolean;
@@ -12,12 +13,12 @@ interface VerifyModalProps {
 }
 
 export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
-  const { isVerifying, error } = useVerification()
+  const { isVerifying, error } = useVerification();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="w-[368px] p-0 bg-[#2c5154] rounded-[30px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] [&>button]:hidden"
+      <DialogContent
+        className="w-[368px] rounded-[30px] bg-[#2c5154] p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -29,28 +30,28 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
             height={110}
             className="mb-4"
           />
-          
-          <h2 className="text-center text-white text-[32px] font-semibold mb-4">
+
+          <h2 className="mb-4 text-center text-[32px] font-semibold text-white">
             Not Verified yet?
           </h2>
-          
-          <p className="text-center text-white text-[15px] font-bold font-spaceGrotesk leading-[25px] mb-8">
+
+          <p className="mb-8 text-center font-spaceGrotesk text-[15px] font-bold leading-[25px] text-white">
             Find your closest Orb and completely verify your World ID!
-            <br/><br/>
-            By verifying you will have access to more features on the app and no ads.
+            <br />
+            <br />
+            By verifying you will have access to more features on the app and no
+            ads.
           </p>
 
           {error && (
-            <p className="text-red-400 text-sm mb-4 text-center">
-              {error}
-            </p>
+            <p className="mb-4 text-center text-sm text-red-400">{error}</p>
           )}
 
-          <div className="flex justify-between w-full mt-auto">
+          <div className="mt-auto flex w-full justify-between">
             <FilledButton
               variant="default"
               size="sm"
-              className="bg-[#e36c59] hover:bg-[#e36c59]/90 rounded-[30px] px-6"
+              className="rounded-[30px] bg-[#e36c59] px-6 hover:bg-[#e36c59]/90"
               onClick={onClose}
             >
               Maybe Later
@@ -59,15 +60,15 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
             <FilledButton
               variant="default"
               size="sm"
-              className="bg-[#e36c59] hover:bg-[#e36c59]/90 rounded-[20px] px-6"
+              className="rounded-[20px] bg-[#e36c59] px-6 hover:bg-[#e36c59]/90"
               onClick={onVerify}
               disabled={isVerifying}
             >
-              {isVerifying ? 'Verifying...' : 'Verify!'}
+              {isVerifying ? "Verifying..." : "Verify!"}
             </FilledButton>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}

@@ -1,85 +1,95 @@
 "use client";
 
+import { BottomNav } from "@/components/BottomNav";
+import { BackgroundEffect } from "@/components/ui/BackgroundEffect";
+import { BannerTop } from "@/components/ui/BannerTop";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerification } from "@/hooks/useVerification";
 import { usePathname } from "next/navigation";
-import { BannerTop } from "@/components/ui/BannerTop";
-import MobileBottomNav from "@/components/BottomNav";
-import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
-import { BackgroundEffect } from "@/components/ui/BackgroundEffect";
-import { useEffect } from "react";
+import type * as React from "react";
+import { useEffect, useMemo } from "react";
 
-export default function LayoutContent({
-  children,
-}: {
+type BackgroundVariant = "signin" | "home" | "settings" | "results" | "default";
+
+interface LayoutContentProps {
   children: React.ReactNode;
-}) {
-  const { isAuthenticated, isRegistered, loading: authLoading, refreshAuth } = useAuth();
-  const { 
-    isVerified, 
-    isLoading: verificationLoading, 
-    refreshVerification,
-    hasCheckedInitial 
-  } = useVerification();
+}
+
+export function LayoutContent({ children }: LayoutContentProps) {
+  const {
+    isAuthenticated,
+    isRegistered,
+    loading: authLoading,
+    refreshAuth,
+  } = useAuth();
+
+  const { isVerified, refreshVerification, hasCheckedInitial } =
+    useVerification();
   const pathname = usePathname();
-  
+
   // Page checks
-  const isSignInPage = pathname === "/sign-in";
-  const isRegisterPage = pathname === "/register";
-  const isWelcomePage = pathname === "/welcome";
-  const isTestInstructions = pathname === "/tests/instructions";
-  const isIdeologyTest = pathname.includes("/ideology-test");
-  const isHomePage = pathname === "/";
-  const isSettingsPage = pathname === "/settings";
-  const isResultsPage = pathname === "/results";
-  
-  // Debug logging for state changes
-  useEffect(() => {
-    console.log('Layout state:', {
-      isAuthenticated,
-      isRegistered,
-      isVerified,
-      authLoading,
-      verificationLoading,
-      hasCheckedInitial,
-      pathname
-    });
-  }, [isAuthenticated, isRegistered, isVerified, authLoading, verificationLoading, hasCheckedInitial, pathname]);
+  const pageStates = useMemo(
+    () => ({
+      isSignInPage: pathname === "/sign-in",
+      isRegisterPage: pathname === "/register",
+      isWelcomePage: pathname === "/welcome",
+      isTestInstructions: pathname === "/tests/instructions",
+      isIdeologyTest: pathname.includes("/ideology-test"),
+      isHomePage: pathname === "/",
+      isSettingsPage: pathname === "/settings",
+      isResultsPage: pathname === "/results",
+    }),
+    [pathname],
+  );
 
-  // Refresh both auth and verification when auth state changes
+  // Auth refresh effect
   useEffect(() => {
-    // Skip auth check on auth-related pages
-    if (isSignInPage || isRegisterPage || isWelcomePage) {
-      return;
-    }
+    const { isSignInPage, isRegisterPage, isWelcomePage } = pageStates;
 
-    console.log('Auth state changed:', { isAuthenticated, isRegistered, authLoading });
+    if (isSignInPage || isRegisterPage || isWelcomePage) return;
+
     if (!authLoading) {
       if (isAuthenticated && isRegistered) {
-        console.log('Refreshing verification status...');
         refreshVerification();
       } else if (!isAuthenticated) {
-        console.log('Refreshing auth status...');
         refreshAuth();
       }
     }
-  }, [isAuthenticated, isRegistered, authLoading, refreshVerification, refreshAuth, isSignInPage, isRegisterPage, isWelcomePage]);
-  
-  // Determine background effect variant based on current page
-  const getBackgroundVariant = () => {
-    if (isSignInPage) return 'signin';
-    if (isHomePage) return 'home';
-    if (isSettingsPage) return 'settings';
-    if (isResultsPage) return 'results';
-    return 'default';
+  }, [
+    isAuthenticated,
+    isRegistered,
+    authLoading,
+    refreshVerification,
+    refreshAuth,
+    pageStates,
+  ]);
+
+  const getBackgroundVariant = (): BackgroundVariant => {
+    const { isSignInPage, isHomePage, isSettingsPage, isResultsPage } =
+      pageStates;
+
+    if (isSignInPage) return "signin";
+    if (isHomePage) return "home";
+    if (isSettingsPage) return "settings";
+    if (isResultsPage) return "results";
+    return "default";
   };
 
-  // Don't show loading overlay on auth-related pages
+  const {
+    isSignInPage,
+    isRegisterPage,
+    isWelcomePage,
+    isTestInstructions,
+    isIdeologyTest,
+  } = pageStates;
+
   const showLoadingOverlay = !isSignInPage && !isRegisterPage && !isWelcomePage;
-  
-  // Show loading state while checking auth or initial verification
-  if ((authLoading || (isAuthenticated && isRegistered && !hasCheckedInitial)) && showLoadingOverlay) {
-    console.log('Showing loading overlay');
+
+  if (
+    (authLoading || (isAuthenticated && isRegistered && !hasCheckedInitial)) &&
+    showLoadingOverlay
+  ) {
     return (
       <>
         <LoadingOverlay />
@@ -87,34 +97,32 @@ export default function LayoutContent({
       </>
     );
   }
-  
-  const showBanner = isAuthenticated && 
+
+  const showBanner =
+    isAuthenticated &&
     isRegistered &&
     !isVerified &&
-    !isSignInPage && 
-    !isRegisterPage && 
+    !isSignInPage &&
+    !isRegisterPage &&
     !isWelcomePage &&
     !isTestInstructions &&
     !isIdeologyTest;
-    
-  const showNav = isAuthenticated && 
+
+  const showNav =
+    isAuthenticated &&
     isRegistered &&
-    !isSignInPage && 
-    !isRegisterPage && 
+    !isSignInPage &&
+    !isRegisterPage &&
     !isWelcomePage;
 
-  console.log('Render state:', { showBanner, showNav });
-
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-bg">
+    <div className="flex min-h-screen flex-col bg-neutral-bg">
       <BackgroundEffect variant={getBackgroundVariant()} />
       {showBanner && <BannerTop />}
       <main className="scroll-container">
-        <div className={`flex-grow ${showNav ? 'pb-16' : ''}`}>
-          {children}
-        </div>
+        <div className={`flex-grow ${showNav ? "pb-16" : ""}`}>{children}</div>
       </main>
-      {showNav && <MobileBottomNav />}
+      {showNav && <BottomNav />}
     </div>
   );
 }

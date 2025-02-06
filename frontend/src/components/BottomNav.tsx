@@ -1,51 +1,61 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Home, BookCheck, Trophy, Settings, Lightbulb } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { BookCheck, Home, Lightbulb, Settings, Trophy } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type * as React from "react";
+import { useEffect, useState } from "react";
 
 const navItems = [
-  { icon: Home, href: '/' },
-  { icon: BookCheck, href: '/test-selection' },
-  { icon: Lightbulb, href: '/results' },
-  { icon: Trophy, href: '/achievements' },
-  { icon: Settings, href: '/settings' },
-]
+	{ icon: Home, href: "/" },
+	{ icon: BookCheck, href: "/test-selection" },
+	{ icon: Lightbulb, href: "/results" },
+	{ icon: Trophy, href: "/achievements" },
+	{ icon: Settings, href: "/settings" },
+] as const;
 
-export default function MobileBottomNav() {
-  const pathname = usePathname()
-  const [active, setActive] = useState(0)
+export function BottomNav() {
+	const pathname = usePathname();
+	const [active, setActive] = useState(0);
 
-  useEffect(() => {
-    const currentIndex = navItems.findIndex(item => item.href === pathname)
-    if (currentIndex !== -1) {
-      setActive(currentIndex)
-    }
-  }, [pathname])
+	useEffect(() => {
+		const currentIndex = navItems.findIndex((item) => item.href === pathname);
+		if (currentIndex !== -1) {
+			setActive(currentIndex);
+		}
+	}, [pathname]);
 
-  // Hide bottom nav on ideology test page
-  if (pathname.includes('/ideology-test')) {
-    return null
-  }
+	if (pathname.includes("/ideology-test")) {
+		return null;
+	}
 
-  return (
-    <nav className="fixed bottom-4 left-4 right-4 h-16 bg-brand-tertiary rounded-[25px] shadow-lg">
-      <div className="flex justify-around items-center h-full px-4">
-        {navItems.map(({ icon: Icon, href }, index) => (
-          <Link
-            key={href}
-            href={href}
-            className={`flex items-center justify-center w-12 h-12 ${
-              active === index ? 'text-accent-red' : 'text-gray-100'
-            }`}
-          >
-            <div className={`p-2 rounded-full ${active === index ? 'bg-accent-red/10' : ''}`}>
-              <Icon size={24} className={`transition-all duration-300 ${active === index ? 'scale-110' : ''}`} />
-            </div>
-          </Link>
-        ))}
-      </div>
-    </nav>
-  )
+	return (
+		<nav className="fixed bottom-4 left-4 right-4 h-16 rounded-[25px] bg-brand-tertiary shadow-lg">
+			<div className="flex h-full items-center justify-around px-4">
+				{navItems.map(({ icon: Icon, href }, index) => (
+					<Link
+						key={href}
+						href={href}
+						className={`flex h-12 w-12 items-center justify-center ${
+							active === index ? "text-accent-red" : "text-gray-100"
+						}`}
+					>
+						<div
+							className={`rounded-full p-2 ${
+								active === index ? "bg-accent-red/10" : ""
+							}`}
+						>
+							<Icon
+								size={24}
+								className={`transition-all duration-300 ${
+									active === index ? "scale-110" : ""
+								}`}
+								aria-hidden="true"
+							/>
+						</div>
+					</Link>
+				))}
+			</div>
+		</nav>
+	);
 }

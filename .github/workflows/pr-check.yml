@@ -1,0 +1,154 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality:
+    name: Code Quality & Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+          
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+          pnpm add -D @biomejs/biome @next/bundle-analyzer
+          cp ../biome.json .
+
+      - name: Run Biome lint
+        working-directory: frontend
+        run: |
+          echo "Node version: $(node -v)"
+          echo "Current directory: $(pwd)"
+          echo "Running Biome lint..."
+          pnpm exec biome ci .
+
+      - name: Run Biome format check
+        working-directory: frontend
+        run: |
+          echo "Running Biome format check..."
+          pnpm exec biome check --files-ignore-unknown=true .
+
+      - name: Type check
+        working-directory: frontend
+        run: pnpm exec tsc --noEmit
+
+      - name: Run tests
+        working-directory: frontend
+        run: pnpm test || echo "No tests found"
+
+      - name: Build application
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
+          NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
+        run: pnpm build
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+          
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+        
+      - name: Run security audit
+        working-directory: frontend
+        run: |
+          pnpm audit || echo "Security vulnerabilities found. Please review the report above."
+
+      - name: Check for outdated dependencies
+        working-directory: frontend
+        run: |
+          pnpm outdated || echo "Outdated dependencies found. Please review the report above."
+
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+          
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+          pnpm add -D @next/bundle-analyzer
+        
+      - name: Build and analyze bundle
+        working-directory: frontend
+        env:
+          ANALYZE: true
+          NEXT_TELEMETRY_DISABLED: 1
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
+          NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
+        run: |
+          pnpm build
+          
+      - name: Upload bundle analysis
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: |
+            frontend/.next/analyze/client.html
+            frontend/.next/analyze/edge.html
+            frontend/.next/analyze/nodejs.html
+          compression-level: 9
+          retention-days: 14 

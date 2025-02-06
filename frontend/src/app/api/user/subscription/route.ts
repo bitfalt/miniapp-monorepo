@@ -1,8 +1,19 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
 import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
+
+interface SubscriptionResponse {
+  next_payment_date?: string;
+  isPro: boolean;
+  message?: string;
+  error?: string;
+}
 
 /**
  * @swagger
@@ -32,69 +43,79 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
-export const secret = new TextEncoder().encode(JWT_SECRET);
+const secret = new TextEncoder().encode(JWT_SECRET);
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const xata = getXataClient();
-    let user;
+    const token = cookies().get("session")?.value;
 
-    // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      const response: SubscriptionResponse = {
+        error: "Unauthorized",
+        isPro: false,
+      };
+      return NextResponse.json(response, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        const response: SubscriptionResponse = {
+          error: "Invalid session",
+          isPro: false,
+        };
+        return NextResponse.json(response, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-    if (!user.subscription_expires) {
-      return NextResponse.json(
-        { 
+      if (!user) {
+        const response: SubscriptionResponse = {
+          error: "User not found",
+          isPro: false,
+        };
+        return NextResponse.json(response, { status: 404 });
+      }
+
+      if (!user.subscription_expires) {
+        const response: SubscriptionResponse = {
           message: "No active subscription found",
-          isPro: false
-        }
-      );
+          isPro: false,
+        };
+        return NextResponse.json(response);
+      }
+
+      // Format the date to YYYY-MM-DD
+      const nextPaymentDate = user.subscription_expires
+        .toISOString()
+        .split("T")[0];
+
+      const response: SubscriptionResponse = {
+        next_payment_date: nextPaymentDate,
+        isPro: true,
+      };
+      return NextResponse.json(response);
+    } catch {
+      const response: SubscriptionResponse = {
+        error: "Invalid session",
+        isPro: false,
+      };
+      return NextResponse.json(response, { status: 401 });
     }
-
-    // Format the date to YYYY-MM-DD
-    const nextPaymentDate = user.subscription_expires.toISOString().split('T')[0];
-
-    return NextResponse.json({
-      next_payment_date: nextPaymentDate,
-      isPro: true
-    });
-
   } catch (error) {
     console.error("Error fetching subscription:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const response: SubscriptionResponse = {
+      error: "Internal server error",
+      isPro: false,
+    };
+    return NextResponse.json(response, { status: 500 });
   }
-} 
+}

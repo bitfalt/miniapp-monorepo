@@ -1,8 +1,27 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
 import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
+
+interface Insight {
+  category?: string;
+  percentage?: number;
+  description?: string;
+  insight?: string;
+  left_label?: string;
+  right_label?: string;
+}
+
+interface InsightResponse {
+  insights?: Insight[];
+  error?: string;
+}
 
 /**
  * @swagger
@@ -51,110 +70,99 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
-export const secret = new TextEncoder().encode(JWT_SECRET);
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 export async function GET(
-  request: Request,
-  { params }: { params: { testId: string } }
+  _request: NextRequest,
+  { params }: { params: { testId: string } },
 ) {
   try {
     const xata = getXataClient();
-    let user;
+    const token = cookies().get("session")?.value;
 
-    // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      const response: InsightResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        const response: InsightResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-    
-    // Validate test ID
-    const testId = parseInt(params.testId);
-    if (Number.isNaN(testId) || testId <= 0) {
-      return NextResponse.json(
-        { error: "Invalid test ID" },
-        { status: 400 }
-      );
-    }
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-    // Get test
-    const test = await xata.db.Tests.filter({ test_id: testId }).getFirst();
-    if (!test) {
-      return NextResponse.json(
-        { error: "Test not found" },
-        { status: 404 }
-      );
-    }
+      if (!user) {
+        const response: InsightResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
 
-    // Get insights for this test
-    const userInsights = await xata.db.InsightsPerUserCategory
-      .filter({
+      // Validate test ID
+      const testId = Number.parseInt(params.testId, 10);
+      if (Number.isNaN(testId) || testId <= 0) {
+        const response: InsightResponse = { error: "Invalid test ID" };
+        return NextResponse.json(response, { status: 400 });
+      }
+
+      // Get test
+      const test = await xata.db.Tests.filter({ test_id: testId }).getFirst();
+      if (!test) {
+        const response: InsightResponse = { error: "Test not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
+
+      // Get insights for this test
+      const userInsights = await xata.db.InsightsPerUserCategory.filter({
         "user.xata_id": user.xata_id,
-        "test.test_id": testId
+        "test.test_id": testId,
       })
-      .select([
-        "category.category_name",
-        "insight.insight",
-        "percentage",
-        "description",
-        "category.right_label",
-        "category.left_label"
-      ])
-      .getMany();
+        .select([
+          "category.category_name",
+          "insight.insight",
+          "percentage",
+          "description",
+          "category.right_label",
+          "category.left_label",
+        ])
+        .getMany();
 
-    if (!userInsights.length) {
-      return NextResponse.json(
-        { error: "No insights found for this test" },
-        { status: 404 }
-      );
+      if (!userInsights.length) {
+        const response: InsightResponse = {
+          error: "No insights found for this test",
+        };
+        return NextResponse.json(response, { status: 404 });
+      }
+
+      // Transform and organize insights
+      const insights = userInsights
+        .map((record) => ({
+          category: record.category?.category_name,
+          percentage: record.percentage,
+          description: record.description,
+          insight: record.insight?.insight,
+          left_label: record.category?.left_label,
+          right_label: record.category?.right_label,
+        }))
+        .filter((insight) => insight.category && insight.insight); // Filter out any incomplete records
+
+      const response: InsightResponse = { insights };
+      return NextResponse.json(response);
+    } catch {
+      const response: InsightResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
     }
-
-    // Transform and organize insights
-    const insights = userInsights.map(record => ({
-      category: record.category?.category_name,
-      percentage: record.percentage,
-      description: record.description,
-      insight: record.insight?.insight,
-      left_label: record.category?.left_label,
-      right_label: record.category?.right_label
-    })).filter(insight => insight.category && insight.insight); // Filter out any incomplete records
-
-    return NextResponse.json({
-      insights
-    });
-
   } catch (error) {
     console.error("Error fetching test insights:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const response: InsightResponse = { error: "Internal server error" };
+    return NextResponse.json(response, { status: 500 });
   }
-} 
+}

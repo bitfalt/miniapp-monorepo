@@ -1,18 +1,23 @@
 "use client";
 
 import eruda from "eruda";
-import { ReactNode, useEffect } from "react";
+import type * as React from "react";
+import { useEffect } from "react";
 
-export const Eruda = (props: { children: ReactNode }) => {
+interface ErudaProps {
+  children: React.ReactNode;
+}
+
+export function Eruda({ children }: ErudaProps) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         eruda.init();
-      } catch (error) {
-        console.log("Eruda failed to initialize", error);
+      } catch {
+        // Silently fail if Eruda initialization fails
       }
     }
   }, []);
 
-  return <>{props.children}</>;
-}; 
+  return <>{children}</>;
+}

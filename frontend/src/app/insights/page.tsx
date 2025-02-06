@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { InsightResultCard } from '@/components/ui/InsightResultCard';
-import { FilledButton } from '@/components/ui/FilledButton';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { FilledButton } from "@/components/ui/FilledButton";
+import { InsightResultCard } from "@/components/ui/InsightResultCard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { BookOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { BookOpen } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface Insight {
   category: string;
@@ -29,93 +29,95 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
-  const [fullAnalysis, setFullAnalysis] = useState<string>('');
-  const [ideology, setIdeology] = useState<string>('');
+  const [fullAnalysis, setFullAnalysis] = useState<string>("");
+  const [ideology, setIdeology] = useState<string>("");
   const searchParams = useSearchParams();
 
-  const testId = searchParams.get('testId')
-
-  const fetchInsights = async () => {
-    setLoading(true);
-
-    try {
-      // Check user's pro status
-      const userResponse = await fetch('/api/user/subscription');
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch subscription status');
-      }
-      const userData = await userResponse.json();
-      setIsProUser(userData.isPro);
-
-      // Fetch ideology
-      const ideologyResponse = await fetch('/api/ideology');
-      if (ideologyResponse.ok) {
-        const ideologyData = await ideologyResponse.json();
-        setIdeology(ideologyData.ideology);
-      }
-
-      // Fetch insights
-      const response = await fetch(`/api/insights/${testId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch insights');
-      }
-      const data = await response.json();
-      setInsights(data.insights);
-
-      // Get scores from database
-      const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
-      const scoresData = await scoresResponse.json();
-      const { scores } = scoresData;
-
-      // Call DeepSeek API for full analysis
-      if (isProUser) {
-        const deepSeekResponse = await fetch('/api/deepseek', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            econ: parseFloat(scores.econ || '0'),
-            dipl: parseFloat(scores.dipl || '0'),
-            govt: parseFloat(scores.govt || '0'),
-            scty: parseFloat(scores.scty || '0'),
-          }),
-        });
-
-        if (deepSeekResponse.status === 200) {
-          const deepSeekData = await deepSeekResponse.json();
-          setFullAnalysis(deepSeekData.analysis);
-        } else {
-          console.error('Error fetching DeepSeek analysis:', deepSeekResponse.statusText);
-          setFullAnalysis('Failed to generate analysis. Please try again later.');
-        }
-      }
-
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-      setFullAnalysis('Failed to generate analysis. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const testId = searchParams.get("testId");
 
   useEffect(() => {
-    fetchInsights();
-  }, [searchParams]);
+    async function fetchInsights() {
+      try {
+        // Check user's pro status
+        const userResponse = await fetch("/api/user/subscription");
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch subscription status");
+        }
+        const userData = await userResponse.json();
+        setIsProUser(userData.isPro);
+
+        // Fetch ideology
+        const ideologyResponse = await fetch("/api/ideology");
+        if (ideologyResponse.ok) {
+          const ideologyData = await ideologyResponse.json();
+          setIdeology(ideologyData.ideology);
+        }
+
+        // Fetch insights
+        const response = await fetch(`/api/insights/${testId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch insights");
+        }
+        const data = await response.json();
+        setInsights(data.insights);
+
+        // Get scores from database
+        const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
+        const scoresData = await scoresResponse.json();
+        const { scores } = scoresData;
+
+        // Call DeepSeek API for full analysis
+        if (isProUser) {
+          const deepSeekResponse = await fetch("/api/deepseek", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              econ: Number.parseFloat(scores.econ || "0"),
+              dipl: Number.parseFloat(scores.dipl || "0"),
+              govt: Number.parseFloat(scores.govt || "0"),
+              scty: Number.parseFloat(scores.scty || "0"),
+            }),
+          });
+
+          if (deepSeekResponse.status === 200) {
+            const deepSeekData = await deepSeekResponse.json();
+            setFullAnalysis(deepSeekData.analysis);
+          } else {
+            console.error(
+              "Error fetching DeepSeek analysis:",
+              deepSeekResponse.statusText,
+            );
+            setFullAnalysis(
+              "Failed to generate analysis. Please try again later.",
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching insights:", error);
+        setFullAnalysis("Failed to generate analysis. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchInsights();
+  }, [testId, isProUser]);
 
   const handleAdvancedInsightsClick = () => {
     setIsModalOpen(true);
   };
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-neutral-bg">
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-        <motion.div 
+        <motion.div
           className="relative z-10 text-center max-w-md mx-auto space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -142,8 +144,8 @@ export default function InsightsPage() {
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
             Explore how your values align across key ideological dimensions.
           </p>
-          
-          <motion.div 
+
+          <motion.div
             className="flex justify-center"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -151,31 +153,31 @@ export default function InsightsPage() {
           >
             <FilledButton
               onClick={handleAdvancedInsightsClick}
-              variant={isProUser ? 'default' : 'default'}
+              variant={isProUser ? "default" : "default"}
               className={cn(
                 "mt-4",
-                "transform transition-all duration-300 hover:scale-105"
+                "transform transition-all duration-300 hover:scale-105",
               )}
             >
-              {isProUser ? 'Advanced Insights' : 'Unlock Advanced Insights'}
+              {isProUser ? "Advanced Insights" : "Unlock Advanced Insights"}
             </FilledButton>
           </motion.div>
         </motion.div>
       </div>
 
-      <motion.div 
+      <motion.div
         className="max-w-3xl mx-auto px-6 space-y-8 pb-16"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         {Array.isArray(insights) && insights.length > 0 ? (
-          insights.map((insight, index) => (
+          insights.map((insight) => (
             <motion.div
-              key={index}
+              key={`${insight.category}-${insight.percentage}`}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 + (index * 0.1) }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <InsightResultCard
                 title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
@@ -189,7 +191,7 @@ export default function InsightsPage() {
             </motion.div>
           ))
         ) : (
-          <motion.p 
+          <motion.p
             className="text-slate-200 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -201,14 +203,14 @@ export default function InsightsPage() {
       </motion.div>
 
       {isModalOpen && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => setIsModalOpen(false)}
         >
-          <motion.div 
+          <motion.div
             className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -216,18 +218,25 @@ export default function InsightsPage() {
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
+            <button
+              type="button"
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-6 w-6" 
-                fill="none" 
-                viewBox="0 0 24 24" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <title>Close modal</title>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
 
@@ -248,7 +257,7 @@ export default function InsightsPage() {
                 </div>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 className="text-center"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -258,13 +267,14 @@ export default function InsightsPage() {
                   Unlock Advanced Insights
                 </h2>
                 <p className="text-white/90 mb-6">
-                  Dive deeper into your ideological profile with Awaken Pro. Get comprehensive analysis and personalized insights.
+                  Dive deeper into your ideological profile with Awaken Pro. Get
+                  comprehensive analysis and personalized insights.
                 </p>
                 <div className="flex justify-center">
                   <FilledButton
                     variant="default"
                     onClick={() => {
-                      router.push('/awaken-pro');
+                      router.push("/awaken-pro");
                     }}
                     className="transform transition-all duration-300 hover:scale-105"
                   >

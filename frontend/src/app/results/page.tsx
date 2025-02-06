@@ -1,95 +1,96 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
-import { ActionCard } from "@/components/ui/ActionCard"
-import { LucideIcon, FileChartColumn, Heart, Star, Trophy, Globe} from "lucide-react"
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import { ActionCard } from "@/components/ui/ActionCard";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { FileChartColumn, Globe, Heart, Star, Trophy } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Test {
-  testId: string
-  testName: string
+  testId: string;
+  testName: string;
 }
 
 interface TestResult {
-  title: string
-  backgroundColor: string
-  iconBgColor: string
-  Icon: LucideIcon
-  isEnabled: boolean
-  testId?: string
+  title: string;
+  backgroundColor: string;
+  iconBgColor: string;
+  Icon: LucideIcon;
+  isEnabled: boolean;
+  testId?: string;
 }
 
 export default function ResultsPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch('/api/tests')
-        const data = await response.json()
-        
+        const response = await fetch("/api/tests");
+        const data = await response.json();
+
         const transformedResults = data.tests.map((test: Test) => ({
           title: test.testName || "Political Values Test",
           backgroundColor: "#387478",
           iconBgColor: "#2C5154",
           Icon: Globe,
           isEnabled: true,
-          testId: test.testId
-        }))
-        
+          testId: test.testId,
+        }));
+
         const comingSoonCards = [
           {
             title: "Personality Test (Coming Soon)",
             backgroundColor: "#778BAD",
             iconBgColor: "#4A5A7A",
             Icon: Heart,
-            isEnabled: false
+            isEnabled: false,
           },
           {
             title: "Coming Soon",
             backgroundColor: "#DA9540",
             iconBgColor: "#A66B1E",
             Icon: Star,
-            isEnabled: false
+            isEnabled: false,
           },
           {
             title: "Coming Soon",
             backgroundColor: "#D87566",
             iconBgColor: "#A44C3D",
             Icon: Trophy,
-            isEnabled: false
-          }
-        ]
-        
-        setTestResults([...transformedResults, ...comingSoonCards])
-      } catch (error) {
-        console.error('Error fetching results:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+            isEnabled: false,
+          },
+        ];
 
-    fetchResults()
-  }, [])
+        setTestResults([...transformedResults, ...comingSoonCards]);
+      } catch (error) {
+        console.error("Error fetching results:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, []);
 
   const handleCardClick = (testId: string) => {
-    router.push(`/insights?testId=${testId}`)
-  }
+    router.push(`/insights?testId=${testId}`);
+  };
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen">
       <div className="bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-        <motion.div 
+        <motion.div
           className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20 space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -101,28 +102,28 @@ export default function ResultsPage() {
               Tests Results
             </h1>
           </div>
-          
+
           <p className="text-center text-[#C9CDCE] text-lg font-normal font-spaceGrotesk leading-[25px]">
             Insights based on <span className="font-bold">your results</span>
           </p>
         </motion.div>
       </div>
 
-      <motion.div 
+      <motion.div
         className="w-full max-w-7xl mx-auto px-4 pb-20"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <div className="grid grid-cols-2 gap-6 justify-items-center max-w-[400px] mx-auto">
-          {testResults.map((test, index) => (
+          {testResults.map((test) => (
             <motion.div
-              key={index}
+              key={test.title}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ 
-                duration: 0.3, 
-                delay: 0.3 + (index * 0.1)
+              transition={{
+                duration: 0.3,
+                delay: 0.3 + testResults.indexOf(test) * 0.1,
               }}
               className="contents"
             >
@@ -132,11 +133,13 @@ export default function ResultsPage() {
                 iconBgColor={test.iconBgColor}
                 Icon={test.Icon}
                 isClickable={test.isEnabled}
-                onClick={() => test.testId && test.isEnabled && handleCardClick(test.testId)}
+                onClick={() =>
+                  test.testId && test.isEnabled && handleCardClick(test.testId)
+                }
                 className={cn(
                   "transform transition-all duration-300",
                   "hover:scale-105 hover:-translate-y-1",
-                  !test.isEnabled && "opacity-30 cursor-not-allowed"
+                  !test.isEnabled && "opacity-30 cursor-not-allowed",
                 )}
               />
             </motion.div>
@@ -144,5 +147,5 @@ export default function ResultsPage() {
         </div>
       </motion.div>
     </div>
-  )
-} 
+  );
+}

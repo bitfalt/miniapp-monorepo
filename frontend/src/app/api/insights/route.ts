@@ -1,8 +1,22 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { getXataClient } from "@/lib/utils";
 import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
+
+interface Test {
+  test_id: number;
+  test_name?: string;
+}
+
+interface InsightResponse {
+  tests?: Test[];
+  error?: string;
+}
 
 /**
  * @swagger
@@ -37,79 +51,69 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
-export const secret = new TextEncoder().encode(JWT_SECRET);
+const secret = new TextEncoder().encode(JWT_SECRET);
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const xata = getXataClient();
-    let user;
+    const token = cookies().get("session")?.value;
 
-    // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      const response: InsightResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        const response: InsightResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-    // Get distinct tests from InsightsPerUserCategory
-    const testsWithInsights = await xata.db.InsightsPerUserCategory
-      .filter({
-        "user.xata_id": user.xata_id
+      if (!user) {
+        const response: InsightResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
+
+      // Get distinct tests from InsightsPerUserCategory
+      const testsWithInsights = await xata.db.InsightsPerUserCategory.filter({
+        "user.xata_id": user.xata_id,
       })
-      .select([
-        "test.test_id",
-        "test.test_name"
-      ])
-      .getMany();
+        .select(["test.test_id", "test.test_name"])
+        .getMany();
 
-    // Create a map to store unique tests
-    const uniqueTests = new Map();
-    
-    testsWithInsights.forEach(insight => {
-      if (insight.test?.test_id) {
-        uniqueTests.set(insight.test.test_id, {
-          test_id: insight.test.test_id,
-          test_name: insight.test.test_name
-        });
+      // Create a map to store unique tests
+      const uniqueTests = new Map<number, Test>();
+
+      for (const insight of testsWithInsights) {
+        if (insight.test?.test_id) {
+          uniqueTests.set(insight.test.test_id, {
+            test_id: insight.test.test_id,
+            test_name: insight.test.test_name,
+          });
+        }
       }
-    });
 
-    return NextResponse.json({
-      tests: Array.from(uniqueTests.values())
-    });
-
+      const response: InsightResponse = {
+        tests: Array.from(uniqueTests.values()),
+      };
+      return NextResponse.json(response);
+    } catch {
+      const response: InsightResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
+    }
   } catch (error) {
     console.error("Error fetching insights:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch insights" },
-      { status: 500 }
-    );
+    const response: InsightResponse = { error: "Failed to fetch insights" };
+    return NextResponse.json(response, { status: 500 });
   }
-} 
+}

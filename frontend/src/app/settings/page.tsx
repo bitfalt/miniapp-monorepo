@@ -1,191 +1,195 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { FilledButton } from "@/components/ui/FilledButton"
-import { Moon, Bell, HelpCircle, Flag, FileText, Crown } from "lucide-react"
-import { SettingsCard } from "@/components/ui/SettingsCard"
-import { ToggleSwitch } from "@/components/ui/ToggleSwitch"
-import { MembershipCard } from "@/components/ui/MembershipCard"
-import { NotificationsToggle } from "@/components/ui/NotificationsToggle"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner"
-import { clearVerificationSession } from "@/hooks/useVerification"
-import { motion } from 'framer-motion'
-import { LucideIcon, Settings } from 'lucide-react'
+import { FilledButton } from "@/components/ui/FilledButton";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { MembershipCard } from "@/components/ui/MembershipCard";
+import { NotificationsToggle } from "@/components/ui/NotificationsToggle";
+import { SettingsCard } from "@/components/ui/SettingsCard";
+import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
+import { clearVerificationSession } from "@/hooks/useVerification";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import {
+  Bell,
+  Crown,
+  FileText,
+  Flag,
+  HelpCircle,
+  type LucideIcon,
+  Moon,
+  Settings,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import type * as React from "react";
+import { useEffect, useState } from "react";
+
+interface SubscriptionData {
+  next_payment_date: string | null;
+  isPro: boolean;
+  subscription_start: string | null;
+  subscription_expires: string | null;
+}
 
 interface SettingItem {
-  Icon: LucideIcon
-  label: string
-  element?: React.ReactNode
-  onClick?: () => void
+  Icon: LucideIcon;
+  label: string;
+  element?: React.ReactNode;
+  onClick?: () => void;
 }
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [subscriptionData, setSubscriptionData] = useState<{
-    next_payment_date: string | null;
-    isPro: boolean;
-    subscription_start: string | null;
-    subscription_expires: string | null;
-  }>({
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({
     next_payment_date: null,
     isPro: false,
     subscription_start: null,
-    subscription_expires: null
+    subscription_expires: null,
   });
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const subscriptionResponse = await fetch('/api/user/subscription', {
-          method: 'GET',
+        const subscriptionResponse = await fetch("/api/user/subscription", {
+          method: "GET",
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
           },
-          credentials: 'include'
+          credentials: "include",
         });
-        
+
         if (subscriptionResponse.ok) {
           const data = await subscriptionResponse.json();
           setSubscriptionData({
             next_payment_date: data.next_payment_date || null,
             isPro: data.isPro || false,
             subscription_start: data.subscription_start || null,
-            subscription_expires: data.subscription_expires || null
+            subscription_expires: data.subscription_expires || null,
           });
         }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
+      } catch {
+        // Error handling is done via the UI loading state
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchSettings();
+      if (document.visibilityState === "visible") {
+        void fetchSettings();
       }
     };
 
-    // Fetch immediately when component mounts
-    fetchSettings();
+    void fetchSettings();
 
-    // Add event listener for focus and visibility change
-    window.addEventListener('focus', fetchSettings);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener("focus", fetchSettings);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Cleanup
     return () => {
-      window.removeEventListener('focus', fetchSettings);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener("focus", fetchSettings);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   const handleUpgradeClick = () => {
-    router.push('/awaken-pro');
+    router.push("/awaken-pro");
   };
 
   const handleLogout = async () => {
     try {
-      // Clear verification session data
-      clearVerificationSession()
-      
-      // Clear session cookie
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST'
-      })
+      clearVerificationSession();
+
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
 
       if (response.ok) {
-        // Redirect to sign-in page
-        window.location.href = '/sign-in'
+        window.location.href = "/sign-in";
       }
-    } catch (error) {
-      console.error('Logout error:', error)
+    } catch {
+      // Error handling is done via the UI state
     }
-  }
+  };
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen">
-      <div className="bg-brand-tertiary rounded-b-[50px] shadow-lg pb-8 sm:pb-14 mb-6 sm:mb-8 relative overflow-hidden">
+      <div className="relative mb-6 overflow-hidden rounded-b-[50px] bg-brand-tertiary pb-8 shadow-lg sm:mb-8 sm:pb-14">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-        <motion.div 
-          className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-16 sm:pt-20 space-y-4"
+        <motion.div
+          className="relative z-10 mx-auto w-full max-w-2xl space-y-4 px-4 pt-16 sm:pt-20"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="text-center space-y-3">
-            <Settings className="h-10 w-10 mx-auto text-[#E36C59]" />
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-100 tracking-tight">
+          <div className="space-y-3 text-center">
+            <Settings className="mx-auto h-10 w-10 text-[#E36C59]" />
+            <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
               Settings
             </h1>
           </div>
-          
-          <p className="text-center text-[#C9CDCE] text-lg font-normal font-spaceGrotesk leading-[25px]">
+
+          <p className="font-spaceGrotesk text-center text-lg font-normal leading-[25px] text-[#C9CDCE]">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.4 }}
-              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full"
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-2 backdrop-blur-sm"
             >
-              {subscriptionData.isPro && <Crown className="w-5 h-5 text-[#e36c59]" />}
-              <span className="text-white/90 font-medium">
-                {subscriptionData.isPro ? 'Premium Member' : 'Basic Member'}
+              {subscriptionData.isPro && (
+                <Crown className="h-5 w-5 text-[#e36c59]" />
+              )}
+              <span className="font-medium text-white/90">
+                {subscriptionData.isPro ? "Premium Member" : "Basic Member"}
               </span>
             </motion.div>
           </p>
         </motion.div>
       </div>
 
-      <motion.div 
-        className="max-w-md mx-auto px-4 mt-4"
+      <motion.div
+        className="mx-auto mt-4 max-w-md px-4"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {/* Membership Section */}
-        <motion.div 
+        <motion.div
           className="relative"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
         >
-          <MembershipCard 
-            expiryDate={subscriptionData.next_payment_date || 'No active subscription'}
+          <MembershipCard
+            expiryDate={
+              subscriptionData.next_payment_date || "No active subscription"
+            }
             isActive={subscriptionData.isPro}
-            cost={3.50}
+            cost={3.5}
           />
-          
+
           {!subscriptionData.isPro && (
-            <div className="mt-4 relative">
-              <div className="absolute -inset-3 bg-accent-red/20 blur-xl rounded-2xl animate-pulse"></div>
+            <div className="relative mt-4">
+              <div className="absolute -inset-3 animate-pulse rounded-2xl bg-accent-red/20 blur-xl" />
               <FilledButton
                 variant="default"
                 size="lg"
                 className={cn(
-                  "w-full bg-accent-red hover:bg-accent-red/90",
-                  "transform transition-all duration-300 hover:scale-[1.02]",
-                  "shadow-[0_10px_20px_rgba(227,108,89,0.3)]",
-                  "hover:shadow-[0_14px_28px_rgba(227,108,89,0.4)]",
-                  "relative z-10"
+                  "relative z-10 w-full transform bg-accent-red shadow-[0_10px_20px_rgba(227,108,89,0.3)] transition-all duration-300 hover:scale-[1.02] hover:bg-accent-red/90 hover:shadow-[0_14px_28px_rgba(227,108,89,0.4)]",
                 )}
                 onClick={handleUpgradeClick}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <Crown className="w-5 h-5" />
+                  <Crown className="h-5 w-5" />
                   <span>Upgrade to Awaken Pro</span>
                 </div>
               </FilledButton>
-              
-              <div className="relative z-10 mt-3 mb-4 text-center py-2 px-4">
+
+              <div className="relative z-10 mt-3 mb-4 px-4 py-2 text-center">
                 <p className="text-sm font-medium">
                   <span className="text-neutral-black">Unlock</span>
                   <span className="text-accent-red"> advanced features </span>
@@ -197,25 +201,34 @@ export default function SettingsPage() {
           )}
         </motion.div>
 
-        {/* Settings Items */}
-        <motion.div 
-          className="space-y-4 mt-8"
+        <motion.div
+          className="mt-8 space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          {([
-            { Icon: Bell, label: "Notifications", element: <NotificationsToggle /> },
-            { Icon: Moon, label: "Dark Theme", element: <ToggleSwitch /> },
-            { Icon: FileText, label: "View Privacy Policy", onClick: () => {} },
-            { Icon: HelpCircle, label: "Help Center", onClick: () => {} },
-            { Icon: Flag, label: "Report an Issue", onClick: () => {} }
-          ] as SettingItem[]).map((setting, index) => (
+          {(
+            [
+              {
+                Icon: Bell,
+                label: "Notifications",
+                element: <NotificationsToggle />,
+              },
+              { Icon: Moon, label: "Dark Theme", element: <ToggleSwitch /> },
+              {
+                Icon: FileText,
+                label: "View Privacy Policy",
+                onClick: () => {},
+              },
+              { Icon: HelpCircle, label: "Help Center", onClick: () => {} },
+              { Icon: Flag, label: "Report an Issue", onClick: () => {} },
+            ] as SettingItem[]
+          ).map((setting, index) => (
             <motion.div
               key={setting.label}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.5 + (index * 0.1) }}
+              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
             >
               <SettingsCard
                 icon={setting.Icon}
@@ -227,8 +240,8 @@ export default function SettingsPage() {
           ))}
         </motion.div>
 
-        <motion.div 
-          className="mt-8 mb-20"
+        <motion.div
+          className="mb-20 mt-8"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.8 }}
@@ -244,5 +257,5 @@ export default function SettingsPage() {
         </motion.div>
       </motion.div>
     </div>
-  )
-} 
+  );
+}

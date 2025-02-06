@@ -1,28 +1,31 @@
-"use client"
+"use client";
 
-import { useTheme } from "@/providers/ThemeProvider"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/ThemeProvider";
+import type * as React from "react";
 
 export function ToggleSwitch() {
-  const { theme, toggleTheme } = useTheme()
-  const checked = theme === "dark"
+  const { theme, toggleTheme } = useTheme();
+  const checked = theme === "dark";
 
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
       onClick={toggleTheme}
       className={cn(
-        "w-12 h-6 rounded-full transition-colors duration-200",
-        checked ? "bg-accent-red" : "bg-neutral-grey"
+        "h-6 w-12 rounded-full transition-colors duration-200",
+        checked ? "bg-accent-red" : "bg-neutral-grey",
       )}
     >
       <span
         className={cn(
-          "block w-5 h-[18px] bg-white rounded-full transition-transform duration-200",
-          checked ? "translate-x-6" : "translate-x-1"
+          "block h-[18px] w-5 rounded-full bg-white transition-transform duration-200",
+          checked ? "translate-x-6" : "translate-x-1",
         )}
+        aria-hidden="true"
       />
     </button>
-  )
-} 
+  );
+}
