@@ -44,11 +44,11 @@ jobs:
 
       - name: Run Biome lint
         working-directory: frontend
-        run: pnpm exec biome lint ./src
+        run: pnpm exec biome lint .
 
       - name: Run Biome format check
         working-directory: frontend
-        run: pnpm exec biome ci ./src
+        run: pnpm exec biome ci .
 
       - name: Type check
         working-directory: frontend
