@@ -69,6 +69,8 @@ jobs:
         working-directory: frontend
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
+          NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
         run: pnpm build
 
   security:
@@ -134,6 +136,8 @@ jobs:
         env:
           ANALYZE: true
           NEXT_TELEMETRY_DISABLED: 1
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
+          NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
         run: |
           pnpm build
           
