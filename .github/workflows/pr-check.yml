@@ -55,7 +55,7 @@ jobs:
         working-directory: frontend
         run: |
           echo "Running Biome format check..."
-          pnpm exec biome check --files-ignore-unknown --no-errors-on-unmatched .
+          pnpm exec biome check --files-ignore-unknown=true .
 
       - name: Type check
         working-directory: frontend
@@ -67,6 +67,8 @@ jobs:
 
       - name: Build application
         working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
         run: pnpm build
 
   security:
@@ -129,15 +131,20 @@ jobs:
         
       - name: Build and analyze bundle
         working-directory: frontend
+        env:
+          ANALYZE: true
+          NEXT_TELEMETRY_DISABLED: 1
         run: |
-          ANALYZE=true pnpm build || exit 1
-          mkdir -p .next/analyze
-
+          pnpm build
+          
       - name: Upload bundle analysis
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: bundle-analysis
-          path: frontend/.next/analyze/
+          path: |
+            frontend/.next/analyze/client.html
+            frontend/.next/analyze/edge.html
+            frontend/.next/analyze/nodejs.html
           compression-level: 9
           retention-days: 14 
