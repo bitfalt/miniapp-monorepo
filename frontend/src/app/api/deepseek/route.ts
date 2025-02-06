@@ -2,49 +2,49 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 interface IdeologyScores {
-	econ: number;
-	dipl: number;
-	govt: number;
-	scty: number;
+  econ: number;
+  dipl: number;
+  govt: number;
+  scty: number;
 }
 
 interface DeepSeekResponse {
-	analysis: string;
+  analysis: string;
 }
 
 interface ApiResponse {
-	analysis?: string;
-	error?: string;
+  analysis?: string;
+  error?: string;
 }
 
 export async function POST(request: NextRequest) {
-	try {
-		const body = await request.json();
-		const scores = body as IdeologyScores;
-		const { econ, dipl, govt, scty } = scores;
+  try {
+    const body = await request.json();
+    const scores = body as IdeologyScores;
+    const { econ, dipl, govt, scty } = scores;
 
-		// Validate required fields
-		if (!econ || !dipl || !govt || !scty) {
-			return NextResponse.json(
-				{ error: "Missing required fields" },
-				{ status: 400 },
-			);
-		}
+    // Validate required fields
+    if (!econ || !dipl || !govt || !scty) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
 
-		// Validate score ranges
-		for (const [key, value] of Object.entries(scores)) {
-			const score = Number(value);
-			if (Number.isNaN(score) || score < 0 || score > 100) {
-				return NextResponse.json(
-					{
-						error: `Invalid ${key} score. Must be a number between 0 and 100`,
-					},
-					{ status: 400 },
-				);
-			}
-		}
+    // Validate score ranges
+    for (const [key, value] of Object.entries(scores)) {
+      const score = Number(value);
+      if (Number.isNaN(score) || score < 0 || score > 100) {
+        return NextResponse.json(
+          {
+            error: `Invalid ${key} score. Must be a number between 0 and 100`,
+          },
+          { status: 400 },
+        );
+      }
+    }
 
-		const prompt = `[ROLE] Act as a senior political scientist specializing in ideological analysis. Address the user directly using "you/your" to personalize insights.  
+    const prompt = `[ROLE] Act as a senior political scientist specializing in ideological analysis. Address the user directly using "you/your" to personalize insights.  
 
 [INPUT] Economic: ${econ} | Diplomatic: ${dipl} | Government: ${govt} | Social: ${scty} (All 0-100)  
 
@@ -84,30 +84,30 @@ export async function POST(request: NextRequest) {
 
 Begin immediately with "1. Your Ideological Breakdown"`;
 
-		const deepSeekResponse = await fetch(
-			"https://api.deepseek.com/v1/analyze",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-				},
-				body: JSON.stringify({ prompt }),
-			},
-		);
+    const deepSeekResponse = await fetch(
+      "https://api.deepseek.com/v1/analyze",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({ prompt }),
+      },
+    );
 
-		if (!deepSeekResponse.ok) {
-			const error = await deepSeekResponse.text();
-			throw new Error(`DeepSeek API error: ${error}`);
-		}
+    if (!deepSeekResponse.ok) {
+      const error = await deepSeekResponse.text();
+      throw new Error(`DeepSeek API error: ${error}`);
+    }
 
-		const data = (await deepSeekResponse.json()) as DeepSeekResponse;
-		const response: ApiResponse = { analysis: data.analysis };
-		return NextResponse.json(response);
-	} catch (error) {
-		console.error("DeepSeek API error:", error);
-		const message = error instanceof Error ? error.message : "Unknown error";
-		const response: ApiResponse = { error: message };
-		return NextResponse.json(response, { status: 500 });
-	}
+    const data = (await deepSeekResponse.json()) as DeepSeekResponse;
+    const response: ApiResponse = { analysis: data.analysis };
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("DeepSeek API error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const response: ApiResponse = { error: message };
+    return NextResponse.json(response, { status: 500 });
+  }
 }

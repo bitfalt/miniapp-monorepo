@@ -2,8 +2,8 @@ import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 interface PriceResponse {
-	amount?: number;
-	error?: string;
+  amount?: number;
+  error?: string;
 }
 
 /**
@@ -32,27 +32,27 @@ interface PriceResponse {
  *         description: Internal server error
  */
 export async function GET() {
-	try {
-		const xata = getXataClient();
+  try {
+    const xata = getXataClient();
 
-		// Get the subscription price
-		const priceRecord = await xata.db.SubscriptionPrice.getFirst();
+    // Get the subscription price
+    const priceRecord = await xata.db.SubscriptionPrice.getFirst();
 
-		if (!priceRecord) {
-			const response: PriceResponse = { error: "Price not found" };
-			return NextResponse.json(response, { status: 404 });
-		}
+    if (!priceRecord) {
+      const response: PriceResponse = { error: "Price not found" };
+      return NextResponse.json(response, { status: 404 });
+    }
 
-		const response: PriceResponse = {
-			amount: priceRecord.world_amount,
-		};
+    const response: PriceResponse = {
+      amount: priceRecord.world_amount,
+    };
 
-		return NextResponse.json(response);
-	} catch (error) {
-		console.error("Error fetching subscription price:", error);
-		const response: PriceResponse = {
-			error: "Failed to fetch subscription price",
-		};
-		return NextResponse.json(response, { status: 500 });
-	}
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error fetching subscription price:", error);
+    const response: PriceResponse = {
+      error: "Failed to fetch subscription price",
+    };
+    return NextResponse.json(response, { status: 500 });
+  }
 }

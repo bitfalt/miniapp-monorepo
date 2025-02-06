@@ -3,9 +3,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 interface InstructionResponse {
-	description?: string;
-	total_questions?: number;
-	error?: string;
+  description?: string;
+  total_questions?: number;
+  error?: string;
 }
 
 /**
@@ -43,38 +43,38 @@ interface InstructionResponse {
  *         description: Internal server error
  */
 export async function GET(
-	request: NextRequest,
-	{ params }: { params: { testId: string } },
+  _request: NextRequest,
+  { params }: { params: { testId: string } },
 ) {
-	try {
-		const xata = getXataClient();
-		// Validate testId
-		const testId = Number.parseInt(params.testId, 10);
-		if (Number.isNaN(testId) || testId <= 0) {
-			const response: InstructionResponse = { error: "Invalid test ID" };
-			return NextResponse.json(response, { status: 400 });
-		}
+  try {
+    const xata = getXataClient();
+    // Validate testId
+    const testId = Number.parseInt(params.testId, 10);
+    if (Number.isNaN(testId) || testId <= 0) {
+      const response: InstructionResponse = { error: "Invalid test ID" };
+      return NextResponse.json(response, { status: 400 });
+    }
 
-		// Get test details and total questions count
-		const test = await xata.db.Tests.filter({
-			test_id: testId,
-		}).getFirst();
+    // Get test details and total questions count
+    const test = await xata.db.Tests.filter({
+      test_id: testId,
+    }).getFirst();
 
-		if (!test) {
-			const response: InstructionResponse = { error: "Test not found" };
-			return NextResponse.json(response, { status: 404 });
-		}
+    if (!test) {
+      const response: InstructionResponse = { error: "Test not found" };
+      return NextResponse.json(response, { status: 404 });
+    }
 
-		const response: InstructionResponse = {
-			description: test.test_description,
-			total_questions: test.total_questions,
-		};
-		return NextResponse.json(response);
-	} catch (error) {
-		console.error("Error fetching test instructions:", error);
-		const response: InstructionResponse = {
-			error: "Failed to fetch test instructions",
-		};
-		return NextResponse.json(response, { status: 500 });
-	}
+    const response: InstructionResponse = {
+      description: test.test_description,
+      total_questions: test.total_questions,
+    };
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error fetching test instructions:", error);
+    const response: InstructionResponse = {
+      error: "Failed to fetch test instructions",
+    };
+    return NextResponse.json(response, { status: 500 });
+  }
 }

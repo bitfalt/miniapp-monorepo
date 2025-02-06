@@ -8,25 +8,25 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 interface TokenPayload extends JWTPayload {
-	address?: string;
+  address?: string;
 }
 
 interface IRequestPayload {
-	payload: ISuccessResult;
-	action: string;
-	signal?: string;
+  payload: ISuccessResult;
+  action: string;
+  signal?: string;
 }
 
 interface VerifyResponse {
-	success?: boolean;
-	message?: string;
-	error?: string;
-	details?: unknown;
+  success?: boolean;
+  message?: string;
+  error?: string;
+  details?: unknown;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-	throw new Error("JWT_SECRET environment variable is not set");
+  throw new Error("JWT_SECRET environment variable is not set");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -146,79 +146,79 @@ const secret = new TextEncoder().encode(JWT_SECRET);
  *                   example: "Internal server error"
  */
 export async function POST(req: NextRequest) {
-	try {
-		const { payload, action, signal } = (await req.json()) as IRequestPayload;
-		const rawAppId = process.env.NEXT_PUBLIC_WLD_APP_ID;
+  try {
+    const { payload, action, signal } = (await req.json()) as IRequestPayload;
+    const rawAppId = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
-		if (!rawAppId?.startsWith("app_")) {
-			const response: VerifyResponse = {
-				success: false,
-				error: "Invalid app_id configuration",
-			};
-			return NextResponse.json(response, { status: 400 });
-		}
+    if (!rawAppId?.startsWith("app_")) {
+      const response: VerifyResponse = {
+        success: false,
+        error: "Invalid app_id configuration",
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
 
-		const app_id = rawAppId as `app_${string}`;
+    const app_id = rawAppId as `app_${string}`;
 
-		const verifyRes = (await verifyCloudProof(
-			payload,
-			app_id,
-			action,
-			signal,
-		)) as IVerifyResponse;
+    const verifyRes = (await verifyCloudProof(
+      payload,
+      app_id,
+      action,
+      signal,
+    )) as IVerifyResponse;
 
-		if (!verifyRes.success) {
-			const response: VerifyResponse = {
-				success: false,
-				error: "Verification failed",
-				details: verifyRes,
-			};
-			return NextResponse.json(response, { status: 400 });
-		}
+    if (!verifyRes.success) {
+      const response: VerifyResponse = {
+        success: false,
+        error: "Verification failed",
+        details: verifyRes,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
 
-		const xata = getXataClient();
-		const token = cookies().get("session")?.value;
+    const xata = getXataClient();
+    const token = cookies().get("session")?.value;
 
-		if (!token) {
-			const response: VerifyResponse = { error: "Unauthorized" };
-			return NextResponse.json(response, { status: 401 });
-		}
+    if (!token) {
+      const response: VerifyResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
+    }
 
-		try {
-			const { payload: tokenPayload } = await jwtVerify(token, secret);
-			const typedPayload = tokenPayload as TokenPayload;
+    try {
+      const { payload: tokenPayload } = await jwtVerify(token, secret);
+      const typedPayload = tokenPayload as TokenPayload;
 
-			if (!typedPayload.address) {
-				const response: VerifyResponse = { error: "Invalid session" };
-				return NextResponse.json(response, { status: 401 });
-			}
+      if (!typedPayload.address) {
+        const response: VerifyResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
+      }
 
-			const user = await xata.db.Users.filter({
-				wallet_address: typedPayload.address,
-			}).getFirst();
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-			if (!user) {
-				const response: VerifyResponse = { error: "User not found" };
-				return NextResponse.json(response, { status: 404 });
-			}
+      if (!user) {
+        const response: VerifyResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
 
-			await xata.db.Users.update(user.xata_id, {
-				verified: true,
-				updated_at: new Date().toISOString(),
-			});
+      await xata.db.Users.update(user.xata_id, {
+        verified: true,
+        updated_at: new Date().toISOString(),
+      });
 
-			const response: VerifyResponse = {
-				success: true,
-				message: "Verification successful",
-			};
-			return NextResponse.json(response);
-		} catch {
-			const response: VerifyResponse = { error: "Invalid session" };
-			return NextResponse.json(response, { status: 401 });
-		}
-	} catch (error) {
-		console.error("Verification error:", error);
-		const response: VerifyResponse = { error: "Internal server error" };
-		return NextResponse.json(response, { status: 500 });
-	}
+      const response: VerifyResponse = {
+        success: true,
+        message: "Verification successful",
+      };
+      return NextResponse.json(response);
+    } catch {
+      const response: VerifyResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Verification error:", error);
+    const response: VerifyResponse = { error: "Internal server error" };
+    return NextResponse.json(response, { status: 500 });
+  }
 }

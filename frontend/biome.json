@@ -3,19 +3,27 @@
   "vcs": {
     "enabled": false,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "ignoreUnknown": true,
     "include": [
-      "src/**/*.{ts,tsx}",
-      "src/**/*.{js,jsx}",
-      "src/**/*.json",
-      "*.config.{ts,js,mjs}",
-      "*.d.ts",
-      "eslint.config.mjs",
-      "next.config.mjs",
+      "src/app/**/route.ts",
+      "src/app/**/page.tsx",
+      "src/app/layout.tsx",
+      "src/app/not-found.tsx",
+      "src/app/types.ts",
+      "src/components/**/*.{ts,tsx}",
+      "src/hooks/**/*.{ts,tsx}",
+      "src/lib/**/*.{ts,tsx}",
+      "src/providers/**/*.{ts,tsx}",
+      "src/constants/**/*.{ts,tsx}",
+      "src/data/**/*.{ts,tsx}",
+      "src/middleware.ts",
       "tailwind.config.ts",
+      "next.config.mjs",
+      "eslint.config.mjs",
+      "next-env.d.ts",
       "postcss.config.js"
     ],
     "ignore": [

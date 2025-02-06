@@ -11,46 +11,46 @@ import { NotificationsProvider } from "@/providers/NotificationsProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
 const spaceGrotesk = Space_Grotesk({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-space-grotesk",
 });
 
 const ErudaProvider = dynamic(
-	() =>
-		import("@/providers/eruda-provider").then((mod) => ({
-			default: ({ children }: { children: React.ReactNode }) => (
-				<mod.Eruda>{children}</mod.Eruda>
-			),
-		})),
-	{ ssr: false },
+  () =>
+    import("@/providers/eruda-provider").then((mod) => ({
+      default: ({ children }: { children: React.ReactNode }) => (
+        <mod.Eruda>{children}</mod.Eruda>
+      ),
+    })),
+  { ssr: false },
 );
 
 export const metadata: Metadata = {
-	title: "MindVault",
-	description: "Your journey toward understanding your true self begins here.",
+  title: "MindVault",
+  description: "Your journey toward understanding your true self begins here.",
 };
 
 interface RootLayoutProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-	return (
-		<html lang="en" suppressHydrationWarning>
-			<body
-				className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}
-			>
-				<ThemeProvider>
-					<NotificationsProvider>
-						<ErudaProvider>
-							<MiniKitProvider>
-								<LayoutContent>{children}</LayoutContent>
-							</MiniKitProvider>
-						</ErudaProvider>
-					</NotificationsProvider>
-				</ThemeProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}
+      >
+        <ThemeProvider>
+          <NotificationsProvider>
+            <ErudaProvider>
+              <MiniKitProvider>
+                <LayoutContent>{children}</LayoutContent>
+              </MiniKitProvider>
+            </ErudaProvider>
+          </NotificationsProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }

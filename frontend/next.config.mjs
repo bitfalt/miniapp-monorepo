@@ -1,20 +1,20 @@
-import bundleAnalyzer from '@next/bundle-analyzer'
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: "standalone",
   swcMinify: true,
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
       },
     ],
   },

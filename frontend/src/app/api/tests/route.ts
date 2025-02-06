@@ -5,29 +5,29 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 interface TokenPayload extends JWTPayload {
-	address?: string;
+  address?: string;
 }
 
 interface Achievement {
-	id: string;
-	title: string;
-	description: string;
+  id: string;
+  title: string;
+  description: string;
 }
 
 interface Test {
-	testId: number;
-	testName: string;
-	description: string;
-	totalQuestions: number;
-	answeredQuestions: number;
-	progressPercentage: number;
-	status: "not_started" | "in_progress" | "completed";
-	achievements: Achievement[];
+  testId: number;
+  testName: string;
+  description: string;
+  totalQuestions: number;
+  answeredQuestions: number;
+  progressPercentage: number;
+  status: "not_started" | "in_progress" | "completed";
+  achievements: Achievement[];
 }
 
 interface TestResponse {
-	tests?: Test[];
-	error?: string;
+  tests?: Test[];
+  error?: string;
 }
 
 /**
@@ -140,101 +140,101 @@ interface TestResponse {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-	throw new Error("JWT_SECRET environment variable is required");
+  throw new Error("JWT_SECRET environment variable is required");
 }
 const secret = new TextEncoder().encode(JWT_SECRET);
 
 export async function GET() {
-	try {
-		const xata = getXataClient();
-		const token = cookies().get("session")?.value;
+  try {
+    const xata = getXataClient();
+    const token = cookies().get("session")?.value;
 
-		if (!token) {
-			const response: TestResponse = { error: "Unauthorized" };
-			return NextResponse.json(response, { status: 401 });
-		}
+    if (!token) {
+      const response: TestResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
+    }
 
-		try {
-			const { payload } = await jwtVerify(token, secret);
-			const typedPayload = payload as TokenPayload;
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      const typedPayload = payload as TokenPayload;
 
-			if (!typedPayload.address) {
-				const response: TestResponse = { error: "Invalid session" };
-				return NextResponse.json(response, { status: 401 });
-			}
+      if (!typedPayload.address) {
+        const response: TestResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
+      }
 
-			const user = await xata.db.Users.filter({
-				wallet_address: typedPayload.address,
-			}).getFirst();
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-			if (!user) {
-				const response: TestResponse = { error: "User not found" };
-				return NextResponse.json(response, { status: 404 });
-			}
+      if (!user) {
+        const response: TestResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
 
-			// Fetch all tests with total_questions
-			const tests = await xata.db.Tests.getAll({
-				columns: [
-					"test_id",
-					"test_name",
-					"test_description",
-					"total_questions",
-				],
-				sort: { test_id: "asc" },
-			});
+      // Fetch all tests with total_questions
+      const tests = await xata.db.Tests.getAll({
+        columns: [
+          "test_id",
+          "test_name",
+          "test_description",
+          "total_questions",
+        ],
+        sort: { test_id: "asc" },
+      });
 
-			// Fetch user progress for all tests
-			const allProgress = await xata.db.UserTestProgress.filter({
-				"test.test_id": { $any: tests.map((t) => t.test_id) },
-				"user.xata_id": user.xata_id,
-			}).getMany();
+      // Fetch user progress for all tests
+      const allProgress = await xata.db.UserTestProgress.filter({
+        "test.test_id": { $any: tests.map((t) => t.test_id) },
+        "user.xata_id": user.xata_id,
+      }).getMany();
 
-			type ProgressRecord = (typeof allProgress)[0];
+      type ProgressRecord = (typeof allProgress)[0];
 
-			// Create a map of test progress
-			const progressByTest = allProgress.reduce<Record<string, ProgressRecord>>(
-				(acc, p) => {
-					const testId = p.test?.xata_id;
-					if (testId) {
-						acc[testId] = p;
-					}
-					return acc;
-				},
-				{},
-			);
+      // Create a map of test progress
+      const progressByTest = allProgress.reduce<Record<string, ProgressRecord>>(
+        (acc, p) => {
+          const testId = p.test?.xata_id;
+          if (testId) {
+            acc[testId] = p;
+          }
+          return acc;
+        },
+        {},
+      );
 
-			const testsWithProgress: Test[] = tests.map((test) => {
-				// Get user's progress for this test
-				const userProgress = progressByTest[test.xata_id];
+      const testsWithProgress: Test[] = tests.map((test) => {
+        // Get user's progress for this test
+        const userProgress = progressByTest[test.xata_id];
 
-				// Count answered questions from the progress.answers JSON
-				const answeredQuestions = userProgress?.answers
-					? Object.keys(userProgress.answers as Record<string, unknown>).length
-					: 0;
+        // Count answered questions from the progress.answers JSON
+        const answeredQuestions = userProgress?.answers
+          ? Object.keys(userProgress.answers as Record<string, unknown>).length
+          : 0;
 
-				return {
-					testId: test.test_id,
-					testName: test.test_name,
-					description: test.test_description,
-					totalQuestions: test.total_questions,
-					answeredQuestions,
-					progressPercentage: Math.round(
-						(answeredQuestions / test.total_questions) * 100,
-					),
-					status: (userProgress?.status as Test["status"]) || "not_started",
-					achievements: [], // TODO: Add achievements when implemented
-				};
-			});
+        return {
+          testId: test.test_id,
+          testName: test.test_name,
+          description: test.test_description,
+          totalQuestions: test.total_questions,
+          answeredQuestions,
+          progressPercentage: Math.round(
+            (answeredQuestions / test.total_questions) * 100,
+          ),
+          status: (userProgress?.status as Test["status"]) || "not_started",
+          achievements: [], // TODO: Add achievements when implemented
+        };
+      });
 
-			const response: TestResponse = { tests: testsWithProgress };
-			return NextResponse.json(response);
-		} catch {
-			const response: TestResponse = { error: "Invalid session" };
-			return NextResponse.json(response, { status: 401 });
-		}
-	} catch (error) {
-		console.error("Error fetching tests:", error);
-		const response: TestResponse = { error: "Failed to fetch tests" };
-		return NextResponse.json(response, { status: 500 });
-	}
+      const response: TestResponse = { tests: testsWithProgress };
+      return NextResponse.json(response);
+    } catch {
+      const response: TestResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error fetching tests:", error);
+    const response: TestResponse = { error: "Failed to fetch tests" };
+    return NextResponse.json(response, { status: 500 });
+  }
 }
