@@ -22,7 +22,6 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    dirs: ['src'],
     ignoreDuringBuilds: false,
   },
 };
