@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
 import { InsightResultCard } from '@/components/ui/InsightResultCard';
 import { FilledButton } from '@/components/ui/FilledButton';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ResultsCanvas from '@/components/Canvas';
@@ -38,7 +38,7 @@ export default function InsightsPage() {
   const [publicFigure, setPublicFigure] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const testId = searchParams.get('testId')
+  const testId = searchParams.get('testId');
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -99,11 +99,13 @@ export default function InsightsPage() {
           const deepSeekData = await deepSeekResponse.json();
           setFullAnalysis(deepSeekData.analysis);
         } else {
-          console.error('Error fetching DeepSeek analysis:', deepSeekResponse.statusText);
+          console.error(
+            'Error fetching DeepSeek analysis:',
+            deepSeekResponse.statusText
+          );
           setFullAnalysis('Failed to generate analysis. Please try again later.');
         }
       }
-
     } catch (error) {
       console.error('Error fetching insights:', error);
       setFullAnalysis('Failed to generate analysis. Please try again later.');
@@ -135,7 +137,7 @@ export default function InsightsPage() {
     const canvas = canvasRef.current;
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `results.png`;
+    link.download = 'results.png';
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
@@ -144,41 +146,43 @@ export default function InsightsPage() {
 
   const handleInstagramShare = async () => {
     if (!canvasRef.current) return;
-    
+
     try {
       // Convert canvas to Blob
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvasRef.current?.toBlob((blob) => {
-          blob ? resolve(blob) : reject(new Error("Canvas conversion failed"));
+        canvasRef.current?.toBlob((b) => {
+          b ? resolve(b) : reject(new Error('Canvas conversion failed'));
         }, 'image/png');
       });
       const file = new File([blob], 'results.png', { type: 'image/png' });
-      
+
       // Use native share if available
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
             files: [file],
             title: 'My Political Compass Results',
-            text: 'Check out my political compass results!'
+            text: 'Check out my political compass results!',
           });
           return;
         } catch (error) {
           console.error('Error with native sharing:', error);
         }
       }
-      
+
       // Fallback: share via Instagram Stories URL scheme
       const dataUrl = canvasRef.current.toDataURL('image/png');
       const encodedImage = encodeURIComponent(dataUrl);
       const instagramUrl = `instagram-stories://share?backgroundImage=${encodedImage}&backgroundTopColor=%23000000&backgroundBottomColor=%23000000`;
       window.location.href = instagramUrl;
-      
+
       // Alert if Instagram doesn't open automatically
       setTimeout(() => {
-        alert('If Instagram did not open automatically, please open Instagram and use the image from your camera roll to share to your story.');
+        alert(
+          'If Instagram did not open automatically, please open Instagram and use the image from your camera roll to share to your story.'
+        );
       }, 2500);
-      
+
       // Final fallback: download the image
       const link = document.createElement('a');
       link.download = 'results.png';
@@ -186,22 +190,23 @@ export default function InsightsPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
     } catch (error) {
       console.error('Error sharing to Instagram:', error);
-      alert('Unable to share directly to Instagram. The image has been downloaded to your device – you can manually share it to your Instagram story.');
+      alert(
+        'Unable to share directly to Instagram. The image has been downloaded to your device – you can manually share it to your Instagram story.'
+      );
     }
   };
-  
+
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-neutral-bg">
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-        <motion.div 
+        <motion.div
           className="relative z-10 text-center max-w-md mx-auto space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -228,8 +233,8 @@ export default function InsightsPage() {
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
             Explore how your values align across key ideological dimensions.
           </p>
-          
-          <motion.div 
+
+          <motion.div
             className="flex justify-center"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -239,8 +244,8 @@ export default function InsightsPage() {
               onClick={handleAdvancedInsightsClick}
               variant={isProUser ? 'default' : 'default'}
               className={cn(
-                "mt-4",
-                "transform transition-all duration-300 hover:scale-105"
+                'mt-4',
+                'transform transition-all duration-300 hover:scale-105'
               )}
             >
               {isProUser ? 'Advanced Insights' : 'Unlock Advanced Insights'}
@@ -249,7 +254,7 @@ export default function InsightsPage() {
         </motion.div>
       </div>
 
-      <motion.div 
+      <motion.div
         className="max-w-3xl mx-auto px-6 space-y-8 pb-16"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -261,10 +266,13 @@ export default function InsightsPage() {
               key={index}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 + (index * 0.1) }}
+              transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
             >
               <InsightResultCard
-                title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} Perspective`}
+                title={`${
+                  insight.category.charAt(0).toUpperCase() +
+                  insight.category.slice(1)
+                } Perspective`}
                 insight={insight.insight}
                 description={insight.description}
                 percentage={insight.percentage}
@@ -275,7 +283,7 @@ export default function InsightsPage() {
             </motion.div>
           ))
         ) : (
-          <motion.p 
+          <motion.p
             className="text-slate-200 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -285,7 +293,7 @@ export default function InsightsPage() {
           </motion.p>
         )}
 
-        {/* Added Share Button */}
+        {/* Share Button */}
         <div className="flex justify-center pt-8">
           <FilledButton
             onClick={handleShareClick}
@@ -297,107 +305,116 @@ export default function InsightsPage() {
         </div>
       </motion.div>
 
-  {isShareModalOpen && (
-    <motion.div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={() => setIsShareModalOpen(false)}
-    >
-      <motion.div 
-        className="relative w-full max-w-2xl bg-gradient-to-b from-brand-tertiary/20 to-brand-tertiary/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/20 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
-          <button
-            onClick={() => setIsShareModalOpen(false)}
-            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
+      {isShareModalOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsShareModalOpen(false)}
+        >
+          <motion.div
+            className="relative w-full max-w-2xl bg-gradient-to-b from-brand-tertiary/20 to-brand-tertiary/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
-            Share Your Results
-          </h2>
-        </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/20 via-transparent to-transparent pointer-events-none" />
 
-        <div className="p-6 text-center max-h-[70vh] overflow-y-auto scrollbar-custom">
-          <div className="w-full max-w-md mx-auto">
-            <ResultsCanvas
-              ref={canvasRef}
-              econ={scores.econ}
-              dipl={scores.dipl}
-              govt={scores.govt}
-              scty={scores.scty}
-              closestMatch={publicFigure}
-            />
-          </div>
-        </div>
+            <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
+              <button
+                onClick={() => setIsShareModalOpen(false)}
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
+                Share Your Results
+              </h2>
+            </div>
 
-        <div className="flex justify-between gap-3 p-4 border-t border-white/10 bg-[#162026]/80">
-          <FilledButton
-            variant="default"
-            onClick={downloadImage}
-            className="flex-1 py-3 text-sm bg-[#387478] 
+            <div className="p-6 text-center max-h-[70vh] overflow-y-auto scrollbar-custom">
+              <div className="w-full max-w-md mx-auto">
+                <ResultsCanvas
+                  ref={canvasRef}
+                  econ={scores.econ}
+                  dipl={scores.dipl}
+                  govt={scores.govt}
+                  scty={scores.scty}
+                  closestMatch={publicFigure}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between gap-3 p-4 border-t border-white/10 bg-[#162026]/80">
+              <FilledButton
+                variant="default"
+                onClick={downloadImage}
+                className="flex-1 py-3 text-sm bg-[#387478] 
                      flex items-center justify-center gap-2"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span className="whitespace-nowrap">Download Image</span>
-          </FilledButton>
-          <FilledButton
-            variant="default"
-            onClick={handleInstagramShare}
-            className="flex-1 py-3 text-sm bg-[#E36C59]
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                <span className="whitespace-nowrap">Download Image</span>
+              </FilledButton>
+              <FilledButton
+                variant="default"
+                onClick={handleInstagramShare}
+                className="flex-1 py-3 text-sm bg-[#E36C59]
                      flex items-center justify-center gap-2"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            <span className="whitespace-nowrap">Share Link</span>
-          </FilledButton>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
+                </svg>
+                <span className="whitespace-nowrap">Share Link</span>
+              </FilledButton>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
-      {/* Existing Advanced Insights Modal */}
       {isModalOpen && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => setIsModalOpen(false)}
         >
-          <motion.div 
+          <motion.div
             className="relative w-full max-w-4xl bg-gradient-to-b from-brand-tertiary/20 to-brand-tertiary/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -406,7 +423,7 @@ export default function InsightsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/20 via-transparent to-transparent pointer-events-none" />
-            
+
             <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -435,20 +452,21 @@ export default function InsightsPage() {
                   </p>
                 </div>
               ) : (
-              <div className="w-full max-w-md mx-auto">
-                <p className="text-white/90 mb-6">
-                  Dive deeper into your ideological profile with Awaken Pro. Get comprehensive analysis and personalized insights.
-                </p>
-                <div className="flex justify-center">
-                  <FilledButton
-                    variant="default"
-                    onClick={() => router.push('/awaken-pro')}
-                    className="transform transition-all duration-300 hover:scale-105"
-                  >
-                    Upgrade to Pro
-                  </FilledButton>
+                <div className="w-full max-w-md mx-auto">
+                  <p className="text-white/90 mb-6">
+                    Dive deeper into your ideological profile with Awaken Pro. Get
+                    comprehensive analysis and personalized insights.
+                  </p>
+                  <div className="flex justify-center">
+                    <FilledButton
+                      variant="default"
+                      onClick={() => router.push('/awaken-pro')}
+                      className="transform transition-all duration-300 hover:scale-105"
+                    >
+                      Upgrade to Pro
+                    </FilledButton>
+                  </div>
                 </div>
-              </div>
               )}
             </div>
 
@@ -460,14 +478,19 @@ export default function InsightsPage() {
                   className="flex-1 py-3 text-sm bg-[#E36C59]
                           flex items-center justify-center gap-2"
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
                   </svg>
                   <span className="whitespace-nowrap">Share Analysis</span>
                 </FilledButton>
