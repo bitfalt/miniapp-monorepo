@@ -142,6 +142,57 @@ export default function InsightsPage() {
     document.body.removeChild(link);
   };
 
+  const handleInstagramShare = async () => {
+    if (!canvasRef.current) return;
+    
+    try {
+      // Convert canvas to Blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvasRef.current?.toBlob((blob) => {
+          blob ? resolve(blob) : reject(new Error("Canvas conversion failed"));
+        }, 'image/png');
+      });
+      const file = new File([blob], 'results.png', { type: 'image/png' });
+      
+      // Use native share if available
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'My Political Compass Results',
+            text: 'Check out my political compass results!'
+          });
+          return;
+        } catch (error) {
+          console.error('Error with native sharing:', error);
+        }
+      }
+      
+      // Fallback: share via Instagram Stories URL scheme
+      const dataUrl = canvasRef.current.toDataURL('image/png');
+      const encodedImage = encodeURIComponent(dataUrl);
+      const instagramUrl = `instagram-stories://share?backgroundImage=${encodedImage}&backgroundTopColor=%23000000&backgroundBottomColor=%23000000`;
+      window.location.href = instagramUrl;
+      
+      // Alert if Instagram doesn't open automatically
+      setTimeout(() => {
+        alert('If Instagram did not open automatically, please open Instagram and use the image from your camera roll to share to your story.');
+      }, 2500);
+      
+      // Final fallback: download the image
+      const link = document.createElement('a');
+      link.download = 'results.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Error sharing to Instagram:', error);
+      alert('Unable to share directly to Instagram. The image has been downloaded to your device – you can manually share it to your Instagram story.');
+    }
+  };
+  
   if (loading) {
     return <LoadingSpinner />
   }
@@ -317,7 +368,7 @@ export default function InsightsPage() {
           </FilledButton>
           <FilledButton
             variant="default"
-            onClick={() => console.log('Share functionality')}
+            onClick={handleInstagramShare}
             className="flex-1 py-3 text-sm bg-[#E36C59]
                      flex items-center justify-center gap-2"
           >
