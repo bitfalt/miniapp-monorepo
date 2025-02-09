@@ -1,9 +1,21 @@
-import { getXataClient } from "@/lib/utils";
-import { NextResponse, NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { createHash } from "@/lib/crypto";
+import { getXataClient } from "@/lib/utils";
+import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
+import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
+
+interface UserResponse {
+  username?: string;
+  subscription?: boolean;
+  verified?: boolean;
+  error?: string;
+}
 
 /**
  * Validation functions for user data
@@ -24,7 +36,7 @@ const validateWalletAddress = (address: string): boolean =>
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -66,51 +78,45 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 export async function GET() {
   try {
     const xata = getXataClient();
-    let user;
+    const token = cookies().get("session")?.value;
 
-    // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      const response: UserResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        const response: UserResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
+
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
+
+      if (!user) {
+        const response: UserResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
+      }
+
+      const response: UserResponse = {
+        username: user.username?.toString(),
+        subscription: user.subscription,
+        verified: user.verified,
+      };
+      return NextResponse.json(response);
+    } catch {
+      const response: UserResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
     }
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      username: user.username,
-      subscription: user.subscription,
-      verified: user.verified
-    });
-
   } catch (error) {
     console.error("Error fetching user:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user data" },
-      { status: 500 }
-    );
+    const response: UserResponse = { error: "Failed to fetch user data" };
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
@@ -165,86 +171,93 @@ export async function POST(req: NextRequest) {
   try {
     const xata = getXataClient();
     const data = await req.json();
-    
+
     // Validate all input data
     if (!validateAge(data.age)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid age. Must be between 18 and 120.' }),
-        { status: 400 }
+        JSON.stringify({ error: "Invalid age. Must be between 18 and 120." }),
+        { status: 400 },
       );
     }
 
     if (!validateString(data.name) || !validateString(data.last_name)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid name or last name. Must be between 2 and 50 characters.' }),
-        { status: 400 }
+        JSON.stringify({
+          error:
+            "Invalid name or last name. Must be between 2 and 50 characters.",
+        }),
+        { status: 400 },
       );
     }
 
     if (!validateEmail(data.email)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid email format.' }),
-        { status: 400 }
+        JSON.stringify({ error: "Invalid email format." }),
+        { status: 400 },
       );
     }
 
     if (!validateWalletAddress(data.wallet_address)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid wallet address format.' }),
-        { status: 400 }
+        JSON.stringify({ error: "Invalid wallet address format." }),
+        { status: 400 },
       );
     }
 
     // Check if a non-temporary user already exists with this wallet address
     const existingUser = await xata.db.Users.filter({
-      'wallet_address': data.wallet_address,
-      'name': { $isNot: 'Temporary' }
+      wallet_address: data.wallet_address,
+      name: { $isNot: "Temporary" },
     }).getFirst();
 
     if (existingUser) {
       return new NextResponse(
-        JSON.stringify({ 
-          error: 'A user with this wallet address already exists',
+        JSON.stringify({
+          error: "A user with this wallet address already exists",
           isRegistered: true,
           userId: existingUser.user_id,
-          userUuid: existingUser.user_uuid
+          userUuid: existingUser.user_uuid,
         }),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Delete any temporary users with this wallet address
     const tempUsers = await xata.db.Users.filter({
-      'wallet_address': data.wallet_address,
-      'name': 'Temporary'
+      wallet_address: data.wallet_address,
+      name: "Temporary",
     }).getMany();
-    
+
     for (const tempUser of tempUsers) {
       await xata.db.Users.delete(tempUser.xata_id);
     }
 
     // Generate user_uuid and username
-    const userUuid = await createHash(data.wallet_address + Date.now().toString());
+    const userUuid = await createHash(
+      data.wallet_address + Date.now().toString(),
+    );
     const username = `${data.name.toLowerCase()}_${userUuid.slice(0, 5)}`;
 
     // Validate username
     if (!validateUsername(username)) {
       return new NextResponse(
-        JSON.stringify({ error: 'Failed to generate valid username.' }),
-        { status: 500 }
+        JSON.stringify({ error: "Failed to generate valid username." }),
+        { status: 500 },
       );
     }
 
     // Get the latest user_id
-    const latestUser = await xata.db.Users.sort('user_id', 'desc').getFirst();
+    const latestUser = await xata.db.Users.sort("user_id", "desc").getFirst();
     const nextUserId = (latestUser?.user_id || 0) + 1;
 
     // Get default country
-    const countryRecord = await xata.db.Countries.filter({ country_name: "Costa Rica" }).getFirst();
+    const countryRecord = await xata.db.Countries.filter({
+      country_name: "Costa Rica",
+    }).getFirst();
     if (!countryRecord) {
       return new NextResponse(
-        JSON.stringify({ error: 'Failed to get default country.' }),
-        { status: 500 }
+        JSON.stringify({ error: "Failed to get default country." }),
+        { status: 500 },
       );
     }
 
@@ -262,41 +275,40 @@ export async function POST(req: NextRequest) {
       country: countryRecord.xata_id,
       created_at: new Date(),
       updated_at: new Date(),
-      verified: false
+      verified: false,
     });
 
     if (!newUser) {
       return new NextResponse(
-        JSON.stringify({ error: 'Failed to create user profile' }),
-        { status: 500 }
+        JSON.stringify({ error: "Failed to create user profile" }),
+        { status: 500 },
       );
     }
 
     // Set registration cookie
     const response = new NextResponse(
-      JSON.stringify({ 
-        message: 'User profile created successfully',
+      JSON.stringify({
+        message: "User profile created successfully",
         userId: newUser.user_id,
         userUuid: newUser.user_uuid,
-        isRegistered: true
+        isRegistered: true,
       }),
-      { status: 200 }
+      { status: 200 },
     );
 
-    response.cookies.set('registration_status', 'complete', {
+    response.cookies.set("registration_status", "complete", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/'
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
     });
 
     return response;
-
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error("Error creating user:", error);
     return new NextResponse(
-      JSON.stringify({ error: 'Failed to create user profile' }),
-      { status: 500 }
+      JSON.stringify({ error: "Failed to create user profile" }),
+      { status: 500 },
     );
   }
-} 
+}

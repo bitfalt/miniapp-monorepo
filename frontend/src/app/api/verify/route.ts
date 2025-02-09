@@ -1,12 +1,15 @@
-import {
-  verifyCloudProof,
-  IVerifyResponse,
-  ISuccessResult
-} from "@worldcoin/minikit-js";
-import { NextRequest, NextResponse } from "next/server";
 import { getXataClient } from "@/lib/utils";
+import { verifyCloudProof } from "@worldcoin/minikit-js";
+import type { ISuccessResult, IVerifyResponse } from "@worldcoin/minikit-js";
 import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
 
 interface IRequestPayload {
   payload: ISuccessResult;
@@ -14,9 +17,16 @@ interface IRequestPayload {
   signal?: string;
 }
 
+interface VerifyResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  details?: unknown;
+}
+
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is not set');
+  throw new Error("JWT_SECRET environment variable is not set");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -138,66 +148,77 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 export async function POST(req: NextRequest) {
   try {
     const { payload, action, signal } = (await req.json()) as IRequestPayload;
-    const app_id = process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`;
-    
-    const verifyRes = (await verifyCloudProof(payload, app_id, action, signal)) as IVerifyResponse;
+    const rawAppId = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
-    if (verifyRes.success) {
-      const xata = getXataClient();
-      let user;
-  
-      // Get token from cookies
-      const token = cookies().get('session')?.value;
-      
-      if (!token) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
+    if (!rawAppId?.startsWith("app_")) {
+      const response: VerifyResponse = {
+        success: false,
+        error: "Invalid app_id configuration",
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
+    const app_id = rawAppId as `app_${string}`;
+
+    const verifyRes = (await verifyCloudProof(
+      payload,
+      app_id,
+      action,
+      signal,
+    )) as IVerifyResponse;
+
+    if (!verifyRes.success) {
+      const response: VerifyResponse = {
+        success: false,
+        error: "Verification failed",
+        details: verifyRes,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
+    const xata = getXataClient();
+    const token = cookies().get("session")?.value;
+
+    if (!token) {
+      const response: VerifyResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
+    }
+
+    try {
+      const { payload: tokenPayload } = await jwtVerify(token, secret);
+      const typedPayload = tokenPayload as TokenPayload;
+
+      if (!typedPayload.address) {
+        const response: VerifyResponse = { error: "Invalid session" };
+        return NextResponse.json(response, { status: 401 });
       }
-  
-      try {
-        const { payload } = await jwtVerify(token, secret);
-        if (payload.address) {
-          user = await xata.db.Users.filter({ 
-            wallet_address: payload.address 
-          }).getFirst();
-        }
-      } catch (error) {
-        return NextResponse.json(
-          { error: "Invalid session" },
-          { status: 401 }
-        );
-      }
-  
+
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
+
       if (!user) {
-        return NextResponse.json(
-          { error: "User not found" },
-          { status: 404 }
-        );
+        const response: VerifyResponse = { error: "User not found" };
+        return NextResponse.json(response, { status: 404 });
       }
 
-      // Update user's verified status using record ID
       await xata.db.Users.update(user.xata_id, {
         verified: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
 
-      return NextResponse.json({ 
+      const response: VerifyResponse = {
         success: true,
-        message: 'Verification successful'
-      }, { status: 200 });
-
-    } else {
-      return NextResponse.json({ 
-        error: 'Verification failed',
-        details: verifyRes
-      }, { status: 400 });
+        message: "Verification successful",
+      };
+      return NextResponse.json(response);
+    } catch {
+      const response: VerifyResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
     }
   } catch (error) {
-    console.error('Verification error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error'
-    }, { status: 500 });
+    console.error("Verification error:", error);
+    const response: VerifyResponse = { error: "Internal server error" };
+    return NextResponse.json(response, { status: 500 });
   }
 }

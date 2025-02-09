@@ -31,8 +31,8 @@ export default function InsightsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isProUser, setIsProUser] = useState(false);
-  const [fullAnalysis, setFullAnalysis] = useState<string>('');
-  const [ideology, setIdeology] = useState<string>('');
+  const [fullAnalysis, setFullAnalysis] = useState<string>("");
+  const [ideology, setIdeology] = useState<string>("");
   const searchParams = useSearchParams();
   const [scores, setScores] = useState({ econ: 0, dipl: 0, govt: 0, scty: 0 });
   const [publicFigure, setPublicFigure] = useState('');
@@ -40,32 +40,31 @@ export default function InsightsPage() {
 
   const testId = searchParams.get('testId');
 
-  const fetchInsights = async () => {
-    setLoading(true);
+  useEffect(() => {
+    async function fetchInsights() {
+      try {
+        // Check user's pro status
+        const userResponse = await fetch("/api/user/subscription");
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch subscription status");
+        }
+        const userData = await userResponse.json();
+        setIsProUser(userData.isPro);
 
-    try {
-      // Check user's pro status
-      const userResponse = await fetch('/api/user/subscription');
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch subscription status');
-      }
-      const userData = await userResponse.json();
-      setIsProUser(userData.isPro);
+        // Fetch ideology
+        const ideologyResponse = await fetch("/api/ideology");
+        if (ideologyResponse.ok) {
+          const ideologyData = await ideologyResponse.json();
+          setIdeology(ideologyData.ideology);
+        }
 
-      // Fetch ideology
-      const ideologyResponse = await fetch('/api/ideology');
-      if (ideologyResponse.ok) {
-        const ideologyData = await ideologyResponse.json();
-        setIdeology(ideologyData.ideology);
-      }
-
-      // Fetch insights
-      const response = await fetch(`/api/insights/${testId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch insights');
-      }
-      const data = await response.json();
-      setInsights(data.insights);
+        // Fetch insights
+        const response = await fetch(`/api/insights/${testId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch insights");
+        }
+        const data = await response.json();
+        setInsights(data.insights);
 
       // Get scores from database
       const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
@@ -80,43 +79,44 @@ export default function InsightsPage() {
         setPublicFigure(figureData.celebrity || 'Unknown Match');
       }
 
-      // Call DeepSeek API for full analysis
-      if (isProUser) {
-        const deepSeekResponse = await fetch('/api/deepseek', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            econ: parseFloat(scores.econ || '0'),
-            dipl: parseFloat(scores.dipl || '0'),
-            govt: parseFloat(scores.govt || '0'),
-            scty: parseFloat(scores.scty || '0'),
-          }),
-        });
+        // Call DeepSeek API for full analysis
+        if (isProUser) {
+          const deepSeekResponse = await fetch("/api/deepseek", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              econ: Number.parseFloat(scores.econ || "0"),
+              dipl: Number.parseFloat(scores.dipl || "0"),
+              govt: Number.parseFloat(scores.govt || "0"),
+              scty: Number.parseFloat(scores.scty || "0"),
+            }),
+          });
 
-        if (deepSeekResponse.status === 200) {
-          const deepSeekData = await deepSeekResponse.json();
-          setFullAnalysis(deepSeekData.analysis);
-        } else {
-          console.error(
-            'Error fetching DeepSeek analysis:',
-            deepSeekResponse.statusText
-          );
-          setFullAnalysis('Failed to generate analysis. Please try again later.');
+          if (deepSeekResponse.status === 200) {
+            const deepSeekData = await deepSeekResponse.json();
+            setFullAnalysis(deepSeekData.analysis);
+          } else {
+            console.error(
+              "Error fetching DeepSeek analysis:",
+              deepSeekResponse.statusText,
+            );
+            setFullAnalysis(
+              "Failed to generate analysis. Please try again later.",
+            );
+          }
         }
+      } catch (error) {
+        console.error("Error fetching insights:", error);
+        setFullAnalysis("Failed to generate analysis. Please try again later.");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-      setFullAnalysis('Failed to generate analysis. Please try again later.');
-    } finally {
-      setLoading(false);
     }
-  };
 
-  useEffect(() => {
-    fetchInsights();
-  }, [searchParams]);
+    void fetchInsights();
+  }, [testId, isProUser]);
 
   const handleAdvancedInsightsClick = () => {
     setIsModalOpen(true);
@@ -242,13 +242,13 @@ export default function InsightsPage() {
           >
             <FilledButton
               onClick={handleAdvancedInsightsClick}
-              variant={isProUser ? 'default' : 'default'}
+              variant={isProUser ? "default" : "default"}
               className={cn(
-                'mt-4',
-                'transform transition-all duration-300 hover:scale-105'
+                "mt-4",
+                "transform transition-all duration-300 hover:scale-105",
               )}
             >
-              {isProUser ? 'Advanced Insights' : 'Unlock Advanced Insights'}
+              {isProUser ? "Advanced Insights" : "Unlock Advanced Insights"}
             </FilledButton>
           </motion.div>
         </motion.div>
@@ -261,12 +261,12 @@ export default function InsightsPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         {Array.isArray(insights) && insights.length > 0 ? (
-          insights.map((insight, index) => (
+          insights.map((insight) => (
             <motion.div
-              key={index}
+              key={`${insight.category}-${insight.percentage}`}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <InsightResultCard
                 title={`${
@@ -415,7 +415,7 @@ export default function InsightsPage() {
           onClick={() => setIsModalOpen(false)}
         >
           <motion.div
-            className="relative w-full max-w-4xl bg-gradient-to-b from-brand-tertiary/20 to-brand-tertiary/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
+            className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -426,6 +426,7 @@ export default function InsightsPage() {
 
             <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
               >

@@ -1,6 +1,11 @@
 import { getXataClient } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
+interface PriceResponse {
+  amount?: number;
+  error?: string;
+}
+
 /**
  * @swagger
  * /api/fetch-pay-amount:
@@ -29,26 +34,25 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const xata = getXataClient();
-    
+
     // Get the subscription price
     const priceRecord = await xata.db.SubscriptionPrice.getFirst();
 
     if (!priceRecord) {
-      return NextResponse.json(
-        { error: "Price not found" },
-        { status: 404 }
-      );
+      const response: PriceResponse = { error: "Price not found" };
+      return NextResponse.json(response, { status: 404 });
     }
 
-    return NextResponse.json({
-      amount: priceRecord.world_amount
-    });
+    const response: PriceResponse = {
+      amount: priceRecord.world_amount,
+    };
 
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching subscription price:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch subscription price" },
-      { status: 500 }
-    );
+    const response: PriceResponse = {
+      error: "Failed to fetch subscription price",
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }

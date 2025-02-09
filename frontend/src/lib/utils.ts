@@ -1,25 +1,29 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { XataClient } from "./xata"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { XataClient } from "./xata";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+	return twMerge(clsx(inputs));
 }
 
 let instance: XataClient | undefined = undefined;
 
-export const getXataClient = () => {
-  if (instance) return instance;
+export function getXataClient() {
+	if (instance) return instance;
 
-  if (!process.env.XATA_DATABASE_URL || !process.env.XATA_API_KEY || !process.env.XATA_BRANCH) {
-    throw new Error('Missing Xata configuration environment variables.');
-  }
+	if (
+		!process.env.XATA_DATABASE_URL ||
+		!process.env.XATA_API_KEY ||
+		!process.env.XATA_BRANCH
+	) {
+		throw new Error("Missing Xata configuration environment variables.");
+	}
 
-  instance = new XataClient({
-    databaseURL: process.env.XATA_DATABASE_URL,
-    apiKey: process.env.XATA_API_KEY,
-    fetch: fetch,
-    branch: process.env.XATA_BRANCH,
-  });
-  return instance;
-};
+	instance = new XataClient({
+		databaseURL: process.env.XATA_DATABASE_URL,
+		apiKey: process.env.XATA_API_KEY,
+		fetch,
+		branch: process.env.XATA_BRANCH,
+	});
+	return instance;
+}

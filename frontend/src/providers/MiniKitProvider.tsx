@@ -1,23 +1,25 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
+import type * as React from "react";
+import { useEffect } from "react";
 
-export default function MiniKitProvider({ children }: { children: ReactNode }) {
+interface MiniKitProviderProps {
+  children: React.ReactNode;
+}
+
+export function MiniKitProvider({ children }: MiniKitProviderProps) {
   useEffect(() => {
     try {
       if (!process.env.NEXT_PUBLIC_WLD_APP_ID) {
-        throw new Error('NEXT_PUBLIC_WLD_APP_ID is not defined');
+        throw new Error("NEXT_PUBLIC_WLD_APP_ID is not defined");
       }
       MiniKit.install(process.env.NEXT_PUBLIC_WLD_APP_ID);
-    } catch (error) {
-      console.error('Failed to initialize MiniKit:', error);
+    } catch {
+      // Silently fail if MiniKit initialization fails
+      // The app will handle missing MiniKit functionality gracefully
     }
   }, []);
 
-  return (
-    <div className="relative isolate">
-      {children}
-    </div>
-  );
-} 
+  return <div className="relative isolate">{children}</div>;
+}
