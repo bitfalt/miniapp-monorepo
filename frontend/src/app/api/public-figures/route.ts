@@ -82,9 +82,6 @@ function calculateSimilarity(userScores: UserScores, celebrityScores: UserScores
  *                 celebrity:
  *                   type: string
  *                   example: "Elon Musk"
- *                 similarity:
- *                   type: number
- *                   example: 85.5
  *       400:
  *         description: Invalid scores provided
  *       401:
@@ -173,12 +170,12 @@ export async function POST(request: Request) {
     // Update or create PublicFigurePerUser record
     await xata.db.PublicFigurePerUser.create({
       user: user.xata_id,
-      public_figure: bestMatch.xata_id,
+      celebrity: bestMatch.xata_id,
       celebrity_user_id: nextCelebrityId
     });
 
     return NextResponse.json({
-      public_figure: bestMatch.name
+      celebrity: bestMatch.name
     });
 
   } catch (error) {
@@ -208,7 +205,7 @@ export async function POST(request: Request) {
  *             schema:
  *               type: object
  *               properties:
- *                 public_figure:
+ *                 celebrity:
  *                   type: string
  *                   example: "Elon Musk"
  *       401:

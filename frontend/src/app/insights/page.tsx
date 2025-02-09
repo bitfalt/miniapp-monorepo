@@ -68,16 +68,20 @@ export default function InsightsPage() {
 
       // Get scores from database
       const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
+      if (!scoresResponse.ok) {
+        throw new Error("Failed to fetch scores");
+      }
       const scoresData = await scoresResponse.json();
       const { scores } = scoresData;
       setScores(scoresData.scores);
 
       // Get public figure match
       const figureResponse = await fetch('/api/public-figures');
-      if (figureResponse.ok) {
-        const figureData = await figureResponse.json();
-        setPublicFigure(figureData.celebrity || 'Unknown Match');
+      if (!figureResponse.ok) {
+        throw new Error("Failed to fetch public figure match");
       }
+      const figureData = await figureResponse.json();
+      setPublicFigure(figureData.celebrity || 'Unknown Match');
 
         // Call DeepSeek API for full analysis
         if (isProUser) {
@@ -133,15 +137,20 @@ export default function InsightsPage() {
 
   const downloadImage = () => {
     if (!canvasRef.current) return;
+    try {
 
-    const canvas = canvasRef.current;
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = 'results.png';
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const canvas = canvasRef.current;
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'results.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Failed to download image. Please try again.');
+    }
   };
 
   const handleInstagramShare = async () => {
@@ -360,8 +369,10 @@ export default function InsightsPage() {
               <FilledButton
                 variant="default"
                 onClick={downloadImage}
+                aria-label="Download results as image"
                 className="flex-1 py-3 text-sm bg-[#387478] 
-                     flex items-center justify-center gap-2"
+                     flex items-center justify-center gap-2
+                     focus:ring-2 focus:ring-offset-2 focus:ring-[#387478]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -382,8 +393,10 @@ export default function InsightsPage() {
               <FilledButton
                 variant="default"
                 onClick={handleInstagramShare}
+                aria-label="Share results on Instagram"
                 className="flex-1 py-3 text-sm bg-[#E36C59]
-                     flex items-center justify-center gap-2"
+                     flex items-center justify-center gap-2
+                     focus:ring-2 focus:ring-offset-2 focus:ring-[#E36C59]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
