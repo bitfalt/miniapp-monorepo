@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh7fd9i7viit4iimv00",
+    "operations": [
+      {
+        "add_column": {
+          "up": "'{}'",
+          "table": "PublicFigures",
+          "column": {
+            "name": "scores",
+            "type": "json",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh7fd9i7viit4iimv00",
+  "parent": "mig_cuh7f4brr2giaepagij0",
+  "schema": "public",
+  "startedAt": "2025-02-04T20:25:26.08333Z"
+}
