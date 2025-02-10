@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh7vupi7viit4iimvgg",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "celebrity",
+          "table": "PublicFigurePerUser",
+          "column": "public_figure"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh7vupi7viit4iimvgg",
+  "parent": "mig_cuh7n71i7viit4iimvdg",
+  "schema": "public",
+  "startedAt": "2025-02-04T21:00:43.682753Z"
+}
