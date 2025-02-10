@@ -1,0 +1,21 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh562rrr2giaepaghv0",
+    "operations": [
+      {
+        "drop_constraint": {
+          "up": "\"user\"",
+          "down": "\"user\"",
+          "name": "IdeologyPerUser__pgroll_new_user_key",
+          "table": "IdeologyPerUser"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh562rrr2giaepaghv0",
+  "parent": "mig_cuh0tmriojibbahcj0q0",
+  "schema": "public",
+  "startedAt": "2025-02-04T17:48:59.96206Z"
+}

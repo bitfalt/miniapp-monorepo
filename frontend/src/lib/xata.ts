@@ -417,10 +417,6 @@ const tables = [
     },
     primaryKey: [],
     uniqueConstraints: {
-      IdeologyPerUser__pgroll_new_user_key: {
-        name: "IdeologyPerUser__pgroll_new_user_key",
-        columns: ["user"],
-      },
       _pgroll_new_IdeologyPerUser_xata_id_key: {
         name: "_pgroll_new_IdeologyPerUser_xata_id_key",
         columns: ["xata_id"],
@@ -449,7 +445,7 @@ const tables = [
         type: "link",
         link: { table: "Users" },
         notNull: true,
-        unique: true,
+        unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Users"}',
       },
@@ -880,6 +876,179 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Questions"}',
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "PublicFigurePerUser",
+    checkConstraints: {
+      PublicFigurePerUser_xata_id_length_xata_id: {
+        name: "PublicFigurePerUser_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      public_figure_link: {
+        name: "public_figure_link",
+        columns: ["celebrity"],
+        referencedTable: "PublicFigures",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      user_link: {
+        name: "user_link",
+        columns: ["user"],
+        referencedTable: "Users",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_PublicFigurePerUser_xata_id_key: {
+        name: "_pgroll_new_PublicFigurePerUser_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "celebrity",
+        type: "link",
+        link: { table: "PublicFigures" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"PublicFigures"}',
+      },
+      {
+        name: "celebrity_user_id",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "user",
+        type: "link",
+        link: { table: "Users" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Users"}',
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "PublicFigures",
+    checkConstraints: {
+      PublicFigures_xata_id_length_xata_id: {
+        name: "PublicFigures_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {},
+    primaryKey: [],
+    uniqueConstraints: {
+      PublicFigures__pgroll_new_name_key: {
+        name: "PublicFigures__pgroll_new_name_key",
+        columns: ["name"],
+      },
+      _pgroll_new_PublicFigures_xata_id_key: {
+        name: "_pgroll_new_PublicFigures_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "celebrity_id",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "name",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "scores",
+        type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "xata_createdat",
@@ -1853,6 +2022,12 @@ export type PaymentsRecord = Payments & XataRecord;
 export type PersonalizedAnswers = InferredTypes["PersonalizedAnswers"];
 export type PersonalizedAnswersRecord = PersonalizedAnswers & XataRecord;
 
+export type PublicFigurePerUser = InferredTypes["PublicFigurePerUser"];
+export type PublicFigurePerUserRecord = PublicFigurePerUser & XataRecord;
+
+export type PublicFigures = InferredTypes["PublicFigures"];
+export type PublicFiguresRecord = PublicFigures & XataRecord;
+
 export type Questions = InferredTypes["Questions"];
 export type QuestionsRecord = Questions & XataRecord;
 
@@ -1887,6 +2062,8 @@ export type DatabaseSchema = {
   InsightsPerUserCategory: InsightsPerUserCategoryRecord;
   Payments: PaymentsRecord;
   PersonalizedAnswers: PersonalizedAnswersRecord;
+  PublicFigurePerUser: PublicFigurePerUserRecord;
+  PublicFigures: PublicFiguresRecord;
   Questions: QuestionsRecord;
   Regions: RegionsRecord;
   StandardAnswers: StandardAnswersRecord;
