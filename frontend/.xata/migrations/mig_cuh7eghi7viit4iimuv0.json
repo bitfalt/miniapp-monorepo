@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cuh7eghi7viit4iimuv0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "0",
+          "table": "PublicFigures",
+          "column": {
+            "name": "celebrity_id",
+            "type": "int",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cuh7eghi7viit4iimuv0",
+  "parent": "mig_cuh7dfbrr2giaepagif0",
+  "schema": "public",
+  "startedAt": "2025-02-04T20:23:31.253659Z"
+}
