@@ -1,3 +1,6 @@
+import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -23,17 +26,48 @@ interface ApiResponse {
   error?: string;
 }
 
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+
+const secret = new TextEncoder().encode(JWT_SECRET);
+
 export async function POST(request: NextRequest) {
   try {
+    const token = cookies().get("session")?.value;
+
+    if (!token) {
+      const response: ApiResponse = { error: "Unauthorized" };
+      return NextResponse.json(response, { status: 401 });
+    }
+
+    const { payload: tokenPayload } = await jwtVerify(token, secret);
+    const typedPayload = tokenPayload as TokenPayload;
+
+    if (!typedPayload.address) {
+      const response: ApiResponse = { error: "Invalid session" };
+      return NextResponse.json(response, { status: 401 });
+    }
+
     // Parse and validate input
     const body = await request.json();
     const scores = body as IdeologyScores;
     const { econ, dipl, govt, scty } = scores;
 
-    if (econ === undefined || dipl === undefined || govt === undefined || scty === undefined) {
+    if (
+      econ === undefined ||
+      dipl === undefined ||
+      govt === undefined ||
+      scty === undefined
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,7 +77,7 @@ export async function POST(request: NextRequest) {
       if (Number.isNaN(score) || score < 0 || score > 100) {
         return NextResponse.json(
           { error: `Invalid ${key} score. Must be a number between 0 and 100` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -67,18 +101,18 @@ Provide a concise descriptor (for example, “regulated capitalism with a welfar
 Offer a real-world analogy (such as, “similar to Sweden's mixed-market approach”).
 Give a brief explanation of how this orientation might shape your worldview.
 Matches
-Compare the user to 2–3 real-world political movements/parties.
+Compare the user to 2-3 real-world political movements/parties.
 Use percentage alignments only for broad ideological frameworks.
 Highlight at least one area of divergence from each movement/party.
 Preferences
 Introduce policies with “You would likely support…”
-Provide a concrete policy example (for instance, “universal childcare systems like Canada’s 2023 Bill C-35”).
-Briefly explain the connection between the user’s scores and the policy stance.
+Provide a concrete policy example (for instance, “universal childcare systems like Canada's 2023 Bill C-35”).
+Briefly explain the connection between the user's scores and the policy stance.
 Tensions
 Present contradictions as reflective questions, framed as real-world challenges.
 Provide at least one historical or contemporary example illustrating how a similar tension has unfolded.
 Growth
-Recommend one academic resource that aligns with the user’s scores.
+Recommend one academic resource that aligns with the user's scores.
 Suggest one practical action step (for example, joining a local advocacy group).
 Offer one reflective exercise (for example, writing a short essay that balances global cooperation with local autonomy).
 [CONSTRAINTS]
@@ -101,11 +135,9 @@ Begin the response immediately with the header “1. Your Ideological Breakdown�
     const payload = {
       contents: [
         {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ]
+          parts: [{ text: prompt }],
+        },
+      ],
     };
 
     // Make the POST request to the Gemini API

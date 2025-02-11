@@ -30,6 +30,8 @@ interface TestResponse {
   error?: string;
 }
 
+export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/fetch-test:

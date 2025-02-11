@@ -96,7 +96,9 @@ export async function POST(req: NextRequest) {
       }
 
       // Update user's subscription status for new subscription
-      const subscriptionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const subscriptionExpiry = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      );
 
       await xata.db.Users.update(user.xata_id, {
         subscription: true,

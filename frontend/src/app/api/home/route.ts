@@ -27,6 +27,8 @@ if (!JWT_SECRET) {
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const xata = getXataClient();

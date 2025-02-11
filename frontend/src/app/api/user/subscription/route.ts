@@ -15,6 +15,8 @@ interface SubscriptionResponse {
   error?: string;
 }
 
+export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/user/subscription:

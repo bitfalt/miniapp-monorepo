@@ -7,6 +7,8 @@ interface NonceResponse {
   error?: string;
 }
 
+export const dynamic = "force-dynamic";
+
 export function GET() {
   try {
     // Generate a simple alphanumeric nonce
