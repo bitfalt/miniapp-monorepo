@@ -1,7 +1,12 @@
 import { getXataClient } from "@/lib/utils";
+import { jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+
+interface TokenPayload extends JWTPayload {
+  address?: string;
+}
 
 interface UserScores {
   dipl: number;
@@ -12,7 +17,7 @@ interface UserScores {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -21,12 +26,15 @@ const secret = new TextEncoder().encode(JWT_SECRET);
  * Calculate the similarity between user scores and celebrity scores
  * Lower score means more similar
  */
-function calculateSimilarity(userScores: UserScores, celebrityScores: UserScores): number {
+function calculateSimilarity(
+  userScores: UserScores,
+  celebrityScores: UserScores,
+): number {
   const diff = {
     dipl: Math.abs(userScores.dipl - celebrityScores.dipl),
     econ: Math.abs(userScores.econ - celebrityScores.econ),
     govt: Math.abs(userScores.govt - celebrityScores.govt),
-    scty: Math.abs(userScores.scty - celebrityScores.scty)
+    scty: Math.abs(userScores.scty - celebrityScores.scty),
   };
 
   // Return average difference (lower is better)
@@ -94,95 +102,104 @@ function calculateSimilarity(userScores: UserScores, celebrityScores: UserScores
 export async function POST(request: Request) {
   try {
     const xata = getXataClient();
-    let user;
 
     // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
+    const token = cookies().get("session")?.value;
+
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        return NextResponse.json({ error: "Invalid session" }, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-    // Get user scores from request body
-    const userScores = await request.json() as UserScores;
-
-    // Validate scores
-    const scores = [userScores.dipl, userScores.econ, userScores.govt, userScores.scty];
-    if (scores.some(score => score < 0 || score > 100 || !Number.isFinite(score))) {
-      return NextResponse.json(
-        { error: "Invalid scores. All scores must be between 0 and 100" },
-        { status: 400 }
-      );
-    }
-
-    // Get all ideologies
-    const celebrities = await xata.db.PublicFigures.getAll();
-    
-    if (!celebrities.length) {
-      return NextResponse.json(
-        { error: "No public figures found in database" },
-        { status: 404 }
-      );
-    }
-
-    // Find best matching ideology
-    let bestMatch = celebrities[0];
-    let bestSimilarity = calculateSimilarity(userScores, celebrities[0].scores as UserScores);
-
-    for (const celebrity of celebrities) {
-      const similarity = calculateSimilarity(userScores, celebrity.scores as UserScores);
-      if (similarity < bestSimilarity) {
-        bestSimilarity = similarity;
-        bestMatch = celebrity;
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
+
+      // Get user scores from request body
+      const userScores = (await request.json()) as UserScores;
+
+      // Validate scores
+      const scores = [
+        userScores.dipl,
+        userScores.econ,
+        userScores.govt,
+        userScores.scty,
+      ];
+      if (
+        scores.some(
+          (score) => score < 0 || score > 100 || !Number.isFinite(score),
+        )
+      ) {
+        return NextResponse.json(
+          { error: "Invalid scores. All scores must be between 0 and 100" },
+          { status: 400 },
+        );
+      }
+
+      // Get all ideologies
+      const celebrities = await xata.db.PublicFigures.getAll();
+
+      if (!celebrities.length) {
+        return NextResponse.json(
+          { error: "No public figures found in database" },
+          { status: 404 },
+        );
+      }
+
+      // Find best matching ideology
+      let bestMatch = celebrities[0];
+      let bestSimilarity = calculateSimilarity(
+        userScores,
+        celebrities[0].scores as UserScores,
+      );
+
+      for (const celebrity of celebrities) {
+        const similarity = calculateSimilarity(
+          userScores,
+          celebrity.scores as UserScores,
+        );
+        if (similarity < bestSimilarity) {
+          bestSimilarity = similarity;
+          bestMatch = celebrity;
+        }
+      }
+
+      // Get latest celebrity_user_id
+      const latestCelebrity = await xata.db.PublicFigurePerUser.sort(
+        "celebrity_user_id",
+        "desc",
+      ).getFirst();
+      const nextCelebrityId = (latestCelebrity?.celebrity_user_id || 0) + 1;
+
+      // Update or create PublicFigurePerUser record
+      await xata.db.PublicFigurePerUser.create({
+        user: user.xata_id,
+        celebrity: bestMatch.xata_id,
+        celebrity_user_id: nextCelebrityId,
+      });
+
+      return NextResponse.json({
+        celebrity: bestMatch.name,
+      });
+    } catch {
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
-
-    // Get latest celebrity_user_id
-    const latestCelebrity = await xata.db.PublicFigurePerUser
-      .sort("celebrity_user_id", "desc")
-      .getFirst();
-    const nextCelebrityId = (latestCelebrity?.celebrity_user_id || 0) + 1;
-
-    // Update or create PublicFigurePerUser record
-    await xata.db.PublicFigurePerUser.create({
-      user: user.xata_id,
-      celebrity: bestMatch.xata_id,
-      celebrity_user_id: nextCelebrityId
-    });
-
-    return NextResponse.json({
-      celebrity: bestMatch.name
-    });
-
   } catch (error) {
     console.error("Error calculating celebrity match:", error);
     return NextResponse.json(
       { error: "Failed to calculate celebrity match" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -218,64 +235,56 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const xata = getXataClient();
-    let user;
 
     // Get token from cookies
-    const token = cookies().get('session')?.value;
-    
+    const token = cookies().get("session")?.value;
+
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (payload.address) {
-        user = await xata.db.Users.filter({ 
-          wallet_address: payload.address 
-        }).getFirst();
+      const typedPayload = payload as TokenPayload;
+
+      if (!typedPayload.address) {
+        return NextResponse.json({ error: "Invalid session" }, { status: 401 });
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 401 }
-      );
-    }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+      const user = await xata.db.Users.filter({
+        wallet_address: typedPayload.address,
+      }).getFirst();
 
-    // Get user's latest celebrity match from PublicFigurePerUser
-    const userCelebrity = await xata.db.PublicFigurePerUser
-      .filter({
-        "user.xata_id": user.xata_id
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      // Get user's latest celebrity match from PublicFigurePerUser
+      const userCelebrity = await xata.db.PublicFigurePerUser.filter({
+        "user.xata_id": user.xata_id,
       })
-      .sort("celebrity_user_id", "desc")
-      .select(["celebrity.name"])
-      .getFirst();
+        .sort("celebrity_user_id", "desc")
+        .select(["celebrity.name"])
+        .getFirst();
 
-    if (!userCelebrity || !userCelebrity.celebrity?.name) {
-      return NextResponse.json(
-        { error: "No celebrity found for user" },
-        { status: 404 }
-      );
+      if (!userCelebrity || !userCelebrity.celebrity?.name) {
+        return NextResponse.json(
+          { error: "No celebrity found for user" },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({
+        celebrity: userCelebrity.celebrity.name,
+      });
+    } catch {
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
-
-    return NextResponse.json({
-      celebrity: userCelebrity.celebrity.name
-    });
-
   } catch (error) {
     console.error("Error fetching celebrity:", error);
     return NextResponse.json(
       { error: "Failed to fetch celebrity" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

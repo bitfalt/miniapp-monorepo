@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useRef } from 'react';
-import { InsightResultCard } from '@/components/ui/InsightResultCard';
-import { FilledButton } from '@/components/ui/FilledButton';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { BookOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import ResultsCanvas from '@/components/Canvas';
+import ResultsCanvas from "@/components/Canvas";
+import { FilledButton } from "@/components/ui/FilledButton";
+import { InsightResultCard } from "@/components/ui/InsightResultCard";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { BookOpen } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState, useRef } from "react";
 
 interface Insight {
   category: string;
@@ -35,10 +35,10 @@ export default function InsightsPage() {
   const [ideology, setIdeology] = useState<string>("");
   const searchParams = useSearchParams();
   const [scores, setScores] = useState({ econ: 0, dipl: 0, govt: 0, scty: 0 });
-  const [publicFigure, setPublicFigure] = useState('');
+  const [publicFigure, setPublicFigure] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const testId = searchParams.get('testId');
+  const testId = searchParams.get("testId");
 
   useEffect(() => {
     async function fetchInsights() {
@@ -76,12 +76,12 @@ export default function InsightsPage() {
         setScores(scoresData.scores);
 
         // Get public figure match
-        const figureResponse = await fetch('/api/public-figures');
+        const figureResponse = await fetch("/api/public-figures");
         if (!figureResponse.ok) {
           throw new Error("Failed to fetch public figure match");
         }
         const figureData = await figureResponse.json();
-        setPublicFigure(figureData.celebrity || 'Unknown Match');
+        setPublicFigure(figureData.celebrity || "Unknown Match");
 
         // Call Gemini API for full analysis (Pro users only)
         if (isProUser) {
@@ -139,16 +139,16 @@ export default function InsightsPage() {
     if (!canvasRef.current) return;
     try {
       const canvas = canvasRef.current;
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'results.png';
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = "results.png";
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Error downloading image:', error);
-      alert('Failed to download image. Please try again.');
+      console.error("Error downloading image:", error);
+      alert("Failed to download image. Please try again.");
     }
   };
 
@@ -159,27 +159,31 @@ export default function InsightsPage() {
       // Convert canvas to Blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvasRef.current?.toBlob((b) => {
-          b ? resolve(b) : reject(new Error('Canvas conversion failed'));
-        }, 'image/png');
+          b ? resolve(b) : reject(new Error("Canvas conversion failed"));
+        }, "image/png");
       });
-      const file = new File([blob], 'results.png', { type: 'image/png' });
+      const file = new File([blob], "results.png", { type: "image/png" });
 
       // Use native share if available
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
         try {
           await navigator.share({
             files: [file],
-            title: 'My Political Compass Results',
-            text: 'Check out my political compass results!',
+            title: "My Political Compass Results",
+            text: "Check out my political compass results!",
           });
           return;
         } catch (error) {
-          console.error('Error with native sharing:', error);
+          console.error("Error with native sharing:", error);
         }
       }
 
       // Fallback: share via Instagram Stories URL scheme
-      const dataUrl = canvasRef.current.toDataURL('image/png');
+      const dataUrl = canvasRef.current?.toDataURL("image/png");
       const encodedImage = encodeURIComponent(dataUrl);
       const instagramUrl = `instagram-stories://share?backgroundImage=${encodedImage}&backgroundTopColor=%23000000&backgroundBottomColor=%23000000`;
       window.location.href = instagramUrl;
@@ -187,21 +191,21 @@ export default function InsightsPage() {
       // Alert if Instagram doesn't open automatically
       setTimeout(() => {
         alert(
-          'If Instagram did not open automatically, please open Instagram and use the image from your camera roll to share to your story.'
+          "If Instagram did not open automatically, please open Instagram and use the image from your camera roll to share to your story.",
         );
       }, 2500);
 
       // Final fallback: download the image
-      const link = document.createElement('a');
-      link.download = 'results.png';
+      const link = document.createElement("a");
+      link.download = "results.png";
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Error sharing to Instagram:', error);
+      console.error("Error sharing to Instagram:", error);
       alert(
-        'Unable to share directly to Instagram. The image has been downloaded to your device – you can manually share it to your Instagram story.'
+        "Unable to share directly to Instagram. The image has been downloaded to your device - you can manually share it to your Instagram story.",
       );
     }
   };
@@ -333,6 +337,7 @@ export default function InsightsPage() {
 
             <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
               <button
+                type="button"
                 onClick={() => setIsShareModalOpen(false)}
                 className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
               >
@@ -342,8 +347,15 @@ export default function InsightsPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-label="Close"
+                  aria-hidden="true"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
@@ -379,6 +391,8 @@ export default function InsightsPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-label="Download results as image"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -403,6 +417,8 @@ export default function InsightsPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-label="Share results on Instagram"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -448,12 +464,21 @@ export default function InsightsPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-label="Close modal"
+                  aria-hidden="true"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
-                {isProUser ? 'Advanced Ideological Analysis' : 'Unlock Advanced Insights'}
+                {isProUser
+                  ? "Advanced Ideological Analysis"
+                  : "Unlock Advanced Insights"}
               </h2>
             </div>
 
@@ -467,13 +492,13 @@ export default function InsightsPage() {
               ) : (
                 <div className="w-full max-w-md mx-auto">
                   <p className="text-white/90 mb-6">
-                    Dive deeper into your ideological profile with Awaken Pro. Get
-                    comprehensive analysis and personalized insights.
+                    Dive deeper into your ideological profile with Awaken Pro.
+                    Get comprehensive analysis and personalized insights.
                   </p>
                   <div className="flex justify-center">
                     <FilledButton
                       variant="default"
-                      onClick={() => router.push('/awaken-pro')}
+                      onClick={() => router.push("/awaken-pro")}
                       className="transform transition-all duration-300 hover:scale-105"
                     >
                       Upgrade to Pro
@@ -497,6 +522,8 @@ export default function InsightsPage() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-label="Share analysis"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
