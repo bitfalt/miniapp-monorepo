@@ -66,26 +66,26 @@ export default function InsightsPage() {
         const data = await response.json();
         setInsights(data.insights);
 
-      // Get scores from database
-      const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
-      if (!scoresResponse.ok) {
-        throw new Error("Failed to fetch scores");
-      }
-      const scoresData = await scoresResponse.json();
-      const { scores } = scoresData;
-      setScores(scoresData.scores);
+        // Get scores from database
+        const scoresResponse = await fetch(`/api/tests/${testId}/progress`);
+        if (!scoresResponse.ok) {
+          throw new Error("Failed to fetch scores");
+        }
+        const scoresData = await scoresResponse.json();
+        const { scores } = scoresData;
+        setScores(scoresData.scores);
 
-      // Get public figure match
-      const figureResponse = await fetch('/api/public-figures');
-      if (!figureResponse.ok) {
-        throw new Error("Failed to fetch public figure match");
-      }
-      const figureData = await figureResponse.json();
-      setPublicFigure(figureData.celebrity || 'Unknown Match');
+        // Get public figure match
+        const figureResponse = await fetch('/api/public-figures');
+        if (!figureResponse.ok) {
+          throw new Error("Failed to fetch public figure match");
+        }
+        const figureData = await figureResponse.json();
+        setPublicFigure(figureData.celebrity || 'Unknown Match');
 
-        // Call DeepSeek API for full analysis
+        // Call Gemini API for full analysis (Pro users only)
         if (isProUser) {
-          const deepSeekResponse = await fetch("/api/deepseek", {
+          const geminiResponse = await fetch("/api/gemini-flash", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -98,13 +98,13 @@ export default function InsightsPage() {
             }),
           });
 
-          if (deepSeekResponse.status === 200) {
-            const deepSeekData = await deepSeekResponse.json();
-            setFullAnalysis(deepSeekData.analysis);
+          if (geminiResponse.status === 200) {
+            const geminiData = await geminiResponse.json();
+            setFullAnalysis(geminiData.analysis);
           } else {
             console.error(
-              "Error fetching DeepSeek analysis:",
-              deepSeekResponse.statusText,
+              "Error fetching Gemini analysis:",
+              geminiResponse.statusText,
             );
             setFullAnalysis(
               "Failed to generate analysis. Please try again later.",
@@ -138,7 +138,6 @@ export default function InsightsPage() {
   const downloadImage = () => {
     if (!canvasRef.current) return;
     try {
-
       const canvas = canvasRef.current;
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
