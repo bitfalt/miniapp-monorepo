@@ -338,7 +338,24 @@ export default function SignIn() {
         </FilledButton>
 
         <p className="text-sm text-muted-foreground pb-6 mt-4">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          By signing in, you agree to our{" "}
+          <a
+            href="https://docs.google.com/document/d/1GXZ5ZBevKkXUVdIfgB3Mz4KsBrjuuSQZmjocx_RH3XY/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            Privacy Policy
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://docs.google.com/document/d/1Rn1Whrf3gIaq0UGMxsSyWeheTcXNZfMRAYFhegFu3vQ/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            Terms of Service
+          </a>
         </p>
       </motion.div>
     </motion.div>
