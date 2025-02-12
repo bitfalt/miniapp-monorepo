@@ -38,6 +38,14 @@ export default function InsightsPage() {
   const [publicFigure, setPublicFigure] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Emit modal state changes
+  useEffect(() => {
+    const event = new CustomEvent("shareModalState", {
+      detail: { isOpen: isShareModalOpen },
+    });
+    window.dispatchEvent(event);
+  }, [isShareModalOpen]);
+
   const testId = searchParams.get("testId");
 
   useEffect(() => {

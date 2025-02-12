@@ -32,6 +32,17 @@ export default function IdeologyTest() {
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
+  // Auto-clear error message after 3 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   useEffect(() => {
     const loadProgress = async (loadedQuestions: Question[]) => {
       try {
@@ -79,6 +90,18 @@ export default function IdeologyTest() {
 
   const handleEndTest = async () => {
     if (isSubmitting) return; // Prevent multiple submissions
+
+    // Check if all questions have been answered
+    const unansweredQuestions = Object.keys(userAnswers).length;
+    if (unansweredQuestions < questions.length) {
+      setError(
+        `Please answer all questions before submitting. You have ${
+          questions.length - unansweredQuestions
+        } questions remaining.`,
+      );
+      return;
+    }
+    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -261,8 +284,6 @@ export default function IdeologyTest() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error)
-    return <div className="text-white text-center">Error: {error}</div>;
   if (
     !questions ||
     questions.length === 0 ||
@@ -301,6 +322,12 @@ export default function IdeologyTest() {
         {/* Answer Buttons Section - Fixed at bottom */}
         <div className="absolute bottom-16 left-0 right-0 bg-brand-tertiary/95 backdrop-blur-sm border-t border-white/10">
           <div className="w-full max-w-md mx-auto px-4 py-4 space-y-2.5">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-3">
+                <p className="text-red-400 text-sm text-center">{error}</p>
+              </div>
+            )}
+
             {answerOptions.map((answer) => {
               const isSelected =
                 userAnswers[questions[currentQuestion].id] ===
