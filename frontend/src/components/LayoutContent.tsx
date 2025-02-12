@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVerification } from "@/hooks/useVerification";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type BackgroundVariant = "signin" | "home" | "settings" | "results" | "default";
 
@@ -27,6 +27,8 @@ export function LayoutContent({ children }: LayoutContentProps) {
   const { isVerified, refreshVerification, hasCheckedInitial } =
     useVerification();
   const pathname = usePathname();
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Page checks
   const pageStates = useMemo(
@@ -64,6 +66,19 @@ export function LayoutContent({ children }: LayoutContentProps) {
     refreshAuth,
     pageStates,
   ]);
+
+  // Listen for share modal state changes from child components
+  useEffect(() => {
+    const handleShareModalState = (e: Event) => {
+      const event = e as CustomEvent<{ isOpen: boolean }>;
+      setIsShareModalOpen(event.detail.isOpen);
+    };
+
+    window.addEventListener('shareModalState', handleShareModalState);
+    return () => {
+      window.removeEventListener('shareModalState', handleShareModalState);
+    };
+  }, []);
 
   const getBackgroundVariant = (): BackgroundVariant => {
     const { isSignInPage, isHomePage, isSettingsPage, isResultsPage } =
@@ -113,7 +128,8 @@ export function LayoutContent({ children }: LayoutContentProps) {
     isRegistered &&
     !isSignInPage &&
     !isRegisterPage &&
-    !isWelcomePage;
+    !isWelcomePage &&
+    !isShareModalOpen;
 
   return (
     <div className="flex min-h-screen flex-col bg-neutral-bg">
@@ -122,7 +138,7 @@ export function LayoutContent({ children }: LayoutContentProps) {
       <main className="scroll-container">
         <div className={`flex-grow ${showNav ? "pb-16" : ""}`}>{children}</div>
       </main>
-      {showNav && <BottomNav />}
+      {showNav && <div className="z-40"><BottomNav /></div>}
     </div>
   );
 }
