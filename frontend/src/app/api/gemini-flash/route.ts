@@ -12,8 +12,12 @@ interface IdeologyScores {
 }
 
 interface GeminiResponseCandidate {
-  output: {
-    text: string;
+  content: {
+    parts: [
+      {
+        text: string;
+      },
+    ];
   };
 }
 
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // Construct the new prompt with your updated template
     const prompt = `[ROLE]
-Act as a senior political scientist specializing in ideological analysis. Write in a direct, dynamic, and encouraging tone, addressing the user as “you” and “your.” Demonstrate advanced knowledge of political ideologies and offer practical, real-world context. Encourage introspection and growth by highlighting key tensions, policy implications, and potential personal dilemmas.
+Act as a senior political scientist specializing in ideological analysis. Write in a direct, dynamic, and encouraging tone, addressing the user as "you" and "your." Demonstrate advanced knowledge of political ideologies and offer practical, real-world context. Encourage introspection and growth by highlighting key tensions, policy implications, and potential personal dilemmas.
 [INPUT]
 Economic: ${econ} | Diplomatic: ${dipl} | Government: ${govt} | Social: ${scty} (All 0-100)
 [STRUCTURE]
@@ -96,17 +100,17 @@ Your Key Philosophical Tensions
 Your Growth Opportunities
 [REQUIREMENTS]
 Breakdown
-Begin each axis analysis with “Your [Axis] score of [X] suggests…”
-Provide a concise descriptor (for example, “regulated capitalism with a welfare focus”).
-Offer a real-world analogy (such as, “similar to Sweden's mixed-market approach”).
+Begin each axis analysis with "Your [Axis] score of [X] suggests..."
+Provide a concise descriptor (for example, "regulated capitalism with a welfare focus").
+Offer a real-world analogy (such as, "similar to Sweden's mixed-market approach").
 Give a brief explanation of how this orientation might shape your worldview.
 Matches
 Compare the user to 2-3 real-world political movements/parties.
 Use percentage alignments only for broad ideological frameworks.
 Highlight at least one area of divergence from each movement/party.
 Preferences
-Introduce policies with “You would likely support…”
-Provide a concrete policy example (for instance, “universal childcare systems like Canada's 2023 Bill C-35”).
+Introduce policies with "You would likely support..."
+Provide a concrete policy example (for instance, "universal childcare systems like Canada's 2023 Bill C-35").
 Briefly explain the connection between the user's scores and the policy stance.
 Tensions
 Present contradictions as reflective questions, framed as real-world challenges.
@@ -120,9 +124,9 @@ Aim for approximately 600 words (±50).
 Use AP style.
 Do not use markdown formatting.
 Avoid passive voice.
-Explain technical terms in parentheses, for example, “multilateralism (global cooperation).”
+Explain technical terms in parentheses, for example, "multilateralism (global cooperation)."
 Conclude with exactly 2 open-ended reflection questions for the user.
-Begin the response immediately with the header “1. Your Ideological Breakdown”`;
+Begin the response immediately with the header "1. Your Ideological Breakdown"`;
 
     // Prepare Gemini API URL and payload
     const apiKey = process.env.GEMINI_API_KEY;
@@ -157,9 +161,8 @@ Begin the response immediately with the header “1. Your Ideological Breakdown�
     // Parse the response and extract the text from the first candidate
     const data = (await geminiResponse.json()) as GeminiResponse;
     const analysis =
-      data.candidates && data.candidates.length > 0
-        ? data.candidates[0].output.text
-        : "";
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No analysis available.";
 
     const response: ApiResponse = { analysis };
     return NextResponse.json(response);
