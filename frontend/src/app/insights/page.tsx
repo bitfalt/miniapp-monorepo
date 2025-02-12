@@ -451,16 +451,17 @@ export default function InsightsPage() {
           onClick={() => setIsModalOpen(false)}
         >
           <motion.div
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden"
+            className="relative w-full max-w-md mx-4 bg-brand-tertiary border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary via-transparent to-transparent pointer-events-none" />
 
-            <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
+            <div className="relative p-6 pb-4 text-center">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -483,10 +484,8 @@ export default function InsightsPage() {
                   />
                 </svg>
               </button>
-              <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
-                {isProUser
-                  ? "Advanced Ideological Analysis"
-                  : "Unlock Advanced Insights"}
+              <h2 className="text-2xl font-bold text-slate-100">
+                {isProUser ? "Advanced Ideological Analysis" : "Unlock Advanced Insights"}
               </h2>
             </div>
 
@@ -498,16 +497,16 @@ export default function InsightsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="w-full max-w-md mx-auto">
-                  <p className="text-white/90 mb-6">
+                <div className="w-full max-w-md mx-auto space-y-4">
+                  <p className="text-white text-lg">
                     Dive deeper into your ideological profile with Awaken Pro.
                     Get comprehensive analysis and personalized insights.
                   </p>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center pt-2">
                     <FilledButton
                       variant="default"
                       onClick={() => router.push("/awaken-pro")}
-                      className="transform transition-all duration-300 hover:scale-105"
+                      className="bg-[#E36C59] hover:bg-[#E36C59]/90 transform transition-all duration-300 hover:scale-105"
                     >
                       Upgrade to Pro
                     </FilledButton>
