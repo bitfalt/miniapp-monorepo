@@ -13,9 +13,11 @@ interface IdeologyScores {
 
 interface GeminiResponseCandidate {
   content: {
-    parts: [{
-      text: string;
-    }];
+    parts: [
+      {
+        text: string;
+      },
+    ];
   };
 }
 
@@ -158,8 +160,9 @@ Begin the response immediately with the header "1. Your Ideological Breakdown"`;
 
     // Parse the response and extract the text from the first candidate
     const data = (await geminiResponse.json()) as GeminiResponse;
-    console.log(data.candidates[0].content.parts[0].text);
-    const analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available.";
+    const analysis =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No analysis available.";
 
     const response: ApiResponse = { analysis };
     return NextResponse.json(response);

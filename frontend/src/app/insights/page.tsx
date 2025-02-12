@@ -485,7 +485,9 @@ export default function InsightsPage() {
                 </svg>
               </button>
               <h2 className="text-2xl font-bold text-slate-100">
-                {isProUser ? "Advanced Ideological Analysis" : "Unlock Advanced Insights"}
+                {isProUser
+                  ? "Advanced Ideological Analysis"
+                  : "Unlock Advanced Insights"}
               </h2>
             </div>
 
