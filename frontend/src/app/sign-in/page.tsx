@@ -79,7 +79,7 @@ export default function SignIn() {
           nonce,
           statement: "Sign in with your Ethereum wallet",
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error("Wallet auth command failed:", error);
           if (error instanceof DOMException) {
             if (error.name === "SyntaxError") {
@@ -267,7 +267,7 @@ export default function SignIn() {
               className="flex justify-center mb-8"
             >
               <Image
-                src="/mindvault-logo.png"
+                src="/MindVaultLogoTransparentHD.svg"
                 alt="MindVault Logo"
                 width={64}
                 height={64}

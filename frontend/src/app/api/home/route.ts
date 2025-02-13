@@ -63,7 +63,7 @@ export async function GET() {
           last_name: user.last_name,
           verified: user.verified,
           level: `${user.level} - Coming Soon`,
-          points: user.level_points,
+          points: user.level_points ?? 0,
           maxPoints: 100,
         },
       };

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import type * as React from "react";
 
 interface AchievementButtonProps {
@@ -10,9 +11,12 @@ interface AchievementButtonProps {
 export function AchievementButton({
 	hasNewAchievement = true,
 }: AchievementButtonProps) {
+	const router = useRouter();
+
 	return (
 		<button
 			type="button"
+			onClick={() => router.push("/achievements")}
 			className={cn(
 				"relative h-[50px] w-[320px] rounded-[20px] bg-brand-secondary shadow-[0px_4px_4px_rgba(0,0,0,0.25)] hover:bg-brand-secondary/90",
 				"flex items-center justify-center",

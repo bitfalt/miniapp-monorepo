@@ -11,7 +11,7 @@ interface User {
 	name: string;
 	last_name: string;
 	level: string;
-	level_points: number;
+	points: number;
 	maxPoints: number;
 }
 
@@ -68,7 +68,7 @@ export function ProfileCard({
 		name: "John",
 		last_name: "Doe",
 		level: "Conscious Explorer",
-		level_points: 45,
+		points: 45,
 		maxPoints: 100,
 	},
 }: ProfileCardProps) {
@@ -119,7 +119,7 @@ export function ProfileCard({
 					</p>
 				</div>
 
-				<LevelProgress points={user.level_points} maxPoints={user.maxPoints} />
+				<LevelProgress points={user.points} maxPoints={user.maxPoints} />
 
 				<div className="mt-4 w-full">
 					<p className="mb-2 font-spaceGrotesk text-sm font-medium text-white">
