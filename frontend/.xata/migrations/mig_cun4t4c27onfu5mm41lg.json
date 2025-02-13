@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cun4t4c27onfu5mm41lg",
+    "operations": [
+      {
+        "drop_table": {
+          "name": "PublicFigurePerUser"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cun4t4c27onfu5mm41lg",
+  "parent": "mig_cun4chs27onfu5mm41i0",
+  "schema": "public",
+  "startedAt": "2025-02-13T19:57:07.089141Z"
+}

@@ -912,99 +912,6 @@ const tables = [
     ],
   },
   {
-    name: "PublicFigurePerUser",
-    checkConstraints: {
-      PublicFigurePerUser_xata_id_length_xata_id: {
-        name: "PublicFigurePerUser_xata_id_length_xata_id",
-        columns: ["xata_id"],
-        definition: "CHECK ((length(xata_id) < 256))",
-      },
-    },
-    foreignKeys: {
-      public_figure_link: {
-        name: "public_figure_link",
-        columns: ["celebrity"],
-        referencedTable: "PublicFigures",
-        referencedColumns: ["xata_id"],
-        onDelete: "SET NULL",
-      },
-      user_link: {
-        name: "user_link",
-        columns: ["user"],
-        referencedTable: "Users",
-        referencedColumns: ["xata_id"],
-        onDelete: "SET NULL",
-      },
-    },
-    primaryKey: [],
-    uniqueConstraints: {
-      _pgroll_new_PublicFigurePerUser_xata_id_key: {
-        name: "_pgroll_new_PublicFigurePerUser_xata_id_key",
-        columns: ["xata_id"],
-      },
-    },
-    columns: [
-      {
-        name: "celebrity",
-        type: "link",
-        link: { table: "PublicFigures" },
-        notNull: true,
-        unique: false,
-        defaultValue: null,
-        comment: '{"xata.link":"PublicFigures"}',
-      },
-      {
-        name: "celebrity_user_id",
-        type: "int",
-        notNull: true,
-        unique: false,
-        defaultValue: null,
-        comment: "",
-      },
-      {
-        name: "user",
-        type: "link",
-        link: { table: "Users" },
-        notNull: true,
-        unique: false,
-        defaultValue: null,
-        comment: '{"xata.link":"Users"}',
-      },
-      {
-        name: "xata_createdat",
-        type: "datetime",
-        notNull: true,
-        unique: false,
-        defaultValue: "now()",
-        comment: "",
-      },
-      {
-        name: "xata_id",
-        type: "text",
-        notNull: true,
-        unique: true,
-        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
-        comment: "",
-      },
-      {
-        name: "xata_updatedat",
-        type: "datetime",
-        notNull: true,
-        unique: false,
-        defaultValue: "now()",
-        comment: "",
-      },
-      {
-        name: "xata_version",
-        type: "int",
-        notNull: true,
-        unique: false,
-        defaultValue: "0",
-        comment: "",
-      },
-    ],
-  },
-  {
     name: "PublicFigures",
     checkConstraints: {
       PublicFigures_xata_id_length_xata_id: {
@@ -1013,7 +920,15 @@ const tables = [
         definition: "CHECK ((length(xata_id) < 256))",
       },
     },
-    foreignKeys: {},
+    foreignKeys: {
+      ideology_link: {
+        name: "ideology_link",
+        columns: ["ideology"],
+        referencedTable: "Ideologies",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
     primaryKey: [],
     uniqueConstraints: {
       PublicFigures__pgroll_new_name_key: {
@@ -1035,18 +950,19 @@ const tables = [
         comment: "",
       },
       {
+        name: "ideology",
+        type: "link",
+        link: { table: "Ideologies" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Ideologies"}',
+      },
+      {
         name: "name",
         type: "text",
         notNull: true,
         unique: true,
-        defaultValue: null,
-        comment: "",
-      },
-      {
-        name: "scores",
-        type: "json",
-        notNull: true,
-        unique: false,
         defaultValue: null,
         comment: "",
       },
@@ -2022,9 +1938,6 @@ export type PaymentsRecord = Payments & XataRecord;
 export type PersonalizedAnswers = InferredTypes["PersonalizedAnswers"];
 export type PersonalizedAnswersRecord = PersonalizedAnswers & XataRecord;
 
-export type PublicFigurePerUser = InferredTypes["PublicFigurePerUser"];
-export type PublicFigurePerUserRecord = PublicFigurePerUser & XataRecord;
-
 export type PublicFigures = InferredTypes["PublicFigures"];
 export type PublicFiguresRecord = PublicFigures & XataRecord;
 
@@ -2062,7 +1975,6 @@ export type DatabaseSchema = {
   InsightsPerUserCategory: InsightsPerUserCategoryRecord;
   Payments: PaymentsRecord;
   PersonalizedAnswers: PersonalizedAnswersRecord;
-  PublicFigurePerUser: PublicFigurePerUserRecord;
   PublicFigures: PublicFiguresRecord;
   Questions: QuestionsRecord;
   Regions: RegionsRecord;
