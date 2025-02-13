@@ -167,10 +167,14 @@ export default function InsightsPage() {
       // Convert canvas to Blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvasRef.current?.toBlob((b) => {
-          b ? resolve(b) : reject(new Error("Canvas conversion failed"));
+          if (b) {
+            resolve(b);
+          } else {
+            reject(new Error("Canvas conversion failed"));
+          }
         }, "image/png");
       });
-      const file = new File([blob], "results.png", { type: "image/png" });
+      const file = new File([await blob], "results.png", { type: "image/png" });
 
       // Use native share if available
       if (
