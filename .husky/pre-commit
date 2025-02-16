@@ -1,0 +1,29 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Change to the repository root directory
+cd "$(git rev-parse --show-toplevel)"
+
+# Check for unstaged changes
+if ! git diff --quiet; then
+  echo "🚨 You have unstaged changes. Please stage or stash them before committing."
+  exit 1
+fi
+
+# Build types first
+echo "🏗️  Building types..."
+pnpm build:types || exit 1
+
+# Run type checking
+echo "🔍 Running type checks..."
+pnpm type-check || exit 1
+
+# Run lint-staged
+echo "🧹 Running lint-staged checks..."
+pnpm pre-commit || exit 1
+
+# Run full build to ensure everything compiles
+echo "🏗️  Running full build..."
+pnpm build || exit 1
+
+echo "✅ All checks passed!"

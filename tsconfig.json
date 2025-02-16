@@ -1,11 +1,37 @@
 {
   "compilerOptions": {
+    "target": "es2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/components/ui/*": ["./src/components/ui/*"],
-      "@/hooks/*": ["./src/hooks/*"]
+      "@/*": ["./apps/web/src/*"],
+      "@/app/*": ["./apps/web/src/app/*"],
+      "@/components/*": ["./apps/web/src/components/*"],
+      "@/components/ui/*": ["./apps/web/src/components/ui/*"],
+      "@/components/layout/*": ["./apps/web/src/components/layout/*"],
+      "@/lib/*": ["./apps/web/src/lib/*"],
+      "@/providers/*": ["./apps/web/src/providers/*"],
+      "@/hooks/*": ["./apps/web/src/hooks/*"],
+      "@/types/*": ["./apps/web/src/types/*"],
+      "@/services/*": ["./apps/web/src/services/*"],
+      "@/config/*": ["./apps/web/src/config/*"],
+      "@/utils/*": ["./apps/web/src/utils/*"],
+      "@/data/*": ["./apps/web/src/data/*"],
+      "@/constants/*": ["./apps/web/src/constants/*"]
     }
-  }
+  },
+  "include": ["apps/**/*.ts", "apps/**/*.tsx"],
+  "exclude": ["node_modules"]
 } 

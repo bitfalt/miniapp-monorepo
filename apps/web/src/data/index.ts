@@ -1,0 +1,1 @@
+export { motivationalQuotes } from './motivationalQuotes'; 

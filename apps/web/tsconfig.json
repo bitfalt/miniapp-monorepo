@@ -1,0 +1,42 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/components": ["./src/components"],
+      "@/components/*": ["./src/components/*"],
+      "@/components/ui": ["./src/components/ui"],
+      "@/components/ui/*": ["./src/components/ui/*"],
+      "@/components/layout/*": ["./src/components/layout/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/providers/*": ["./src/providers/*"],
+      "@/hooks": ["./src/hooks"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/data/*": ["./src/data/*"],
+      "@/constants/*": ["./src/constants/*"]
+    },
+    "strict": true,
+    "noEmit": true,
+    "types": ["node", "react", "react-dom", "next"]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/types/**/*.d.ts",
+    "src/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

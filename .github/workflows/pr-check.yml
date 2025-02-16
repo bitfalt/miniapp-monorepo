@@ -37,41 +37,28 @@ jobs:
             ${{ runner.os }}-pnpm-store-
           
       - name: Install dependencies
-        run: |
-          cd frontend
-          pnpm install
-          pnpm add -D @biomejs/biome @next/bundle-analyzer
-          cp ../biome.json .
+        run: pnpm install
 
-      - name: Run Biome lint
-        working-directory: frontend
-        run: |
-          echo "Node version: $(node -v)"
-          echo "Current directory: $(pwd)"
-          echo "Running Biome lint..."
-          pnpm exec biome ci .
+      - name: Run Biome check
+        run: pnpm check
 
-      - name: Run Biome format check
-        working-directory: frontend
-        run: |
-          echo "Running Biome format check..."
-          pnpm exec biome check --files-ignore-unknown=true .
+      - name: Run Biome format
+        run: pnpm format
 
       - name: Type check
-        working-directory: frontend
-        run: pnpm exec tsc --noEmit
+        run: pnpm type-check
 
-      - name: Run tests
-        working-directory: frontend
-        run: pnpm test || echo "No tests found"
+      - name: Build packages
+        run: pnpm build:packages
 
-      - name: Build application
-        working-directory: frontend
+      - name: Build applications
         env:
           NEXT_TELEMETRY_DISABLED: 1
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
           NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
-        run: pnpm build
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_ENVIRONMENT: 'preview'
+        run: pnpm build:apps
 
   security:
     name: Security Scan
@@ -93,19 +80,13 @@ jobs:
           run_install: false
           
       - name: Install dependencies
-        run: |
-          cd frontend
-          pnpm install
+        run: pnpm install
         
       - name: Run security audit
-        working-directory: frontend
-        run: |
-          pnpm audit || echo "Security vulnerabilities found. Please review the report above."
+        run: pnpm check-deps
 
       - name: Check for outdated dependencies
-        working-directory: frontend
-        run: |
-          pnpm outdated || echo "Outdated dependencies found. Please review the report above."
+        run: pnpm outdated || echo "Outdated dependencies found. Please review the report above."
 
   bundle-analysis:
     name: Bundle Analysis
@@ -126,20 +107,17 @@ jobs:
           run_install: false
           
       - name: Install dependencies
-        run: |
-          cd frontend
-          pnpm install
-          pnpm add -D @next/bundle-analyzer
+        run: pnpm install
         
       - name: Build and analyze bundle
-        working-directory: frontend
         env:
           ANALYZE: true
           NEXT_TELEMETRY_DISABLED: 1
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-secret-for-ci' }}
           NEXT_PUBLIC_WLD_APP_ID: ${{ secrets.NEXT_PUBLIC_WLD_APP_ID || 'app_staging_0' }}
-        run: |
-          pnpm build
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_ENVIRONMENT: 'preview'
+        run: pnpm analyze
           
       - name: Upload bundle analysis
         if: success()
@@ -147,8 +125,8 @@ jobs:
         with:
           name: bundle-analysis
           path: |
-            frontend/.next/analyze/client.html
-            frontend/.next/analyze/edge.html
-            frontend/.next/analyze/nodejs.html
+            apps/web/.next/analyze/client.html
+            apps/web/.next/analyze/edge.html
+            apps/web/.next/analyze/nodejs.html
           compression-level: 9
           retention-days: 14 
