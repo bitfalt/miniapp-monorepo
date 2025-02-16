@@ -1,6 +1,63 @@
 {
+	"name": "@mindvault/monorepo",
+	"private": true,
+	"scripts": {
+		"dev": "pnpm build:types && pnpm --filter @mindvault/web dev",
+		"build": "pnpm build:packages && pnpm build:apps",
+		"build:apps": "pnpm --filter @mindvault/web build",
+		"build:packages": "pnpm --filter @mindvault/types build",
+		"build:types": "pnpm --filter @mindvault/types build",
+		"start": "pnpm --filter @mindvault/web start",
+		"lint": "pnpm -r lint",
+		"lint:fix": "pnpm -r lint:fix",
+		"format": "biome format .",
+		"format:fix": "biome format . --write",
+		"check": "biome check .",
+		"check:fix": "biome check . --apply",
+		"clean": "pnpm -r clean",
+		"type-check": "pnpm -r type-check",
+		"dev:turbo": "turbo run dev",
+		"build:turbo": "turbo run build",
+		"lint:turbo": "turbo run lint",
+		"prepare": "husky install",
+		"pre-commit": "lint-staged",
+		"postinstall": "pnpm build:types || echo 'Types build failed, but continuing...'",
+		"analyze": "ANALYZE=true pnpm build",
+		"update-deps": "pnpm update -r --latest",
+		"check-deps": "pnpm audit",
+		"prune": "pnpm store prune",
+		"reset": "pnpm clean && rm -rf node_modules && pnpm install"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@next/bundle-analyzer": "^15.1.6"
+		"@next/bundle-analyzer": "^15.1.6",
+		"husky": "^9.1.7",
+		"lint-staged": "^15.4.3",
+		"turbo": "^1.12.4"
+	},
+	"pnpm": {
+		"peerDependencyRules": {
+			"allowAny": [
+				"react",
+				"react-dom"
+			]
+		}
+	},
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"lint-staged": {
+		"**/*.{ts,tsx}": [
+			"biome check --write --unsafe .",
+			"biome format --write ."
+		]
+	},
+	"engines": {
+		"node": ">=18.17.0",
+		"pnpm": ">=8.0.0"
+	},
+	"dependencies": {
+		"tailwind-merge": "^2.6.0"
 	}
 }

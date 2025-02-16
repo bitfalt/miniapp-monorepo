@@ -1,22 +1,23 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "ignoreUnknown": true,
     "include": [
-      "src/**/*.{ts,tsx}",
-      "src/**/*.{js,jsx}",
-      "src/**/*.json",
+      "apps/*/src/**/*.{ts,tsx}",
+      "apps/*/src/**/*.{js,jsx}",
+      "packages/*/src/**/*.{ts,tsx}",
+      "packages/*/src/**/*.{js,jsx}",
+      "apps/*/*.config.{ts,js,mjs}",
+      "packages/*/*.config.{ts,js,mjs}",
       "*.config.{ts,js,mjs}",
-      "*.d.ts",
-      "eslint.config.mjs",
-      "next.config.mjs",
-      "tailwind.config.ts",
-      "postcss.config.js"
+      "apps/*/**/*.d.ts",
+      "packages/*/**/*.d.ts",
+      "*.d.ts"
     ],
     "ignore": [
       "**/node_modules/**",
@@ -27,10 +28,12 @@
       "**/*.spec.{ts,tsx}",
       "**/coverage/**",
       "**/storybook-static/**",
-      "src/app/api-docs/**",
-      "src/components/ui/icons/**",
-      ".xata/**",
-      "**/generated/**"
+      "**/api-docs/**",
+      "**/components/ui/icons/**",
+      "**/.xata/**",
+      "**/generated/**",
+      "**/public/**",
+      "**/.turbo/**"
     ]
   },
   "formatter": {
@@ -58,6 +61,16 @@
       "suspicious": {
         "noExplicitAny": "error",
         "noConsoleLog": "error"
+      },
+      "complexity": {
+        "noForEach": "error",
+        "useOptionalChain": "error"
+      },
+      "performance": {
+        "noDelete": "error"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error"
       }
     }
   },
@@ -67,8 +80,9 @@
       "indentStyle": "space",
       "indentWidth": 2,
       "lineWidth": 80,
-      "quoteStyle": "double",
-      "semicolons": "always"
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "es5"
     }
   }
 }
