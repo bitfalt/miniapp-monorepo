@@ -1,27 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
+  "buildCommand": "pnpm install && pnpm --filter @mindvault/types build && pnpm --filter @mindvault/web build",
   "installCommand": "pnpm install",
   "framework": "nextjs",
-  "outputDirectory": "apps/web/.next",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- ./apps/web/ ./packages/",
+  "outputDirectory": ".next",
   "git": {
     "deploymentEnabled": {
       "main": true,
       "develop": true
-    }
-  },
-  "crons": [],
-  "functions": {
-    "apps/web/src/app/api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "build": {
-    "env": {
-      "NEXT_TELEMETRY_DISABLED": "1"
     }
   }
 } 

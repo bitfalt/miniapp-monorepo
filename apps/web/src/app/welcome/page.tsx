@@ -30,14 +30,13 @@ export default function Welcome() {
 
         if (response.ok) {
           const userData = await response.json();
-          console.log("User data:", userData); // Debug log
           const extractedName = userData.name?.split(" ")[0] || "User";
           setFirstName(extractedName);
         } else {
-          console.error("Failed to fetch user data:", await response.text());
+          setFirstName("User");
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+      } catch {
+        setFirstName("User");
       } finally {
         setIsLoading(false);
       }
@@ -112,8 +111,10 @@ export default function Welcome() {
               alt="Vault Logo"
               width={64}
               height={64}
-              className="mx-auto h-16 w-auto"
+              className="mx-auto h-16 w-16 object-contain"
               priority
+              loading="eager"
+              sizes="64px"
             />
           </motion.div>
 

@@ -22,7 +22,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**'
       }
-    ]
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [64, 128, 256, 384, 512],
+    imageSizes: [16, 32, 48, 64],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    minimumCacheTTL: 60,
+    unoptimized: true
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
