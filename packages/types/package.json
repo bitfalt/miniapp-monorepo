@@ -1,0 +1,31 @@
+{
+  "name": "@mindvault/types",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "lint": "biome check src/",
+    "lint:fix": "biome check --apply src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^20.17.18",
+    "tsup": "^8.3.6",
+    "typescript": "^5.5.3"
+  },
+  "peerDependencies": {
+    "next-auth": "^4.24.8"
+  }
+}
