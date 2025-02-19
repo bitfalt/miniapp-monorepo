@@ -28,6 +28,7 @@ export default function IdeologyTest() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [originalAnswers, setOriginalAnswers] = useState<Record<string, number>>({});
+  const [hasUnsavedChanges] = useState(false);
 
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
@@ -95,6 +96,29 @@ export default function IdeologyTest() {
 
     fetchQuestions();
   }, [testId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handleUnload = () => {
+      if (hasUnsavedChanges) {
+        void router.push('/');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [hasUnsavedChanges, router]);
 
   const handleEndTest = async () => {
     if (isSubmitting) return;

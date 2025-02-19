@@ -33,10 +33,9 @@ export async function POST(req: NextRequest) {
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error checking user:", error);
     const response: CheckUserResponse = {
       exists: false,
-      error: "Failed to check user existence",
+      error: error instanceof Error ? error.message : "Failed to check user existence",
     };
     return NextResponse.json(response, { status: 500 });
   }

@@ -1,0 +1,13 @@
+{
+  "name": "mindvault-web",
+  "projectId": "mindvault-web",
+  "orgId": "mind-vault",
+  "settings": {
+    "framework": "nextjs",
+    "devCommand": "pnpm dev",
+    "installCommand": "pnpm install",
+    "buildCommand": "pnpm --filter @mindvault/types build && pnpm --filter @mindvault/web build",
+    "outputDirectory": ".next",
+    "rootDirectory": "apps/web"
+  }
+} 

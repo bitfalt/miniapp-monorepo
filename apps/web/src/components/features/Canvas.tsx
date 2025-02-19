@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, forwardRef } from 'react';
+import React, { useEffect, forwardRef } from 'react';
 
 const ResultsCanvas = forwardRef<HTMLCanvasElement, {
   econ: number;
@@ -11,12 +11,10 @@ const ResultsCanvas = forwardRef<HTMLCanvasElement, {
   ideology: string;
   onLoad?: () => void;
 }>(({ econ, dipl, govt, scty, closestMatch, ideology, onLoad }, ref) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
+    if (typeof ref === 'function' || !ref?.current) return;
+    
+    const canvas = ref.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -398,7 +396,7 @@ const ResultsCanvas = forwardRef<HTMLCanvasElement, {
     };
 
     init().catch(console.error);
-  }, [econ, dipl, govt, scty, closestMatch, ideology, onLoad]);
+  }, [econ, dipl, govt, scty, closestMatch, ideology, onLoad, ref]);
 
   return (
     <>
@@ -414,14 +412,7 @@ const ResultsCanvas = forwardRef<HTMLCanvasElement, {
         }
       `}</style>
       <canvas
-        ref={(node) => {
-          canvasRef.current = node;
-          if (typeof ref === 'function') {
-            ref(node);
-          } else if (ref) {
-            ref.current = node;
-          }
-        }}
+        ref={ref}
         width={1080}
         height={1920}
       />

@@ -137,7 +137,7 @@ export function LayoutContent({ children }: LayoutContentProps) {
       <main className="scroll-container">
         <div className={`flex-grow ${showNav ? "pb-16" : ""}`}>{children}</div>
       </main>
-      {showNav && <div className="z-40"><BottomNav /></div>}
+      {showNav && <div className="z-40 w-full max-w-[430px] fixed bottom-0 left-1/2 -translate-x-1/2"><BottomNav /></div>}
     </div>
   );
 }

@@ -9,7 +9,6 @@ import { LayoutContent } from "@/components/layout/LayoutContent";
 import { MiniKitProvider } from "@/providers/MiniKitProvider";
 import { NotificationsProvider } from "@/providers/NotificationsProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import { WeglotProvider } from "@/providers/WeglotProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -40,17 +39,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={`${spaceGrotesk.variable} bg-neutral-bg text-foreground antialiased`}
       >
-        <WeglotProvider>
-          <ThemeProvider>
-            <NotificationsProvider>
-              <ErudaProvider>
-                <MiniKitProvider>
-                  <LayoutContent>{children}</LayoutContent>
-                </MiniKitProvider>
-              </ErudaProvider>
-            </NotificationsProvider>
-          </ThemeProvider>
-        </WeglotProvider>
+        <ThemeProvider>
+          <NotificationsProvider>
+            <ErudaProvider>
+              <MiniKitProvider>
+                <div className="mx-auto w-full min-h-screen overflow-hidden">
+                  <div className="mx-auto w-full max-w-[430px] min-h-screen">
+                    <LayoutContent>{children}</LayoutContent>
+                  </div>
+                </div>
+              </MiniKitProvider>
+            </ErudaProvider>
+          </NotificationsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
