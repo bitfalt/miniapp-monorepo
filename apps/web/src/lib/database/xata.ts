@@ -1989,15 +1989,16 @@ export type DatabaseSchema = {
 const DatabaseClient = buildClient();
 
 const defaultOptions = {
-  databaseURL: process.env.XATA_DATABASE_URL,
-  apiKey: process.env.XATA_API_KEY,
-  branch: process.env.XATA_BRANCH || 'main'
+  databaseURL: process.env.XATA_DATABASE_URL || 'https://bitfalt-mmda85.us-east-1.xata.sh/db/MindVault-MiniApp',
+  apiKey: process.env.XATA_API_KEY || process.env.NEXT_PUBLIC_XATA_API_KEY,
+  branch: process.env.XATA_BRANCH || process.env.NEXT_PUBLIC_XATA_BRANCH || 'main'
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {
   constructor(options?: BaseClientOptions) {
-    if (!process.env.XATA_API_KEY || !process.env.XATA_DATABASE_URL) {
-      throw new Error('XATA_API_KEY and XATA_DATABASE_URL environment variables are required');
+    const apiKey = options?.apiKey || defaultOptions.apiKey;
+    if (!apiKey) {
+      throw new Error('Xata API key is required. Set either XATA_API_KEY or NEXT_PUBLIC_XATA_API_KEY environment variable.');
     }
     super({ ...defaultOptions, ...options }, tables);
   }
@@ -2007,7 +2008,6 @@ let instance: XataClient | undefined = undefined;
 
 export const getXataClient = () => {
   if (instance) return instance;
-
   instance = new XataClient();
   return instance;
 };

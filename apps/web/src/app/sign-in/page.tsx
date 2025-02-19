@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 const headingConfig = {
   firstLine: {
     prefix: "Discover Your",
-    words: ["True Self", "Core", "Spirit", "Soul", "Heart", "Being", "Purpose"],
+    words: ["Truth", "Core", "Spirit", "Soul", "Heart", "Being", "Purpose"],
   },
   secondLine: {
     prefix: "Transform Your",
@@ -249,34 +249,36 @@ export default function SignIn() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="flex flex-col items-center"
+      className="flex flex-col items-center w-full"
     >
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative w-screen h-[510px] -mt-4"
+        className="relative w-full h-[510px] -mt-4 lg:h-[600px]"
       >
-        <div className="w-screen absolute top-0 bg-white rounded-b-[65px] shadow-[inset_-5px_-5px_25px_0px_rgba(134,152,183,1.00),inset_5px_5px_25px_0px_rgba(248,248,246,1.00)]" />
-        <div className="w-screen h-full px-[34px] pt-[125px] pb-[70px] absolute top-0 bg-[#2c5154] rounded-b-[65px] shadow-[21px_38px_64.69999694824219px_3px_rgba(0,0,0,0.25)] overflow-hidden">
-          <div className="max-w-md mx-auto">
+        <div className="w-full absolute top-0 bg-white rounded-b-[65px] shadow-[inset_-5px_-5px_25px_0px_rgba(134,152,183,1.00),inset_5px_5px_25px_0px_rgba(248,248,246,1.00)]" />
+        <div className="w-full h-full px-[34px] pt-[125px] pb-[70px] absolute top-0 bg-[#2c5154] rounded-b-[65px] shadow-[21px_38px_64.69999694824219px_3px_rgba(0,0,0,0.25)] overflow-hidden lg:pt-[180px]">
+          <div className="max-w-md mx-auto lg:max-w-2xl">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.5 }}
               className="flex justify-center mb-8"
             >
-              <Image
-                src="/MindVaultLogoTransparentHD.svg"
-                alt="MindVault Logo"
-                width={64}
-                height={64}
-                className="h-16 w-auto"
-                priority
-              />
+              <div className="relative w-16 h-16 lg:w-24 lg:h-24">
+                <Image
+                  src="/MindVaultLogoTransparentHD.svg"
+                  alt="MindVault Logo"
+                  width={96}
+                  height={96}
+                  className="w-full h-full"
+                  priority
+                />
+              </div>
             </motion.div>
 
-            <h1 className="text-white text-[clamp(3rem,9vw,5.5rem)] font-medium leading-[1] mb-8">
+            <h1 className="text-white text-[clamp(3rem,9vw,3.5rem)] font-medium leading-[1] mb-8">
               {headingConfig.firstLine.prefix}{" "}
               <AnimatePresence mode="wait">
                 <motion.span
@@ -291,7 +293,7 @@ export default function SignIn() {
                 </motion.span>
               </AnimatePresence>
             </h1>
-            <h2 className="text-white text-[clamp(2.75rem,8vw,5rem)] font-medium leading-[1]">
+            <h2 className="text-white text-[clamp(2.75rem,8vw,3.25rem)] font-medium leading-[1]">
               {headingConfig.secondLine.prefix}{" "}
               <AnimatePresence mode="wait">
                 <motion.span

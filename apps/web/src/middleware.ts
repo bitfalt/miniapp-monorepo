@@ -13,6 +13,7 @@ const publicPaths = [
   "/_next",
   "/favicon.ico",
   "/register",
+  "/MindVaultLogoTransparentHD.svg",
 ];
 
 // Get the secret from environment variables

@@ -43,7 +43,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <NotificationsProvider>
             <ErudaProvider>
               <MiniKitProvider>
-                <LayoutContent>{children}</LayoutContent>
+                <div className="mx-auto w-full min-h-screen overflow-hidden">
+                  <div className="mx-auto w-full max-w-[430px] min-h-screen">
+                    <LayoutContent>{children}</LayoutContent>
+                  </div>
+                </div>
               </MiniKitProvider>
             </ErudaProvider>
           </NotificationsProvider>

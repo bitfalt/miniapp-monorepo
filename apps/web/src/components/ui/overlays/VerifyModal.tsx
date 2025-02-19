@@ -28,7 +28,10 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
             alt="Verify Icon"
             width={114}
             height={110}
-            className="mb-4"
+            className="mb-4 object-contain"
+            priority
+            loading="eager"
+            sizes="114px"
           />
 
           <h2 className="mb-4 text-center text-[32px] font-semibold text-white">
