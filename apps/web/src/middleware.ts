@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { headers } from 'next/headers'
 
 // List of public paths that don't require authentication
-const publicPaths = [
+const PUBLIC_PATHS = [
   "/sign-in",
   "/api/auth/session",
   "/api/user",
@@ -33,7 +33,7 @@ interface JWTPayload {
 }
 
 // Add supported languages
-const SUPPORTED_LANGUAGES = ['en', 'fr', 'es', 'de'] // Add all languages you support
+const SUPPORTED_LANGUAGES = ['en', 'fr', 'es', 'de']
 
 // Helper to extract primary language from Accept-Language header
 function getPrimaryLanguage(acceptLanguage: string | null): string {
@@ -74,13 +74,30 @@ async function verifyToken(token: string) {
   }
 }
 
+// Helper to check if path is public (including language prefixes)
+function isPublicPath(path: string): boolean {
+  // Remove language prefix if it exists
+  const pathWithoutLang = SUPPORTED_LANGUAGES.some(lang => path.startsWith(`/${lang}/`))
+    ? path.substring(3) // Remove /{lang}/ prefix
+    : path
+
+  return PUBLIC_PATHS.some(publicPath => pathWithoutLang.startsWith(publicPath))
+}
+
+// Helper to get language from URL or Accept-Language header
+function getLanguageFromPath(pathname: string): string | null {
+  const firstSegment = pathname.split('/')[1]
+  return SUPPORTED_LANGUAGES.includes(firstSegment) ? firstSegment : null
+}
+
 // Middleware function
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
-  // Get Accept-Language header
-  const acceptLanguage = request.headers.get('accept-language')
-  const preferredLanguage = getPrimaryLanguage(acceptLanguage)
+  // Get language from URL or Accept-Language header
+  const urlLanguage = getLanguageFromPath(pathname)
+  const acceptLanguage = request.headers.get('Accept-Language')
+  const preferredLanguage = urlLanguage || getPrimaryLanguage(acceptLanguage)
 
   // Create response object that we'll modify
   let response = NextResponse.next()
@@ -88,8 +105,23 @@ export async function middleware(request: NextRequest) {
   // Set Weglot language header
   response.headers.set('Weglot-Language-Preference', preferredLanguage)
 
+  // Function to add language prefix to URL if needed
+  const addLanguagePrefix = (url: string): string => {
+    if (urlLanguage || SUPPORTED_LANGUAGES.some(lang => url.startsWith(`/${lang}/`))) {
+      return url
+    }
+    return `/${preferredLanguage}${url.startsWith('/') ? url : `/${url}`}`
+  }
+
+  // Redirect to language-prefixed URL if no language prefix exists
+  if (!urlLanguage && !pathname.startsWith('/api/')) {
+    const url = new URL(request.url)
+    url.pathname = addLanguagePrefix(pathname)
+    return NextResponse.redirect(url)
+  }
+
   // Allow public paths
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
+  if (isPublicPath(pathname)) {
     return response
   }
 
@@ -99,7 +131,8 @@ export async function middleware(request: NextRequest) {
 
   // For all protected routes
   if (!sessionToken) {
-    response = NextResponse.redirect(new URL("/sign-in", request.url))
+    const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+    response = NextResponse.redirect(signInUrl)
     response.headers.set('Weglot-Language-Preference', preferredLanguage)
     return response
   }
@@ -107,7 +140,8 @@ export async function middleware(request: NextRequest) {
   try {
     const decoded = await verifyToken(sessionToken)
     if (!decoded) {
-      response = NextResponse.redirect(new URL("/sign-in", request.url))
+      const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+      response = NextResponse.redirect(signInUrl)
       response.cookies.delete("session")
       response.cookies.delete("registration_status")
       response.headers.set('Weglot-Language-Preference', preferredLanguage)
@@ -116,11 +150,11 @@ export async function middleware(request: NextRequest) {
 
     // Handle registration flow
     if (pathname !== "/register" && registrationStatus !== "complete") {
-      const url = new URL("/register", request.url)
+      const registerUrl = new URL(addLanguagePrefix("/register"), request.url)
       if (decoded.walletAddress) {
-        url.searchParams.set("walletAddress", decoded.walletAddress)
+        registerUrl.searchParams.set("walletAddress", decoded.walletAddress)
       }
-      response = NextResponse.redirect(url)
+      response = NextResponse.redirect(registerUrl)
       response.headers.set('Weglot-Language-Preference', preferredLanguage)
       return response
     }
@@ -143,7 +177,8 @@ export async function middleware(request: NextRequest) {
 
   } catch {
     // Clear invalid session
-    response = NextResponse.redirect(new URL("/sign-in", request.url))
+    const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+    response = NextResponse.redirect(signInUrl)
     response.cookies.delete("session")
     response.cookies.delete("registration_status")
     response.headers.set('Weglot-Language-Preference', preferredLanguage)
@@ -151,6 +186,10 @@ export async function middleware(request: NextRequest) {
   }
 }
 
+// Update matcher to include language prefixes
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/:lang(en|fr|es|de)/:path*"
+  ]
 };
