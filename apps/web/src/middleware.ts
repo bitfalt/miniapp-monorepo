@@ -74,14 +74,40 @@ async function verifyToken(token: string) {
   }
 }
 
-// Helper to check if path is public (including language prefixes)
-function isPublicPath(path: string): boolean {
-  // Remove language prefix if it exists
-  const pathWithoutLang = SUPPORTED_LANGUAGES.some(lang => path.startsWith(`/${lang}/`))
-    ? path.substring(3) // Remove /{lang}/ prefix
-    : path
+// Update the addLanguagePrefix function to be more precise
+function addLanguagePrefix(pathname: string, preferredLanguage: string): string {
+  // Don't add prefix if it's an API route
+  if (pathname.startsWith('/api/')) {
+    return pathname
+  }
 
-  return PUBLIC_PATHS.some(publicPath => pathWithoutLang.startsWith(publicPath))
+  // Don't add prefix if it already has a valid language prefix
+  for (const lang of SUPPORTED_LANGUAGES) {
+    if (pathname.startsWith(`/${lang}/`)) {
+      return pathname
+    }
+  }
+
+  // Add the prefix
+  return `/${preferredLanguage}${pathname.startsWith('/') ? pathname : `/${pathname}`}`
+}
+
+// Update the isPublicPath function to handle both prefixed and unprefixed paths
+function isPublicPath(path: string): boolean {
+  // First check if the path is directly in PUBLIC_PATHS
+  if (PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath))) {
+    return true
+  }
+
+  // Then check if the path without language prefix is in PUBLIC_PATHS
+  for (const lang of SUPPORTED_LANGUAGES) {
+    if (path.startsWith(`/${lang}/`)) {
+      const pathWithoutLang = path.substring(3)
+      return PUBLIC_PATHS.some(publicPath => pathWithoutLang.startsWith(publicPath))
+    }
+  }
+
+  return false
 }
 
 // Helper to get language from URL or Accept-Language header
@@ -92,7 +118,7 @@ function getLanguageFromPath(pathname: string): string | null {
 
 // Middleware function
 export async function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   // Get language from URL or Accept-Language header
   const urlLanguage = getLanguageFromPath(pathname)
@@ -105,33 +131,30 @@ export async function middleware(request: NextRequest) {
   // Set Weglot language header
   response.headers.set('Weglot-Language-Preference', preferredLanguage)
 
-  // Function to add language prefix to URL if needed
-  const addLanguagePrefix = (url: string): string => {
-    if (urlLanguage || SUPPORTED_LANGUAGES.some(lang => url.startsWith(`/${lang}/`))) {
-      return url
+  // Skip language prefix redirect for API routes and already prefixed paths
+  if (!pathname.startsWith('/api/') && !urlLanguage) {
+    const newPathname = addLanguagePrefix(pathname, preferredLanguage)
+    
+    // Only redirect if the path actually changed
+    if (newPathname !== pathname) {
+      const url = new URL(newPathname, request.url)
+      response = NextResponse.redirect(url)
+      response.headers.set('Weglot-Language-Preference', preferredLanguage)
+      return response
     }
-    return `/${preferredLanguage}${url.startsWith('/') ? url : `/${url}`}`
   }
 
-  // Redirect to language-prefixed URL if no language prefix exists
-  if (!urlLanguage && !pathname.startsWith('/api/')) {
-    const url = new URL(request.url)
-    url.pathname = addLanguagePrefix(pathname)
-    return NextResponse.redirect(url)
-  }
-
-  // Allow public paths
+  // Allow public paths (both with and without language prefix)
   if (isPublicPath(pathname)) {
     return response
   }
 
-  // Get session token and registration status
+  // Rest of your middleware logic...
   const sessionToken = request.cookies.get("session")?.value;
   const registrationStatus = request.cookies.get("registration_status")?.value;
 
-  // For all protected routes
   if (!sessionToken) {
-    const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+    const signInUrl = new URL(addLanguagePrefix("/sign-in", preferredLanguage), request.url)
     response = NextResponse.redirect(signInUrl)
     response.headers.set('Weglot-Language-Preference', preferredLanguage)
     return response
@@ -140,7 +163,7 @@ export async function middleware(request: NextRequest) {
   try {
     const decoded = await verifyToken(sessionToken)
     if (!decoded) {
-      const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+      const signInUrl = new URL(addLanguagePrefix("/sign-in", preferredLanguage), request.url)
       response = NextResponse.redirect(signInUrl)
       response.cookies.delete("session")
       response.cookies.delete("registration_status")
@@ -150,7 +173,7 @@ export async function middleware(request: NextRequest) {
 
     // Handle registration flow
     if (pathname !== "/register" && registrationStatus !== "complete") {
-      const registerUrl = new URL(addLanguagePrefix("/register"), request.url)
+      const registerUrl = new URL(addLanguagePrefix("/register", preferredLanguage), request.url)
       if (decoded.walletAddress) {
         registerUrl.searchParams.set("walletAddress", decoded.walletAddress)
       }
@@ -176,8 +199,7 @@ export async function middleware(request: NextRequest) {
     return response
 
   } catch {
-    // Clear invalid session
-    const signInUrl = new URL(addLanguagePrefix("/sign-in"), request.url)
+    const signInUrl = new URL(addLanguagePrefix("/sign-in", preferredLanguage), request.url)
     response = NextResponse.redirect(signInUrl)
     response.cookies.delete("session")
     response.cookies.delete("registration_status")
