@@ -172,9 +172,40 @@ export default function Register() {
       // Request notification permission after successful registration
       await requestPermission();
 
-      // Set registration completion flag and redirect to welcome page
+      // Set registration completion flag and save user name for welcome page
       sessionStorage.setItem("registration_complete", "true");
-      router.push("/welcome");
+      sessionStorage.setItem("user_name", formData.name);
+      
+      // Add a longer delay to ensure session is properly established
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      
+      // Verify session was created successfully
+      try {
+        const verifySessionResponse = await fetch("/api/auth/session", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+        
+        if (verifySessionResponse.ok) {
+          // Session verified, proceed to welcome page
+          console.log("Session verified successfully, redirecting to welcome page");
+          // Use push instead of replace to ensure proper navigation history
+          router.push("/welcome");
+        } else {
+          console.error("Session verification failed, retrying...");
+          // If session verification failed, try again after a delay
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          router.push("/welcome");
+        }
+      } catch (error) {
+        console.error("Error verifying session:", error);
+        // Even if verification fails, still try to redirect
+        router.push("/welcome");
+      }
     } catch (error) {
       setError(
         error instanceof Error
