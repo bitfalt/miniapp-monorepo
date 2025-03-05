@@ -5,8 +5,8 @@ import { NotificationDialog } from "@/components/ui/feedback/NotificationError";
 import { Input } from "@/components/ui/base/input";
 import { COUNTRIES, type CountryCode } from "@/constants/countries";
 import { MiniKit } from "@worldcoin/minikit-js";
-import type { RequestPermissionPayload } from "@worldcoin/minikit-js";
-import { Permission } from "@worldcoin/minikit-js";
+// import type { RequestPermissionPayload } from "@worldcoin/minikit-js";
+//import { Permission } from "@worldcoin/minikit-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import type * as React from "react";
 import { useEffect, useState } from "react";
@@ -52,8 +52,11 @@ export default function Register() {
     }));
   }, [userId, router]);
 
-  // Function to request notification permission
+  // Function to request notification permission - commented out
   const requestPermission = async () => {
+    // Notification permission request is now commented out
+    // This allows registration to proceed without requiring notification permissions
+    /*
     const requestPermissionPayload: RequestPermissionPayload = {
       permission: Permission.Notifications,
     };
@@ -69,6 +72,10 @@ export default function Register() {
       }
       return null;
     }
+    */
+    
+    // Return a resolved promise to maintain function signature
+    return Promise.resolve(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
