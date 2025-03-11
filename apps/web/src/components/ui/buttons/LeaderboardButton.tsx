@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/i18n";
 
 export function LeaderboardButton() {
 	const router = useRouter();
+	const { t } = useTranslation();
 
 	return (
 		<button
@@ -52,9 +54,9 @@ export function LeaderboardButton() {
 					</svg>
 				</div>
 				<div className="flex flex-col">
-					<span className="text-lg font-bold">See Leaderboard</span>
+					<span className="text-lg font-bold">{t('leaderboard.title')}</span>
 					<span className="text-sm text-slate-200">
-						Check where you rank among others
+						{t('leaderboard.description')}
 					</span>
 				</div>
 			</div>

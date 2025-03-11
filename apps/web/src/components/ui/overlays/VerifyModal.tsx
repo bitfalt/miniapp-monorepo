@@ -3,6 +3,7 @@
 import { FilledButton } from "@/components/ui/buttons/FilledButton";
 import { Dialog, DialogContent } from "./dialog";
 import { useVerification } from "@/hooks/useVerification";
+import { useTranslation } from "@/i18n";
 import Image from "next/image";
 import type * as React from "react";
 
@@ -14,6 +15,7 @@ interface VerifyModalProps {
 
 export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
   const { isVerifying, error } = useVerification();
+  const { t } = useTranslation();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -35,17 +37,17 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
           />
 
           <h2 className="mb-4 text-center text-[32px] font-semibold text-white">
-            Not Verified yet?
+            {t('home.verifyModal.title')}
           </h2>
 
           <p className="mb-8 text-center font-spaceGrotesk text-[15px] font-bold leading-[25px] text-white">
-            Use your World ID app to verify your identity!
+            {t('home.verifyModal.description')}
             <br />
             <br />
-            Simply tap &ldquo;Verify!&rdquo; below and follow the prompts to complete verification.
+            {t('home.verifyModal.instruction')}
             <br />
             <br />
-            By verifying you will have access to more features on the app.
+            {t('home.verifyModal.benefits')}
           </p>
 
           {error && (
@@ -59,7 +61,7 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
               className="rounded-[30px] bg-[#e36c59] px-6 hover:bg-[#e36c59]/90"
               onClick={onClose}
             >
-              Maybe Later
+              {t('home.verifyModal.maybeLater')}
             </FilledButton>
 
             <FilledButton
@@ -69,7 +71,7 @@ export function VerifyModal({ isOpen, onClose, onVerify }: VerifyModalProps) {
               onClick={onVerify}
               disabled={isVerifying}
             >
-              {isVerifying ? "Verifying..." : "Verify!"}
+              {isVerifying ? t('common.loading') : t('home.verifyModal.verify')}
             </FilledButton>
           </div>
         </div>

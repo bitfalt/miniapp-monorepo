@@ -4,6 +4,7 @@ import { AchievementCard } from "@/components/ui/cards/AchievementCard";
 import { LoadingSpinner } from "@/components/ui/feedback/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface Achievement {
   title: string;
@@ -18,6 +19,7 @@ export default function AchievementsPage() {
   const [level, setLevel] = useState({ current: 0, max: 100, title: "" });
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const { t, tWithVars } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,11 +52,10 @@ export default function AchievementsPage() {
       <div className="relative mb-8 overflow-hidden rounded-b-[4rem] border-b border-brand-tertiary/20 bg-brand-tertiary p-10 pb-12 pt-16 shadow-lg">
         <div className="relative z-10 mx-auto max-w-md text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-slate-100">
-            Achievements
+            {t('achievements.title')}
           </h1>
           <p className="mx-auto mb-9 max-w-sm text-lg font-medium text-slate-200">
-            Celebrate your progress and discover what&apos;s next on your
-            journey
+            {t('achievements.description')}
           </p>
 
           <div className="mx-auto max-w-sm space-y-4 rounded-3xl border border-brand-tertiary/10 bg-brand-secondary p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2)] backdrop-blur-sm">
@@ -64,7 +65,7 @@ export default function AchievementsPage() {
                 {level.title}
               </span>
               <span>
-                {level.current}/{level.max} points
+                {tWithVars('achievements.points', { current: level.current, max: level.max })}
               </span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-neutral-bg/90 backdrop-blur-sm">
@@ -76,7 +77,7 @@ export default function AchievementsPage() {
               />
             </div>
             <p className="text-sm font-medium text-slate-200">
-              Reach the next level to unlock new badges and exclusive content!
+              {t('achievements.nextLevel')}
             </p>
           </div>
         </div>
@@ -93,7 +94,7 @@ export default function AchievementsPage() {
             <AchievementCard
               title={achievement.title}
               description={achievement.description}
-              date={achievement.obtained ? achievement.date : "Locked"}
+              date={achievement.obtained ? achievement.date : t('achievements.locked')}
             />
           </div>
         ))}
@@ -102,17 +103,16 @@ export default function AchievementsPage() {
       {isModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-bg/60 pb-20 backdrop-blur-sm">
           <div className="mx-4 max-w-sm rounded-3xl border border-brand-tertiary/10 bg-brand-secondary p-8 text-center shadow-[0_14px_28px_rgba(0,0,0,0.25),_0_10px_10px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-            <h2 className="mb-3 text-2xl font-bold text-white">Coming Soon</h2>
+            <h2 className="mb-3 text-2xl font-bold text-white">{t('achievements.comingSoon')}</h2>
             <p className="text-sm text-slate-200">
-              The achievements feature is currently under development. Check
-              back soon to celebrate your progress!
+              {t('achievements.comingSoonDescription')}
             </p>
             <button
               type="button"
               className="mt-4 rounded-lg bg-accent-red px-4 py-2 text-white hover:bg-accent-red/90"
               onClick={handleCloseModal}
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>

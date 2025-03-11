@@ -4,11 +4,11 @@ import { Canvas as ResultsCanvas } from "@/components/features";
 import { FilledButton } from "@/components/ui/buttons/FilledButton";
 import { InsightResultCard } from "@/components/ui/cards/InsightResultCard";
 import { LoadingSpinner } from "@/components/ui/feedback/LoadingSpinner";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslation } from "@/i18n";
 
 interface Insight {
   category: string;
@@ -25,7 +25,6 @@ interface Insight {
 }
 
 export default function InsightsPage() {
-  const router = useRouter();
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +38,7 @@ export default function InsightsPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCanvasLoading, setIsCanvasLoading] = useState(true);
   const [isGeminiLoading, setIsGeminiLoading] = useState(false);
+  const { t } = useTranslation();
 
   // Emit modal state changes
   useEffect(() => {
@@ -246,7 +246,7 @@ export default function InsightsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-12">
+      <div className="relative mb-6 overflow-hidden rounded-b-[50px] bg-brand-tertiary pb-8 shadow-lg sm:mb-8 sm:pb-14">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
         <motion.div
           className="relative z-10 text-center max-w-md mx-auto space-y-4"
@@ -254,310 +254,165 @@ export default function InsightsPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="text-center space-y-3">
-            <BookOpen className="h-10 w-10 mx-auto text-[#E36C59]" />
-            <h1 className="text-4xl font-bold text-slate-100 mb-4 tracking-tight">
-              Your Ideology Insights
+          <div className="space-y-3 text-center">
+            <BookOpen className="mx-auto h-10 w-10 text-[#E36C59]" />
+            <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
+              {t('insights.title')}
             </h1>
           </div>
-          {ideology && (
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20 flex items-center justify-center min-h-[100px] mt-4"
-            >
-              <h2 className="text-3xl font-semibold text-slate-100 m-0">
-                {ideology}
-              </h2>
-            </motion.div>
-          )}
-          <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
-            Explore how your values align across key ideological dimensions.
-          </p>
 
-          <motion.div
-            className="flex justify-center"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <FilledButton
-              onClick={handleAdvancedInsightsClick}
-              variant={isProUser ? "primary" : "primary"}
-              className={cn(
-                "mt-4",
-                "transform transition-all duration-300 hover:scale-105",
-                "bg-gradient-to-r from-accent-red to-[#FF8066]"
-              )}
-            >
-              {isProUser ? "Advanced Insights" : "Unlock Advanced Insights"}
-            </FilledButton>
-          </motion.div>
+          <p className="font-spaceGrotesk text-center text-lg font-normal leading-[25px] text-[#C9CDCE]">
+            {t('insights.description')}
+          </p>
         </motion.div>
       </div>
 
       <motion.div
-        className="max-w-3xl mx-auto px-6 space-y-8 pb-16"
+        className="mx-auto mt-4 max-w-md px-4"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {Array.isArray(insights) && insights.length > 0 ? (
-          insights.map((insight) => (
+        <div className="mb-8 flex justify-between">
+          <FilledButton
+            variant="primary"
+            size="sm"
+            className="bg-[#E36C59] hover:bg-[#E36C59]/90"
+            onClick={handleAdvancedInsightsClick}
+          >
+            {t('insights.advancedInsights')}
+          </FilledButton>
+
+          <FilledButton
+            variant="primary"
+            size="sm"
+            className="bg-[#E36C59] hover:bg-[#E36C59]/90"
+            onClick={handleShareClick}
+          >
+            {t('insights.shareInsights')}
+          </FilledButton>
+        </div>
+
+        <div className="space-y-6">
+          {insights.map((insight, index) => (
             <motion.div
-              key={`${insight.category}-${insight.percentage}`}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
+              key={insight.category}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
             >
               <InsightResultCard
-                title={`${
-                  insight.category.charAt(0).toUpperCase() +
-                  insight.category.slice(1)
-                } Perspective`}
+                title={t(`insights.categories.${insight.category.toLowerCase()}`)}
+                percentage={insight.percentage}
                 insight={insight.insight}
                 description={insight.description}
-                percentage={insight.percentage}
                 left_label={insight.left_label}
                 right_label={insight.right_label}
                 values={insight.values}
               />
             </motion.div>
-          ))
-        ) : (
-          <motion.p
-            className="text-slate-200 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            No insights available. Please try again later.
-          </motion.p>
-        )}
+          ))}
+        </div>
 
-        {/* Share Button */}
-        <div className="flex justify-center pt-8">
-          <FilledButton
-            onClick={handleShareClick}
-            variant="primary"
-            className="px-12 py-6 text-lg transform transition-all duration-300 hover:scale-105 bg-gradient-to-r from-accent-red to-[#FF8066]"
-          >
-            Share Results
-          </FilledButton>
+        {/* Canvas for sharing (hidden) */}
+        <div className="hidden">
+          <ResultsCanvas
+            ref={canvasRef}
+            econ={scores.econ}
+            dipl={scores.dipl}
+            govt={scores.govt}
+            scty={scores.scty}
+            closestMatch={publicFigure}
+            ideology={ideology}
+            onLoad={() => setIsCanvasLoading(false)}
+          />
         </div>
       </motion.div>
 
-      {isShareModalOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsShareModalOpen(false)}
-        >
-          <motion.div
-            className="relative w-full max-w-2xl bg-gradient-to-b from-brand-tertiary/20 to-brand-tertiary/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary/20 via-transparent to-transparent pointer-events-none" />
-
-            <div className="relative p-6 pb-4 text-center border-b border-white/10 bg-white/5">
-              <button
-                type="button"
-                onClick={() => setIsShareModalOpen(false)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-label="Close"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
-                Share Your Results
-              </h2>
-            </div>
-
-            <div className="p-6 text-center max-h-[70vh] overflow-y-auto scrollbar-custom">
-              <div className="w-full max-w-md mx-auto">
-                {isCanvasLoading && (
-                  <div className="flex items-center justify-center min-h-[200px]">
-                    <LoadingSpinner />
-                  </div>
-                )}
-                <ResultsCanvas
-                  ref={canvasRef}
-                  econ={scores.econ}
-                  dipl={scores.dipl}
-                  govt={scores.govt}
-                  scty={scores.scty}
-                  closestMatch={publicFigure}
-                  ideology={ideology}
-                  onLoad={() => setIsCanvasLoading(false)}
-                />
+      {/* Advanced Insights Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6">
+            <h2 className="mb-4 text-xl font-bold">{t('insights.aiAnalysis')}</h2>
+            
+            {isGeminiLoading ? (
+              <div className="flex h-40 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#E36C59]/20 border-t-[#E36C59]"></div>
+                <span className="ml-3 text-gray-600">{t('insights.loading')}</span>
               </div>
-            </div>
-
-            <div className="flex justify-center p-6 border-t border-white/10 bg-[#162026]/80">
-              <FilledButton
-                variant="primary"
-                onClick={handleInstagramShare}
-                aria-label="Share results"
-                className="w-full max-w-sm py-4 text-base font-medium bg-[#E36C59] hover:bg-[#E36C59]/90
-                     flex items-center justify-center gap-3
-                     focus:ring-2 focus:ring-offset-2 focus:ring-[#E36C59]
-                     transition-all duration-300 hover:scale-[1.02]
-                     sm:text-lg sm:py-5"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 sm:h-7 sm:w-7"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-                <span className="whitespace-nowrap">Share Results</span>
-              </FilledButton>
-            </div>
-          </motion.div>
-        </motion.div>
+            ) : (
+              <>
+                <div className="prose prose-sm mb-6 max-w-none">
+                  <p>{fullAnalysis}</p>
+                </div>
+                
+                <div className="flex justify-between">
+                  <FilledButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    {t('common.close')}
+                  </FilledButton>
+                  
+                  <FilledButton
+                    variant="primary"
+                    size="sm"
+                    className="bg-[#E36C59] hover:bg-[#E36C59]/90"
+                    onClick={handleShareAnalysis}
+                  >
+                    {t('insights.shareInsights')}
+                  </FilledButton>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
-      {isModalOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsModalOpen(false)}
-        >
-          <motion.div
-            className="relative w-full max-w-md mx-4 bg-brand-tertiary border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-tertiary via-transparent to-transparent pointer-events-none" />
-
-            <div className="relative p-6 pb-4 text-center">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-full"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-label="Close modal"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              <h2 className="text-2xl font-bold text-slate-100">
-                {isProUser
-                  ? "Advanced Ideological Analysis"
-                  : "Unlock Advanced Insights"}
-              </h2>
-            </div>
-
-            <div className="p-6 text-center max-h-[70vh] overflow-y-auto scrollbar-custom">
-              {isProUser ? (
-                <div className="w-full max-w-3xl mx-auto">
-                  {isGeminiLoading ? (
-                    <div className="flex items-center justify-center min-h-[200px]">
-                      <LoadingSpinner />
-                    </div>
-                  ) : (
-                    <p className="text-white/90 leading-relaxed text-base whitespace-pre-wrap">
-                      {fullAnalysis}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full max-w-md mx-auto space-y-4">
-                  <p className="text-white text-lg">
-                    Dive deeper into your ideological profile with Awaken Pro.
-                    Get comprehensive analysis and personalized insights.
-                  </p>
-                  <div className="flex justify-center pt-2">
-                    <FilledButton
-                      variant="primary"
-                      onClick={() => router.push("/awaken-pro")}
-                      className="bg-[#E36C59] hover:bg-[#E36C59]/90 transform transition-all duration-300 hover:scale-105"
-                    >
-                      Upgrade to Pro
-                    </FilledButton>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {isProUser && (
-              <div className="flex justify-between gap-3 p-4 border-t border-white/10 bg-[#162026]/80">
-                <FilledButton
-                  variant="primary"
-                  onClick={handleShareAnalysis}
-                  className="flex-1 py-3 text-sm bg-[#E36C59]
-                          flex items-center justify-center gap-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-label="Share analysis"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                    />
-                  </svg>
-                  <span className="whitespace-nowrap">Share Analysis</span>
-                </FilledButton>
+      {/* Share Modal */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+            <h2 className="mb-4 text-xl font-bold">{t('insights.shareInsights')}</h2>
+            
+            {isCanvasLoading ? (
+              <div className="flex h-40 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#E36C59]/20 border-t-[#E36C59]"></div>
+                <span className="ml-3 text-gray-600">{t('common.loading')}</span>
               </div>
+            ) : (
+              <>
+                <div className="mb-4 overflow-hidden rounded-lg border border-gray-200">
+                  <img
+                    src={canvasRef.current?.toDataURL()}
+                    alt="Your results"
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="flex justify-between">
+                  <FilledButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsShareModalOpen(false)}
+                  >
+                    {t('common.close')}
+                  </FilledButton>
+                  
+                  <FilledButton
+                    variant="primary"
+                    size="sm"
+                    className="bg-[#E36C59] hover:bg-[#E36C59]/90"
+                    onClick={handleInstagramShare}
+                  >
+                    {t('common.share')}
+                  </FilledButton>
+                </div>
+              </>
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
 
       {/* Emit modal state for bottom nav visibility */}

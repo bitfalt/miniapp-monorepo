@@ -6,19 +6,21 @@ import { LoadingSpinner, ProgressBar } from "@/components/ui/feedback";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const answerOptions = [
-  { label: "Strongly Agree", multiplier: 1.0 },
-  { label: "Agree", multiplier: 0.5 },
-  { label: "Neutral", multiplier: 0.0 },
-  { label: "Disagree", multiplier: -0.5 },
-  { label: "Strongly Disagree", multiplier: -1.0 },
-];
+import { useTranslation } from "@/i18n";
 
 export default function IdeologyTest() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "1";
+  const { t, tWithVars } = useTranslation();
+
+  const answerOptions = [
+    { label: t('ideologyTest.options.stronglyAgree'), multiplier: 1.0 },
+    { label: t('ideologyTest.options.agree'), multiplier: 0.5 },
+    { label: t('ideologyTest.options.neutral'), multiplier: 0.0 },
+    { label: t('ideologyTest.options.disagree'), multiplier: -0.5 },
+    { label: t('ideologyTest.options.stronglyDisagree'), multiplier: -1.0 },
+  ];
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -31,9 +33,18 @@ export default function IdeologyTest() {
   const [hasUnsavedChanges] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+
+  // Emit share modal state changes to hide bottom navigation
+  useEffect(() => {
+    const event = new CustomEvent("shareModalState", {
+      detail: { isOpen: isShareModalOpen },
+    });
+    window.dispatchEvent(event);
+  }, [isShareModalOpen]);
 
   // Auto-clear error message after 3 seconds
   useEffect(() => {
@@ -374,7 +385,7 @@ export default function IdeologyTest() {
             onClick={handleLeaveTest}
             className="bg-[#E36C59] hover:bg-[#E36C59]/90"
           >
-            Leave Test
+            {t('ideologyTest.leaveTest')}
           </FilledButton>
         </div>
 
@@ -382,7 +393,7 @@ export default function IdeologyTest() {
           <div className="w-full max-w-md mx-auto px-4">
             <div className="space-y-6">
               <h1 className="text-center text-white text-2xl font-bold">
-                Question {currentQuestion + 1} of {totalQuestions}
+                {tWithVars('ideologyTest.questionCount', { current: currentQuestion + 1, total: totalQuestions })}
               </h1>
 
               <div className="flex justify-center">
@@ -441,7 +452,7 @@ export default function IdeologyTest() {
                       (currentQuestion === 0 || isProcessingAnswer) && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    Previous
+                    {t('ideologyTest.navigation.previous')}
                   </FilledButton>
                 )}
               </div>
@@ -457,7 +468,7 @@ export default function IdeologyTest() {
                     (isSubmitting || isProcessingAnswer) && "opacity-50 cursor-not-allowed",
                   )}
                 >
-                  {isSubmitting ? "Saving..." : "End Test"}
+                  {isSubmitting ? t('common.loading') : t('ideologyTest.navigation.finish')}
                 </FilledButton>
               ) : (
                 <FilledButton
@@ -470,7 +481,7 @@ export default function IdeologyTest() {
                     isProcessingAnswer && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  Next
+                  {t('ideologyTest.navigation.next')}
                 </FilledButton>
               )}
             </div>

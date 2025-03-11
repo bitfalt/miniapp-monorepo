@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface User {
   name: string;
@@ -37,6 +38,7 @@ export default function Home() {
   const [userData, setUserData] = useState<User | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const { handleVerify } = useVerification();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,12 +124,12 @@ export default function Home() {
             <div className="space-y-3 text-center">
               <Sun className="mx-auto h-10 w-10 text-[#E36C59]" />
               <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
-                Welcome Back!
+                {t('home.welcome')}
               </h1>
             </div>
 
             <p className="mx-auto mb-4 max-w-sm text-base font-medium text-slate-200 sm:text-lg">
-              Track your progress and continue your journey of self-discovery
+              {t('home.todaysInsight')}
             </p>
           </motion.div>
         </div>

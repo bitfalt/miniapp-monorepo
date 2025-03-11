@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/base/avatar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface LeaderboardEntry {
   rank: number;
@@ -51,6 +52,7 @@ const leaderboardEntries: LeaderboardEntry[] = [
 export default function LeaderboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(true); // State for modal visibility
   const router = useRouter(); // Initialize the router
+  const { t } = useTranslation();
 
   const handleCloseModal = () => {
     setIsModalOpen(false); // Close the modal
@@ -70,7 +72,7 @@ export default function LeaderboardPage() {
         >
           <div className="relative z-10 text-center max-w-md mx-auto">
             <h1 className="text-4xl font-bold text-slate-100 tracking-tight mb-4">
-              Leaderboard
+              {t('leaderboard.title')}
             </h1>
 
             <div className="relative h-[280px]">
@@ -146,17 +148,16 @@ export default function LeaderboardPage() {
               "border border-brand-tertiary/10 backdrop-blur-sm",
             )}
           >
-            <h2 className="text-2xl font-bold text-white mb-3">Coming Soon</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">{t('leaderboard.comingSoon')}</h2>
             <p className="text-slate-200 text-sm">
-              The leaderboard feature is currently under development. Check back
-              soon to compete with others!
+              {t('leaderboard.comingSoonDescription')}
             </p>
             <button
               type="button"
               className="mt-4 bg-accent-red text-white rounded-lg px-4 py-2"
               onClick={handleCloseModal} // Close the modal and redirect
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>
