@@ -27,6 +27,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@next/bundle-analyzer": "^15.1.6",
+		"eslint": "^8.57.0",
 		"lint-staged": "^15.4.3",
 		"turbo": "^1.13.4",
 		"typescript": "^5.5.3",

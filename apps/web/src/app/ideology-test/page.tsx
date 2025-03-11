@@ -33,18 +33,10 @@ export default function IdeologyTest() {
   const [hasUnsavedChanges] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [_isShareModalOpen, _setIsShareModalOpen] = useState(false);
 
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-
-  // Emit share modal state changes to hide bottom navigation
-  useEffect(() => {
-    const event = new CustomEvent("shareModalState", {
-      detail: { isOpen: isShareModalOpen },
-    });
-    window.dispatchEvent(event);
-  }, [isShareModalOpen]);
 
   // Auto-clear error message after 3 seconds
   useEffect(() => {

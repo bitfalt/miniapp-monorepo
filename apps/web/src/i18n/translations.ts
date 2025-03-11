@@ -216,6 +216,12 @@ export const translations = {
       notificationsOff: 'Notifications are disabled',
       darkModeOn: 'Dark mode is enabled',
       darkModeOff: 'Dark mode is disabled'
+    },
+    profile: {
+      level: 'Level',
+      levelProgress: 'Level progress',
+      pointsToLevelUp: '{{points}}/{{maxPoints}} points to level up',
+      dailyMotivation: 'Your daily motivation'
     }
   },
   es: {
@@ -435,6 +441,12 @@ export const translations = {
       notificationsOff: 'Las notificaciones están deshabilitadas',
       darkModeOn: 'El modo oscuro está habilitado',
       darkModeOff: 'El modo oscuro está deshabilitado'
+    },
+    profile: {
+      level: 'Nivel',
+      levelProgress: 'Progreso de nivel',
+      pointsToLevelUp: '{{points}}/{{maxPoints}} puntos para subir de nivel',
+      dailyMotivation: 'Tu motivación diaria'
     }
   }
 }; 

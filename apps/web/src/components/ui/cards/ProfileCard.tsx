@@ -4,8 +4,10 @@ import type * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/base/avatar";
-import { motivationalQuotes } from "@/data/motivationalQuotes";
+import { getQuotesForLanguage } from "@/data/motivationalQuotes";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "@/i18n";
 
 interface User {
 	name: string;
@@ -46,9 +48,10 @@ function ProfileAvatar({ name, lastName }: ProfileAvatarProps) {
 
 function LevelProgress({ points, maxPoints }: LevelProgressProps) {
 	const progress = (points / maxPoints) * 100;
+	const { t, tWithVars } = useTranslation();
 
 	return (
-		<div className="w-full max-w-[250px]" aria-label="Level progress">
+		<div className="w-full max-w-[250px]" aria-label={t('profile.levelProgress')}>
 			<div className="relative h-2 rounded-full bg-white/30">
 				<div
 					className="absolute left-0 top-0 h-full rounded-full bg-[#E36C59] transition-all duration-300"
@@ -56,7 +59,7 @@ function LevelProgress({ points, maxPoints }: LevelProgressProps) {
 				/>
 			</div>
 			<p className="mt-1 text-center text-xs font-medium text-white">
-				{points}/{maxPoints} points to level up
+				{tWithVars('profile.pointsToLevelUp', { points, maxPoints })}
 			</p>
 		</div>
 	);
@@ -72,12 +75,15 @@ export function ProfileCard({
 		maxPoints: 100,
 	},
 }: ProfileCardProps) {
-	const [quote, setQuote] = useState<string>(motivationalQuotes[0]);
+	const { language } = useLanguage();
+	const quotes = getQuotesForLanguage(language);
+	const [quote, setQuote] = useState<string>(quotes[0]);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const getRandomQuote = (): string => {
-			const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
-			return motivationalQuotes[randomIndex];
+			const randomIndex = Math.floor(Math.random() * quotes.length);
+			return quotes[randomIndex];
 		};
 
 		setQuote(getRandomQuote());
@@ -93,7 +99,7 @@ export function ProfileCard({
 		}, 10000);
 
 		return () => clearInterval(intervalId);
-	}, []);
+	}, [quotes]);
 
 	return (
 		<div
@@ -115,7 +121,7 @@ export function ProfileCard({
 						{user.name} {user.last_name}
 					</h3>
 					<p className="mt-1 text-sm font-medium text-white">
-						Level: {user.level}
+						{t('profile.level')}: {user.level}
 					</p>
 				</div>
 
@@ -123,7 +129,7 @@ export function ProfileCard({
 
 				<div className="mt-4 w-full">
 					<p className="mb-2 text-sm font-medium text-white">
-						Your daily motivation:
+						{t('profile.dailyMotivation')}:
 					</p>
 					<h2 className="text-lg font-bold leading-tight text-accent-red sm:text-xl">
 						{quote}
