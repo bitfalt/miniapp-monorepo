@@ -1,6 +1,19 @@
-# MindVault - Discover Yourself
+ 
+<h1 align="center">MindVault</h1>
+
+## 🗒️ Table of Contents
+- [Introduction](#introduction)
+- [Features](#-features)
+- [How It Works](#-how-it-works)
+- [Tech Stack](#️-tech-stack)
+- [Built With](#built-with)
+- [Get Started](#getting-started)
+- [License](#-license)
+
+## Introduction
 
 MindVault is a **MiniApp** designed to help users explore their **personalities, preferences, ideologies, among others** through engaging assessments. By making self-discovery fun and interactive, MindVault encourages users to reflect on themselves daily while enjoying gamified elements such as **leaderboards, achievements, and streaks**.
+
 
 ## 🌟 Features
 
@@ -10,27 +23,34 @@ MindVault is a **MiniApp** designed to help users explore their **personalities,
 - **🔓 Awaken Pro Membership** – Unlock deeper, more personalized results with a paid membership.
 - **📤 Social Sharing** – Share your results on Instagram, Twitter, or download a visually appealing image with your results.
 
-### **Upcoming Features** (🚀 Coming Soon)
-- **🧠 Personality Test** – Gain deeper insights into your personality traits.
-- **🏆 Gamification Elements** – Compete on leaderboards, earn achievements, and maintain streaks.
+### **Upcoming Features** (Coming Soon)
+- **Personality Test** – Gain deeper insights into your personality traits.
+- **Gamification Elements** – Compete on leaderboards, earn achievements, and maintain streaks.
 
-## 🎯 How It Works
-1. **Register** on the platform.
-2. **Take a test of your preference** and discover new traits or insights about yourself.
-3. **Receive Your Results** instantly.
-4. **Upgrade to Awaken Pro** for more detailed and personalized insights.
-5. **Share Your Results** on social media or download them.
+## How does the MiniApp it work?
+1. Sign up on the platform.
+2. Choose a test and uncover new traits or insights about yourself.
+3. Get your results instantly.
+4. Upgrade to Awaken Pro for deeper, personalized insights.
+5. Share your results on social media or download them for later.
 
 ## 🛠️ Tech Stack
 MindVault is built using modern technologies to ensure a smooth and engaging user experience:
-- **Frontend**: NextJS, TailwindCSS, React
-- **Backend**: NextJS
-- **Database**: Xata (based on PostgreSQL)
-- **Authentication**: World App Authentication (SIWE)
-- **Hosting**: Vercel
 
-## 🤝 How to Contribute?
-We welcome contributions from the community! Here's how you can help:
+### Built With
+- [![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/)
+- [![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+- [![React](https://img.shields.io/badge/-React-61DAFB?style=flat&logo=react&logoColor=white)](https://reactjs.org/)
+- [![Xata](https://img.shields.io/badge/-Xata-1E1E1E?style=flat&logo=xata&logoColor=white)](https://xata.io/)
+- [![World App Authentication (SIWE)](https://img.shields.io/badge/-World%20App%20Authentication-22A7F0?style=flat&logo=worldcoin&logoColor=white)](https://worldcoin.org/)
+- [![Vercel](https://img.shields.io/badge/-Vercel-000000?style=flat&logo=vercel&logoColor=white)](https://vercel.com/)
+
+## Getting Started
+Thank you for taking the time to contribute to this incredible project. We truly appreciate all contributors who help make MindVault better.
+
+To get started with contributing and setting up your development environment, please refer to our [Contribution Guide](CONTRIBUTING.md).
+
+## Installation
 
 1. **Fork the repository** on GitHub:
    ```sh
@@ -56,12 +76,18 @@ We welcome contributions from the community! Here's how you can help:
    ```
 6. **Open a Pull Request** on GitHub, describing your changes.
 
-Make sure to check our contribution guidelines before submitting your PR. Thank you for helping improve MindVault! 🚀
+Make sure to check our contribution guidelines before submitting your PR. Thank you for helping improve MindVault! 
 
-## 📜 License
+## License
 MindVault is licensed under the **MIT License**.
 
 ---
 
-Follow the project for updates and new features! 🚀
 
+<div style="border-left: 5px solid #d1ecf1; padding-left: 10px; color:rgb(252, 252, 252);">
+  <strong>Note:</strong> 
+Feel free to follow the project for regular updates, bug fixes, and exciting new features! By keeping an eye on the latest releases, you’ll be among the first to experience enhancements and improvements that make the project even better.
+</div>
+
+
+<a href="#top" style="float:right;">⬆️Back to Top</a>
