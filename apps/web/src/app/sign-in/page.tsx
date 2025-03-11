@@ -9,10 +9,23 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/i18n";
 
+const headingConfig = {
+  firstLine: {
+    prefix: "Discover Your",
+    words: ["Truth", "Core", "Spirit", "Soul", "Heart", "Being", "Purpose"],
+  },
+  secondLine: {
+    prefix: "Transform Your",
+    words: ["View", "Lens", "Vision", "Mind", "Path", "Light", "World"],
+  },
+};
+
 export default function SignIn() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [currentTrueWord, setCurrentTrueWord] = useState(0);
+  const [currentPerspectiveWord, setCurrentPerspectiveWord] = useState(0);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -23,6 +36,19 @@ export default function SignIn() {
         document.cookie = `${c.replace(/^ +/, "").replace(/=.*/, "=;expires=")}${new Date().toUTCString()};path=/`;
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const wordInterval = setInterval(() => {
+      setCurrentTrueWord(
+        (prev) => (prev + 1) % headingConfig.firstLine.words.length,
+      );
+      setCurrentPerspectiveWord(
+        (prev) => (prev + 1) % headingConfig.secondLine.words.length,
+      );
+    }, 3000);
+
+    return () => clearInterval(wordInterval);
   }, []);
 
   const handleWorldIDClick = async () => {
@@ -53,7 +79,7 @@ export default function SignIn() {
       const { finalPayload } = await MiniKit.commandsAsync
         .walletAuth({
           nonce,
-          statement: "Sign in with your Ethereum wallet",
+          statement: t('signIn.walletAuthStatement'),
         })
         .catch((error: unknown) => {
           console.error("Wallet auth command failed:", error);
@@ -187,7 +213,7 @@ export default function SignIn() {
         error instanceof Error &&
         error.message === "Authentication cancelled"
       ) {
-        setError("Authentication was cancelled");
+        setError(t('signIn.errors.authCancelled'));
         return;
       }
 
@@ -200,11 +226,10 @@ export default function SignIn() {
         name: error instanceof DOMException ? error.name : undefined,
       });
 
-      let errorMessage = "Authentication failed";
+      let errorMessage = t('signIn.errors.authFailed');
       if (error instanceof Error) {
         if (error.message === "Invalid SIWE message format") {
-          errorMessage =
-            "Failed to create authentication message. Please try again.";
+          errorMessage = t('signIn.errors.invalidSiweFormat');
         } else {
           errorMessage = error.message;
         }
@@ -224,91 +249,118 @@ export default function SignIn() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2c5154] to-[#1d3638] px-4 py-12"
+      transition={{ duration: 0.6 }}
+      className="flex flex-col items-center w-full"
     >
-      <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-10" />
-
-      <div className="relative z-10 w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center space-y-6">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Image
-              src="/mindvault-logo.png"
-              alt="MindVault Logo"
-              width={80}
-              height={80}
-              className="h-20 w-20 object-contain"
-              priority
-              loading="eager"
-              sizes="80px"
-            />
-          </motion.div>
-
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center text-4xl font-bold text-white"
-          >
-            {t('signIn.title')}
-          </motion.h1>
-
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-center text-lg text-white/80"
-          >
-            {t('signIn.subtitle')}
-          </motion.p>
-        </div>
-
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8 space-y-6"
-        >
-          <div className="space-y-4">
-            <FilledButton
-              variant="primary"
-              size="lg"
-              className="w-full bg-[#e36c59] hover:bg-[#e36c59]/90"
-              onClick={handleWorldIDClick}
-              disabled={isConnecting}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="relative w-full h-[510px] -mt-4 lg:h-[600px]"
+      >
+        <div className="w-full absolute top-0 bg-white rounded-b-[65px] shadow-[inset_-5px_-5px_25px_0px_rgba(134,152,183,1.00),inset_5px_5px_25px_0px_rgba(248,248,246,1.00)]" />
+        <div className="w-full h-full px-[34px] pt-[125px] pb-[70px] absolute top-0 bg-[#2c5154] rounded-b-[65px] shadow-[21px_38px_64.69999694824219px_3px_rgba(0,0,0,0.25)] overflow-hidden lg:pt-[180px]">
+          <div className="max-w-md mx-auto lg:max-w-2xl">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="flex justify-center mb-8"
             >
-              <div className="flex items-center justify-center gap-2">
-                <Wallet className="h-5 w-5" />
-                <span>{t('signIn.worldIdButton')}</span>
+              <div className="relative w-16 h-16 lg:w-24 lg:h-24">
+                <Image
+                  src="/MindVaultLogoTransparentHD.svg"
+                  alt="MindVault Logo"
+                  width={96}
+                  height={96}
+                  className="w-full h-full"
+                  priority
+                />
               </div>
-            </FilledButton>
+            </motion.div>
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="rounded-md bg-red-500/10 p-3 text-center text-sm text-red-500"
+            <h1 className="text-white text-[clamp(3rem,9vw,3.5rem)] font-medium leading-[1] mb-8">
+              {t('signIn.headings.firstLine.prefix')}{" "}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentTrueWord}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="font-bold inline-block text-[#e36c59]"
                 >
-                  {error}
-                </motion.div>
+                  {t(`signIn.headings.firstLine.words.${currentTrueWord}`)}
+                </motion.span>
+              </AnimatePresence>
+            </h1>
+            <h2 className="text-white text-[clamp(2.75rem,8vw,3.25rem)] font-medium leading-[1]">
+              {t('signIn.headings.secondLine.prefix')}{" "}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentPerspectiveWord}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="font-bold inline-block text-[#e36c59]"
+                >
+                  {t(`signIn.headings.secondLine.words.${currentPerspectiveWord}`)}
+                </motion.span>
+              </AnimatePresence>
+            </h2>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="w-full max-w-md space-y-4 text-center mt-auto p-4"
+      >
+        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+
+        <FilledButton
+          variant="primary"
+          size="lg"
+          className="w-full bg-[#E36C59] hover:bg-[#E36C59]/90"
+          onClick={handleWorldIDClick}
+          disabled={isConnecting}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <div className="relative w-5 h-5">
+              {isConnecting ? (
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Wallet className="w-5 h-5" />
               )}
-            </AnimatePresence>
+            </div>
+            <span>{isConnecting ? t('signIn.connecting') : t('signIn.worldIdButton')}</span>
           </div>
+        </FilledButton>
 
-          <div className="text-center text-xs text-white/60">
-            {t('signIn.privacyNotice')}
-          </div>
-        </motion.div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-black/20 to-transparent" />
-      <div className="absolute -bottom-48 -left-48 h-96 w-96 rounded-full bg-[#e36c59]/20 blur-3xl" />
-      <div className="absolute -bottom-48 -right-48 h-96 w-96 rounded-full bg-[#2c5154]/40 blur-3xl" />
+        <p className="text-sm text-muted-foreground pb-6 mt-4">
+          {t('signIn.privacyNotice')}{" "}
+          <a
+            href="https://docs.google.com/document/d/1GXZ5ZBevKkXUVdIfgB3Mz4KsBrjuuSQZmjocx_RH3XY/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {t('signIn.privacyPolicy')}
+          </a>{" "}
+          {t('signIn.and')}{" "}
+          <a
+            href="https://docs.google.com/document/d/1Rn1Whrf3gIaq0UGMxsSyWeheTcXNZfMRAYFhegFu3vQ/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {t('signIn.termsOfService')}
+          </a>
+        </p>
+      </motion.div>
     </motion.div>
   );
 }

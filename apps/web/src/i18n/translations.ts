@@ -57,8 +57,44 @@ export const translations = {
     signIn: {
       title: 'Sign In',
       subtitle: 'Your journey toward understanding your true self begins here.',
-      worldIdButton: 'Continue with World ID',
-      privacyNotice: 'By continuing, you agree to our Terms of Service and Privacy Policy.'
+      worldIdButton: 'World ID',
+      connecting: 'Connecting...',
+      privacyNotice: 'By signing in, you agree to our',
+      privacyPolicy: 'Privacy Policy',
+      termsOfService: 'Terms of Service',
+      and: 'and',
+      walletAuthStatement: 'Sign in with your Ethereum wallet',
+      headings: {
+        firstLine: {
+          prefix: 'Discover Your',
+          words: {
+            0: 'Truth',
+            1: 'Core',
+            2: 'Spirit',
+            3: 'Soul',
+            4: 'Heart',
+            5: 'Being',
+            6: 'Purpose'
+          }
+        },
+        secondLine: {
+          prefix: 'Transform Your',
+          words: {
+            0: 'View',
+            1: 'Lens',
+            2: 'Vision',
+            3: 'Mind',
+            4: 'Path',
+            5: 'Light',
+            6: 'World'
+          }
+        }
+      },
+      errors: {
+        authCancelled: 'Authentication was cancelled',
+        authFailed: 'Authentication failed',
+        invalidSiweFormat: 'Failed to create authentication message. Please try again.'
+      }
     },
     register: {
       title: "Let's get to know a little bit about you...",
@@ -282,8 +318,44 @@ export const translations = {
     signIn: {
       title: 'Iniciar Sesión',
       subtitle: 'Tu viaje hacia la comprensión de tu verdadero yo comienza aquí.',
-      worldIdButton: 'Continuar con World ID',
-      privacyNotice: 'Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad.'
+      worldIdButton: 'World ID',
+      connecting: 'Conectando...',
+      privacyNotice: 'Al iniciar sesión, aceptas nuestra',
+      privacyPolicy: 'Política de Privacidad',
+      termsOfService: 'Términos de Servicio',
+      and: 'y',
+      walletAuthStatement: 'Inicia sesión con tu billetera Ethereum',
+      headings: {
+        firstLine: {
+          prefix: 'Descubre Tu',
+          words: {
+            0: 'Verdad',
+            1: 'Esencia',
+            2: 'Espíritu',
+            3: 'Alma',
+            4: 'Corazón',
+            5: 'Ser',
+            6: 'Propósito'
+          }
+        },
+        secondLine: {
+          prefix: 'Transforma Tu',
+          words: {
+            0: 'Vista',
+            1: 'Lente',
+            2: 'Visión',
+            3: 'Mente',
+            4: 'Camino',
+            5: 'Luz',
+            6: 'Mundo'
+          }
+        }
+      },
+      errors: {
+        authCancelled: 'La autenticación fue cancelada',
+        authFailed: 'La autenticación falló',
+        invalidSiweFormat: 'Error al crear el mensaje de autenticación. Por favor, inténtalo de nuevo.'
+      }
     },
     register: {
       title: 'Conozcamos un poco sobre ti...',
