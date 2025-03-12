@@ -49,7 +49,16 @@ export default function Home() {
           return;
         }
 
-        const response = await fetch("/api/home");
+        const languagePreference = localStorage.getItem("language") || "en";
+        const response = await fetch("/api/home", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "X-Language-Preference": languagePreference
+          },
+        });
         if (!response.ok) {
           const errorData = await response.json();
           console.error("API Error:", errorData);

@@ -19,6 +19,11 @@ interface SiweResponse {
 
 export async function POST(req: NextRequest) {
   try {
+    // Get language preference from header or cookie
+    const languageHeader = req.headers.get("X-Language-Preference");
+    const languageCookie = req.cookies.get("language")?.value;
+    const languagePreference = languageHeader || languageCookie || "en";
+    
     const { payload, nonce } = (await req.json()) as IRequestPayload;
     const storedNonce = cookies().get("siwe")?.value;
 
@@ -36,7 +41,16 @@ export async function POST(req: NextRequest) {
         message: "Invalid nonce",
       };
 
-      return NextResponse.json(response);
+      const nextResponse = NextResponse.json(response);
+      
+      // Preserve language preference even on error
+      nextResponse.cookies.set("language", languagePreference, {
+        path: "/",
+        maxAge: 86400, // 24 hours
+        sameSite: "lax",
+      });
+      
+      return nextResponse;
     }
     const validMessage = await verifySiweMessage(payload, storedNonce);
 
@@ -53,9 +67,28 @@ export async function POST(req: NextRequest) {
       address: validMessage.siweMessageData.address,
     };
 
-    return NextResponse.json(response);
+    const finalResponse = NextResponse.json(response);
+    
+    // Preserve language preference even on success
+    finalResponse.cookies.set("language", languagePreference, {
+      path: "/",
+      maxAge: 86400, // 24 hours
+      sameSite: "lax",
+    });
+    
+    return finalResponse;
   } catch (error) {
     console.error("SIWE verification error:", error);
+
+    // Get language preference from header or cookie (in case of error)
+    let languagePreference = "en";
+    try {
+      const languageHeader = req.headers.get("X-Language-Preference");
+      const languageCookie = req.cookies.get("language")?.value;
+      languagePreference = languageHeader || languageCookie || "en";
+    } catch (e) {
+      console.error("Error getting language preference:", e);
+    }
 
     const response: SiweResponse = {
       status: "error",
@@ -64,6 +97,15 @@ export async function POST(req: NextRequest) {
         error instanceof Error ? error.message : "SIWE verification failed",
     };
 
-    return NextResponse.json(response);
+    const finalResponse = NextResponse.json(response);
+    
+    // Preserve language preference even on error
+    finalResponse.cookies.set("language", languagePreference, {
+      path: "/",
+      maxAge: 86400, // 24 hours
+      sameSite: "lax",
+    });
+    
+    return finalResponse;
   }
 }

@@ -220,8 +220,9 @@ export default function SignIn() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
           "Pragma": "no-cache",
+          "X-Language-Preference": languagePreferenceAfterAuth || "en"
         },
         body: JSON.stringify({ walletAddress: userWalletAddress }),
       });
@@ -247,6 +248,7 @@ export default function SignIn() {
               "Content-Type": "application/json",
               "Cache-Control": "no-cache",
               "Pragma": "no-cache",
+              "X-Language-Preference": languagePreferenceAfterAuth || "en"
             },
             credentials: "include",
             body: JSON.stringify({
@@ -273,8 +275,9 @@ export default function SignIn() {
             method: "GET",
             credentials: "include",
             headers: {
-              "Cache-Control": "no-cache",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
               "Pragma": "no-cache",
+              "X-Language-Preference": languagePreferenceAfterAuth || "en"
             },
           });
 

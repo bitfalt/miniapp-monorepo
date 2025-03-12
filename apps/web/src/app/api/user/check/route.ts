@@ -10,6 +10,11 @@ interface CheckUserResponse {
 
 export async function POST(req: NextRequest) {
   try {
+    // Get language preference from headers or cookies
+    const languagePreference = req.headers.get("x-language-preference") || 
+                              req.cookies.get("language")?.value || 
+                              "en";
+    
     const body = await req.json();
     const { walletAddress } = body as { walletAddress: string };
 
@@ -18,7 +23,16 @@ export async function POST(req: NextRequest) {
         exists: false,
         error: "Wallet address is required",
       };
-      return NextResponse.json(response, { status: 400 });
+      const jsonResponse = NextResponse.json(response, { status: 400 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     const xata = getXataClient();
@@ -31,12 +45,42 @@ export async function POST(req: NextRequest) {
       exists: !!existingUser,
       userId: existingUser?.xata_id,
     };
-    return NextResponse.json(response);
+    
+    const jsonResponse = NextResponse.json(response);
+    
+    // Preserve language preference cookie
+    jsonResponse.cookies.set("language", languagePreference, {
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      sameSite: "lax",
+    });
+    
+    return jsonResponse;
   } catch (error) {
+    // Try to get language preference even in case of error
+    let languagePreference = "en";
+    try {
+      languagePreference = req.headers.get("x-language-preference") || 
+                          req.cookies.get("language")?.value || 
+                          "en";
+    } catch (e) {
+      console.error("Error getting language preference:", e);
+    }
+    
     const response: CheckUserResponse = {
       exists: false,
       error: error instanceof Error ? error.message : "Failed to check user existence",
     };
-    return NextResponse.json(response, { status: 500 });
+    
+    const jsonResponse = NextResponse.json(response, { status: 500 });
+    
+    // Preserve language preference cookie
+    jsonResponse.cookies.set("language", languagePreference, {
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      sameSite: "lax",
+    });
+    
+    return jsonResponse;
   }
 }

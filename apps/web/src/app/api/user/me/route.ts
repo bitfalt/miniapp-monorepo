@@ -20,12 +20,26 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    // Get language preference from headers or cookies
+    const languagePreference = req.headers.get("x-language-preference") || 
+                           req.cookies.get("language")?.value || 
+                           "en";
+    
     const userId = req.headers.get("x-user-id");
     const walletAddress = req.headers.get("x-wallet-address");
 
     if (!userId || !walletAddress) {
       const response: UserResponse = { error: "Unauthorized" };
-      return NextResponse.json(response, { status: 401 });
+      const jsonResponse = NextResponse.json(response, { status: 401 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     const xata = getXataClient();
@@ -36,7 +50,16 @@ export async function GET(req: NextRequest) {
 
     if (!user) {
       const response: UserResponse = { error: "User not found" };
-      return NextResponse.json(response, { status: 404 });
+      const jsonResponse = NextResponse.json(response, { status: 404 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     const response: UserResponse = {
@@ -51,10 +74,40 @@ export async function GET(req: NextRequest) {
       createdAt: user.created_at,
       updatedAt: user.updated_at,
     };
-    return NextResponse.json(response);
+    
+    const jsonResponse = NextResponse.json(response);
+    
+    // Preserve language preference cookie
+    jsonResponse.cookies.set("language", languagePreference, {
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      sameSite: "lax",
+    });
+    
+    return jsonResponse;
   } catch (error) {
     console.error("Error fetching user:", error);
+    
+    // Try to get language preference even in case of error
+    let languagePreference = "en";
+    try {
+      languagePreference = req.headers.get("x-language-preference") || 
+                          req.cookies.get("language")?.value || 
+                          "en";
+    } catch (e) {
+      console.error("Error getting language preference:", e);
+    }
+    
     const response: UserResponse = { error: "Failed to fetch user data" };
-    return NextResponse.json(response, { status: 500 });
+    const jsonResponse = NextResponse.json(response, { status: 500 });
+    
+    // Preserve language preference cookie
+    jsonResponse.cookies.set("language", languagePreference, {
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      sameSite: "lax",
+    });
+    
+    return jsonResponse;
   }
 }
