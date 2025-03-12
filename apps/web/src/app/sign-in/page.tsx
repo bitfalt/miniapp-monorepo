@@ -34,13 +34,21 @@ export default function SignIn() {
       // Save language preference
       const languagePreference = localStorage.getItem("language");
       
-      // Clear sessionStorage
-      sessionStorage.clear();
+      // Clear sessionStorage except for language-related items
+      const keysToKeep = ['language'];
+      Object.keys(sessionStorage).forEach(key => {
+        if (!keysToKeep.includes(key)) {
+          sessionStorage.removeItem(key);
+        }
+      });
       
-      // Clear cookies
-      for (const c of document.cookie.split(";")) {
-        document.cookie = `${c.replace(/^ +/, "").replace(/=.*/, "=;expires=")}${new Date().toUTCString()};path=/`;
-      }
+      // Clear cookies but don't use document.cookie directly as it can be unreliable
+      fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      }).catch(err => {
+        console.error("Error clearing cookies:", err);
+      });
       
       // Restore language preference if it existed
       if (languagePreference) {
@@ -75,8 +83,22 @@ export default function SignIn() {
         return;
       }
 
+      // Clear any existing session before starting a new one
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (err) {
+        console.error("Error clearing existing session:", err);
+      }
+
       const nonceResponse = await fetch("/api/nonce", {
         credentials: "include",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
       });
       if (!nonceResponse.ok) {
         const errorText = await nonceResponse.text();
@@ -88,6 +110,11 @@ export default function SignIn() {
 
       if (!nonce) {
         throw new Error("Invalid nonce received");
+      }
+
+      // Restore language preference after nonce fetch
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
       }
 
       const { finalPayload } = await MiniKit.commandsAsync
@@ -111,6 +138,11 @@ export default function SignIn() {
         throw new Error("Authentication failed");
       }
 
+      // Restore language preference after wallet auth
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+
       // Get the wallet address from MiniKit after successful auth
       const walletAddress = MiniKit.user?.walletAddress;
 
@@ -118,6 +150,8 @@ export default function SignIn() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
         },
         credentials: "include",
         body: JSON.stringify({
@@ -137,6 +171,11 @@ export default function SignIn() {
 
       const data = await response.json();
 
+      // Restore language preference after SIWE completion
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+
       if (data.status === "error" || !data.isValid) {
         throw new Error(data.message || "Failed to verify SIWE message");
       }
@@ -151,7 +190,11 @@ export default function SignIn() {
       // Check if user exists using the API endpoint
       const userCheckResponse = await fetch("/api/user/check", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
         body: JSON.stringify({ walletAddress: userWalletAddress }),
       });
 
@@ -162,12 +205,21 @@ export default function SignIn() {
 
       const userCheckData = await userCheckResponse.json();
 
+      // Restore language preference after user check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+
       if (userCheckData.exists) {
         // User exists, create session and redirect to home
         try {
           const sessionResponse = await fetch("/api/auth/session", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Cache-Control": "no-cache",
+              "Pragma": "no-cache",
+            },
             credentials: "include",
             body: JSON.stringify({
               walletAddress: userWalletAddress,
@@ -181,7 +233,7 @@ export default function SignIn() {
           }
 
           // Add a small delay to ensure session is properly set
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           
           // Restore language preference after session creation
           if (languagePreference) {
@@ -194,7 +246,7 @@ export default function SignIn() {
             credentials: "include",
             headers: {
               "Cache-Control": "no-cache",
-              Pragma: "no-cache",
+              "Pragma": "no-cache",
             },
           });
 
@@ -210,6 +262,11 @@ export default function SignIn() {
 
           const userData = await userResponse.json();
 
+          // Restore language preference before redirect
+          if (languagePreference) {
+            localStorage.setItem("language", languagePreference);
+          }
+
           // If this is their first login (checking created_at vs updated_at)
           if (userData.createdAt === userData.updatedAt) {
             router.push("/welcome");
@@ -219,10 +276,22 @@ export default function SignIn() {
         } catch (error) {
           console.error("Session/User data error:", error);
           // If something goes wrong after session creation, redirect to home
+          
+          // Restore language preference before redirect
+          if (languagePreference) {
+            localStorage.setItem("language", languagePreference);
+          }
+          
           router.push("/");
         }
       } else {
         // User doesn't exist, redirect to registration
+        
+        // Restore language preference before redirect
+        if (languagePreference) {
+          localStorage.setItem("language", languagePreference);
+        }
+        
         router.push(
           `/register?userId=${encodeURIComponent(userWalletAddress)}`,
         );

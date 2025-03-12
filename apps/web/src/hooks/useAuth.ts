@@ -64,18 +64,48 @@ export function useAuth() {
       // Save language preference before auth check
       const languagePreference = localStorage.getItem("language");
       
-      // Check session first
-      const sessionResponse = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
+      // Add a retry mechanism for session check
+      let retries = 3;
+      let sessionResponse;
+      
+      while (retries > 0) {
+        try {
+          // Check session first
+          sessionResponse = await fetch("/api/auth/session", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0"
+            },
+          });
+          
+          // If successful, break out of the retry loop
+          if (sessionResponse.ok) {
+            break;
+          }
+          
+          // If unauthorized, no need to retry
+          if (sessionResponse.status === 401) {
+            break;
+          }
+          
+          // Otherwise, wait and retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+          retries--;
+        } catch (err) {
+          console.error("Error checking session:", err);
+          retries--;
+          if (retries === 0) {
+            throw err;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
-      if (!sessionResponse.ok) {
-        if (sessionResponse.status === 401) {
+      if (!sessionResponse || !sessionResponse.ok) {
+        if (sessionResponse && sessionResponse.status === 401) {
           preserveLanguagePreference(() => {
             setAuthState({
               isAuthenticated: false,

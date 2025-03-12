@@ -11,16 +11,29 @@ export function clearVerificationSession() {
     // Save language preference
     const languagePreference = localStorage.getItem("language");
     
-    // Clear session storage
-    sessionStorage.removeItem("verify-modal-shown");
-    sessionStorage.clear();
+    // Clear session storage except for language-related items
+    const keysToKeep = ['language'];
+    Object.keys(sessionStorage).forEach(key => {
+      if (!keysToKeep.includes(key)) {
+        sessionStorage.removeItem(key);
+      }
+    });
     
-    // Clear cookies
-    const cookies = document.cookie.split(";");
-    for (const cookie of cookies) {
-      const cookieName = cookie.split("=")[0].trim();
-      document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-    }
+    // Clear cookies via API instead of directly manipulating document.cookie
+    fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(err => {
+      console.error("Error clearing cookies:", err);
+      
+      // Fallback: try to clear cookies directly if API call fails
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const cookieName = cookie.split("=")[0].trim();
+        document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+        document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+      }
+    });
     
     // Restore language preference if it existed
     if (languagePreference) {
@@ -63,15 +76,24 @@ export function useVerification() {
     setIsVerifying(false);
     setError(null);
     
-    // Clear session cookies
-    document.cookie =
-      "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    document.cookie =
-      "worldcoin_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    document.cookie =
-      "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    document.cookie =
-      "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    // Clear cookies via API instead of directly manipulating document.cookie
+    fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(err => {
+      console.error("Error clearing cookies:", err);
+      
+      // Fallback: try to clear cookies directly if API call fails
+      document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
+      document.cookie = "worldcoin_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
+      document.cookie = "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
+      document.cookie = "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
+      
+      document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "worldcoin_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    });
       
     // Restore language preference after clearing session
     if (languagePreference) {
@@ -85,17 +107,48 @@ export function useVerification() {
       // Save language preference before verification check
       const languagePreference = localStorage.getItem("language");
       
-      const response = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
+      // Add a retry mechanism for session check
+      let retries = 3;
+      let response;
+      
+      while (retries > 0) {
+        try {
+          response = await fetch("/api/auth/session", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0"
+            },
+          });
+          
+          // If successful, break out of the retry loop
+          if (response.ok) {
+            break;
+          }
+          
+          // If unauthorized, no need to retry
+          if (response.status === 401) {
+            break;
+          }
+          
+          // Otherwise, wait and retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+          retries--;
+        } catch (err) {
+          console.error("Error checking session:", err);
+          retries--;
+          if (retries === 0) {
+            throw err;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      // If we still don't have a response or it failed after retries
+      if (!response || !response.ok) {
+        if (response && response.status === 401) {
           preserveLanguagePreference(() => {
             clearVerificationSession();
             router.push("/sign-in");
