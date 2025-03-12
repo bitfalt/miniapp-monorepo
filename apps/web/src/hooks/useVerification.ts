@@ -65,7 +65,7 @@ export function useVerification() {
   const clearVerificationSession = useCallback(() => {
     // Save language preference before clearing session
     const languagePreference = localStorage.getItem("language");
-    
+
     setIsVerified(false);
     setIsVerifying(false);
     setError(null);
@@ -79,7 +79,7 @@ export function useVerification() {
         document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
       }
     }
-      
+    
     // Restore language preference after clearing session
     if (languagePreference) {
       localStorage.setItem("language", languagePreference);
