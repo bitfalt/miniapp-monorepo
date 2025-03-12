@@ -58,13 +58,20 @@ export default function Home() {
           if (response.status === 404) {
             // Handle user not found case silently
             clearVerificationSession();
-            const logoutResponse = await fetch("/api/auth/logout", {
-              method: "POST",
-            });
-            if (logoutResponse.ok) {
-              router.push("/sign-in");
+            
+            // Clear cookies directly without making an API call
+            if (typeof window !== "undefined") {
+              const cookies = document.cookie.split(";");
+              for (const cookie of cookies) {
+                const cookieName = cookie.split("=")[0].trim();
+                if (cookieName && cookieName !== "language") {
+                  document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+                  document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+                }
+              }
             }
-            return;
+            
+            router.push("/sign-in");
           }
           return;
         }

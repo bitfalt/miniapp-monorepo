@@ -161,13 +161,19 @@ export default function SettingsPage() {
       preserveLanguagePreference(async () => {
         clearVerificationSession();
 
-        const response = await fetch("/api/auth/logout", {
-          method: "POST",
-        });
-
-        if (response.ok) {
-          window.location.href = "/sign-in";
+        // Clear cookies directly without making an API call
+        if (typeof window !== "undefined") {
+          const cookies = document.cookie.split(";");
+          for (const cookie of cookies) {
+            const cookieName = cookie.split("=")[0].trim();
+            if (cookieName && cookieName !== "language") {
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+            }
+          }
         }
+
+        window.location.href = "/sign-in";
       });
     } catch {
       // Error handling is done via the UI state

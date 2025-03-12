@@ -6,11 +6,15 @@ const COOKIES_TO_CLEAR = [
   "next-auth.session-token",
   "next-auth.callback-url",
   "next-auth.csrf-token",
+  "worldcoin_verified",
+  "siwe_verified",
+  "registration_status",
 ] as const;
 
 const COOKIE_EXPIRY = "Thu, 01 Jan 1970 00:00:00 GMT";
 
-export async function POST() {
+// Helper function to clear cookies and create response
+function clearCookiesAndCreateResponse() {
   try {
     const cookieStore = cookies();
 
@@ -19,13 +23,7 @@ export async function POST() {
       cookieStore.delete(cookie);
     }
 
-    const response = NextResponse.json(
-      {
-        success: true,
-        message: "Logged out successfully",
-      },
-      { status: 200 },
-    );
+    const response = NextResponse.redirect(new URL("/sign-in", process.env.NEXT_PUBLIC_APP_URL || "https://app.bitfalt.xyz"));
 
     // Set all cookies to expire
     for (const cookie of COOKIES_TO_CLEAR) {
@@ -40,4 +38,13 @@ export async function POST() {
     console.error("Logout error:", error);
     return NextResponse.json({ error: "Failed to logout" }, { status: 500 });
   }
+}
+
+// Support both POST and GET methods
+export async function POST() {
+  return clearCookiesAndCreateResponse();
+}
+
+export async function GET() {
+  return clearCookiesAndCreateResponse();
 }

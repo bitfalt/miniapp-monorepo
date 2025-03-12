@@ -42,13 +42,15 @@ export default function SignIn() {
         }
       });
       
-      // Clear cookies but don't use document.cookie directly as it can be unreliable
-      fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      }).catch(err => {
-        console.error("Error clearing cookies:", err);
-      });
+      // Clear cookies directly without making an API call
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const cookieName = cookie.split("=")[0].trim();
+        if (cookieName && cookieName !== "language") {
+          document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+          document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+        }
+      }
       
       // Restore language preference if it existed
       if (languagePreference) {

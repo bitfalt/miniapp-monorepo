@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 const publicPaths = [
   "/sign-in",
   "/api/auth/session",
+  "/api/auth/logout",
   "/api/user",
   "/api/user/check",
   "/api/user/by-wallet",

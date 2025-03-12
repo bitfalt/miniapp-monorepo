@@ -19,21 +19,15 @@ export function clearVerificationSession() {
       }
     });
     
-    // Clear cookies via API instead of directly manipulating document.cookie
-    fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    }).catch(err => {
-      console.error("Error clearing cookies:", err);
-      
-      // Fallback: try to clear cookies directly if API call fails
-      const cookies = document.cookie.split(";");
-      for (const cookie of cookies) {
-        const cookieName = cookie.split("=")[0].trim();
+    // Clear cookies directly without making an API call
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const cookieName = cookie.split("=")[0].trim();
+      if (cookieName && cookieName !== "language") {
         document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
         document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
       }
-    });
+    }
     
     // Restore language preference if it existed
     if (languagePreference) {
@@ -76,24 +70,15 @@ export function useVerification() {
     setIsVerifying(false);
     setError(null);
     
-    // Clear cookies via API instead of directly manipulating document.cookie
-    fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    }).catch(err => {
-      console.error("Error clearing cookies:", err);
-      
-      // Fallback: try to clear cookies directly if API call fails
-      document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
-      document.cookie = "worldcoin_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
-      document.cookie = "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
-      document.cookie = "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=" + window.location.hostname;
-      
-      document.cookie = "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "worldcoin_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    });
+    // Clear cookies directly without making an API call
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const cookieName = cookie.split("=")[0].trim();
+      if (cookieName && cookieName !== "language") {
+        document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+        document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+      }
+    }
       
     // Restore language preference after clearing session
     if (languagePreference) {
