@@ -1,8 +1,13 @@
  
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <h1 align="center">MindVault</h1>
+ <p align="center">
+    <img src="docs\img\MindVaultBanner.png" width="700">
+</p>
+
+
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 ## 🗒️ Table of Contents
 - [Introduction](#introduction)
@@ -108,6 +113,7 @@ We would like to extend our sincere gratitude to the exceptional individuals who
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/evgongora"><img src="https://avatars.githubusercontent.com/u/123427413?v=4?s=120" width="120px;" alt="Erick Vasquez"/><br /><sub><b>Erick Vasquez</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=evgongora" title="Code">💻</a> <a href="https://github.com/evgongora/miniapp-monorepo/commits?author=evgongora" title="Tests">⚠️</a> <a href="#translation-evgongora" title="Translation">🌍</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/LazarusAA"><img src="https://avatars.githubusercontent.com/u/169322121?v=4?s=120" width="120px;" alt="Lazarus"/><br /><sub><b>Lazarus</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=LazarusAA" title="Code">💻</a> <a href="#design-LazarusAA" title="Design">🎨</a> <a href="#data-LazarusAA" title="Data">🔣</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bitfalt"><img src="https://avatars.githubusercontent.com/u/75431447?v=4?s=120" width="120px;" alt="Daniel Garbanzo"/><br /><sub><b>Daniel Garbanzo</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=bitfalt" title="Code">💻</a> <a href="https://github.com/evgongora/miniapp-monorepo/commits?author=bitfalt" title="Tests">⚠️</a> <a href="#data-bitfalt" title="Data">🔣</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/juancguerrerodev"><img src="https://avatars.githubusercontent.com/u/201527159?v=4?s=120" width="120px;" alt="juancguerrerodev"/><br /><sub><b>juancguerrerodev</b></sub></a><br /><a href="#business-juancguerrerodev" title="Business development">💼</a></td>
     </tr>
   </tbody>
 </table>

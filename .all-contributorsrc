@@ -16,7 +16,9 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/167961274?v=4",
       "profile": "https://github.com/t0fudev",
       "contributions": [
-        "code","design","doc"
+        "code",
+        "design",
+        "doc"
       ]
     },
     {
@@ -25,7 +27,9 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/123427413?v=4",
       "profile": "https://github.com/evgongora",
       "contributions": [
-        "code","test","translation"
+        "code",
+        "test",
+        "translation"
       ]
     },
     {
@@ -34,7 +38,9 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/169322121?v=4",
       "profile": "https://github.com/LazarusAA",
       "contributions": [
-        "code","design","data"
+        "code",
+        "design",
+        "data"
       ]
     },
     {
@@ -43,7 +49,18 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/75431447?v=4",
       "profile": "https://github.com/bitfalt",
       "contributions": [
-        "code","test","data"
+        "code",
+        "test",
+        "data"
+      ]
+    },
+    {
+      "login": "juancguerrerodev",
+      "name": "juancguerrerodev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/201527159?v=4",
+      "profile": "https://github.com/juancguerrerodev",
+      "contributions": [
+        "business"
       ]
     }
   ],
