@@ -66,6 +66,17 @@ async function verifyToken(token: string) {
 // Middleware function
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const { method } = request;
+
+  // Special case for POST requests to /sign-in
+  if (pathname === "/sign-in" && method === "POST") {
+    // Create a new URL object for the redirect
+    const redirectUrl = new URL("/sign-in", request.url);
+    
+    // Create a new response with a 303 See Other status code
+    // This forces the browser to use a GET request for the redirect
+    return NextResponse.redirect(redirectUrl, 303);
+  }
 
   // Allow public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {

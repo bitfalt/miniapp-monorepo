@@ -23,7 +23,9 @@ function clearCookiesAndCreateResponse() {
       cookieStore.delete(cookie);
     }
 
-    const response = NextResponse.redirect(new URL("/sign-in", process.env.NEXT_PUBLIC_APP_URL || "https://app.bitfalt.xyz"));
+    // Use a 303 redirect to force a GET request
+    const redirectUrl = new URL("/sign-in", process.env.NEXT_PUBLIC_APP_URL || "https://app.bitfalt.xyz");
+    const response = NextResponse.redirect(redirectUrl, 303);
 
     // Set all cookies to expire
     for (const cookie of COOKIES_TO_CLEAR) {
