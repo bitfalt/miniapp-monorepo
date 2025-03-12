@@ -1,4 +1,7 @@
  
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <h1 align="center">MindVault</h1>
 
 ## 🗒️ Table of Contents
@@ -66,13 +69,13 @@ To get started with contributing and setting up your development environment, pl
    ```
 4. **Create a new branch** for your feature or fix:
    ```sh
-   git checkout -b feature-name
+   git checkout -b feature/AmazingFeature
    ```
 5. **Make your changes**, then commit and push them:
    ```sh
    git add .
-   git commit -m "Add new feature"
-   git push origin feature-name
+   git commit -m "Add some AmazingFeature"
+   git push origin feature/AmazingFeature
    ```
 6. **Open a Pull Request** on GitHub, describing your changes.
 
@@ -91,3 +94,24 @@ Feel free to follow the project for regular updates, bug fixes, and exciting new
 
 
 <a href="#top" style="float:right;">⬆️Back to Top</a>
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/t0fudev"><img src="https://avatars.githubusercontent.com/u/167961274?v=4?s=150" width="150px;" alt="Hellen Xie"/><br /><sub><b>Hellen Xie</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=t0fudev" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

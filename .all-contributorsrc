@@ -1,0 +1,25 @@
+{
+  "projectName": "miniapp-monorepo",
+  "projectOwner": "evgongora",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 150,
+  "commit": true,
+  "commitConvention": "atom",
+  "contributors": [
+    {
+      "login": "t0fudev",
+      "name": "Hellen Xie",
+      "avatar_url": "https://avatars.githubusercontent.com/u/167961274?v=4",
+      "profile": "https://github.com/t0fudev",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}
