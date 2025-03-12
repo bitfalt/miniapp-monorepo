@@ -9,6 +9,24 @@ interface AuthState {
   loading: boolean;
 }
 
+// Helper function to preserve language preference
+function preserveLanguagePreference(callback: () => void) {
+  if (typeof window !== "undefined") {
+    // Save language preference
+    const languagePreference = localStorage.getItem("language");
+    
+    // Execute the callback
+    callback();
+    
+    // Restore language preference
+    if (languagePreference) {
+      localStorage.setItem("language", languagePreference);
+    }
+  } else {
+    callback();
+  }
+}
+
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
@@ -43,6 +61,9 @@ export function useAuth() {
     }
 
     try {
+      // Save language preference before auth check
+      const languagePreference = localStorage.getItem("language");
+      
       // Check session first
       const sessionResponse = await fetch("/api/auth/session", {
         method: "GET",
@@ -55,33 +76,30 @@ export function useAuth() {
 
       if (!sessionResponse.ok) {
         if (sessionResponse.status === 401) {
-          setAuthState({
-            isAuthenticated: false,
-            isRegistered: false,
-            needsRegistration: false,
-            walletAddress: null,
-            loading: false,
-          });
-          if (pathname !== "/sign-in") {
-            // Save language preference before redirecting
-            const languagePreference = localStorage.getItem("language");
+          preserveLanguagePreference(() => {
+            setAuthState({
+              isAuthenticated: false,
+              isRegistered: false,
+              needsRegistration: false,
+              walletAddress: null,
+              loading: false,
+            });
             
-            // Redirect to sign-in
-            router.replace("/sign-in");
-            
-            // Ensure language preference is preserved after redirect
-            if (languagePreference) {
-              setTimeout(() => {
-                localStorage.setItem("language", languagePreference);
-              }, 100);
+            if (pathname !== "/sign-in") {
+              router.replace("/sign-in");
             }
-          }
+          });
           return;
         }
         throw new Error("Session check failed");
       }
 
       const sessionData = await sessionResponse.json();
+      
+      // Restore language preference after successful auth check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
 
       setAuthState({
         isAuthenticated: sessionData.isAuthenticated,
@@ -93,46 +111,29 @@ export function useAuth() {
 
       // Handle redirects based on auth state
       if (!sessionData.isAuthenticated && pathname !== "/sign-in") {
-        // Save language preference before redirecting
-        const languagePreference = localStorage.getItem("language");
-        
-        // Redirect to sign-in
-        router.replace("/sign-in");
-        
-        // Ensure language preference is preserved after redirect
-        if (languagePreference) {
-          setTimeout(() => {
-            localStorage.setItem("language", languagePreference);
-          }, 100);
-        }
+        preserveLanguagePreference(() => {
+          router.replace("/sign-in");
+        });
       } else if (sessionData.needsRegistration && pathname !== "/register") {
         router.replace("/register");
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      if (error instanceof DOMException && error.name === "SyntaxError") {
-        if (pathname !== "/sign-in" && pathname !== "/welcome") {
-          // Save language preference before redirecting
-          const languagePreference = localStorage.getItem("language");
-          
-          // Redirect to sign-in
-          router.replace("/sign-in");
-          
-          // Ensure language preference is preserved after redirect
-          if (languagePreference) {
-            setTimeout(() => {
-              localStorage.setItem("language", languagePreference);
-            }, 100);
+      
+      preserveLanguagePreference(() => {
+        if (error instanceof DOMException && error.name === "SyntaxError") {
+          if (pathname !== "/sign-in" && pathname !== "/welcome") {
+            router.replace("/sign-in");
           }
         }
-      }
 
-      setAuthState({
-        isAuthenticated: false,
-        isRegistered: false,
-        needsRegistration: false,
-        walletAddress: null,
-        loading: false,
+        setAuthState({
+          isAuthenticated: false,
+          isRegistered: false,
+          needsRegistration: false,
+          walletAddress: null,
+          loading: false,
+        });
       });
     }
   }, [pathname, router, shouldSkipAuthCheck]);

@@ -136,27 +136,39 @@ export default function SettingsPage() {
     router.push("/awaken-pro");
   };
 
+  // Helper function to preserve language preference
+  function preserveLanguagePreference(callback: () => void) {
+    if (typeof window !== "undefined") {
+      // Save language preference
+      const languagePreference = localStorage.getItem("language");
+      
+      // Execute the callback
+      callback();
+      
+      // Restore language preference
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+    } else {
+      callback();
+    }
+  }
+
   const handleLogout = async () => {
     try {
       setIsLoading(true);
       
-      // Save language preference before clearing session
-      const languagePreference = localStorage.getItem("language");
-      
-      clearVerificationSession();
+      preserveLanguagePreference(async () => {
+        clearVerificationSession();
 
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
+        const response = await fetch("/api/auth/logout", {
+          method: "POST",
+        });
 
-      if (response.ok) {
-        // Restore language preference if it existed
-        if (languagePreference) {
-          localStorage.setItem("language", languagePreference);
+        if (response.ok) {
+          window.location.href = "/sign-in";
         }
-        
-        window.location.href = "/sign-in";
-      }
+      });
     } catch {
       // Error handling is done via the UI state
     } finally {

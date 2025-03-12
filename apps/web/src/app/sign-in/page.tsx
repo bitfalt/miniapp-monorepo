@@ -66,6 +66,9 @@ export default function SignIn() {
     setIsConnecting(true);
     try {
       setError(null);
+      
+      // Save language preference before authentication
+      const languagePreference = localStorage.getItem("language");
 
       if (!MiniKit.isInstalled()) {
         router.push("https://worldcoin.org/download-app");
@@ -179,6 +182,11 @@ export default function SignIn() {
 
           // Add a small delay to ensure session is properly set
           await new Promise((resolve) => setTimeout(resolve, 500));
+          
+          // Restore language preference after session creation
+          if (languagePreference) {
+            localStorage.setItem("language", languagePreference);
+          }
 
           // Check if this is the user's first login
           const userResponse = await fetch("/api/user/me", {

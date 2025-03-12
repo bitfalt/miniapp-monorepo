@@ -13,11 +13,37 @@ export function clearVerificationSession() {
     
     // Clear session storage
     sessionStorage.removeItem("verify-modal-shown");
+    sessionStorage.clear();
+    
+    // Clear cookies
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const cookieName = cookie.split("=")[0].trim();
+      document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+    }
     
     // Restore language preference if it existed
     if (languagePreference) {
       localStorage.setItem("language", languagePreference);
     }
+  }
+}
+
+// Helper function to preserve language preference
+function preserveLanguagePreference(callback: () => void) {
+  if (typeof window !== "undefined") {
+    // Save language preference
+    const languagePreference = localStorage.getItem("language");
+    
+    // Execute the callback
+    callback();
+    
+    // Restore language preference
+    if (languagePreference) {
+      localStorage.setItem("language", languagePreference);
+    }
+  } else {
+    callback();
   }
 }
 
@@ -30,9 +56,13 @@ export function useVerification() {
   const router = useRouter();
 
   const clearVerificationSession = useCallback(() => {
+    // Save language preference before clearing session
+    const languagePreference = localStorage.getItem("language");
+    
     setIsVerified(false);
     setIsVerifying(false);
     setError(null);
+    
     // Clear session cookies
     document.cookie =
       "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
@@ -42,11 +72,19 @@ export function useVerification() {
       "siwe_verified=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     document.cookie =
       "registration_status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      
+    // Restore language preference after clearing session
+    if (languagePreference) {
+      localStorage.setItem("language", languagePreference);
+    }
   }, []);
 
   const checkVerificationStatus = useCallback(async () => {
     setError(null);
     try {
+      // Save language preference before verification check
+      const languagePreference = localStorage.getItem("language");
+      
       const response = await fetch("/api/auth/session", {
         method: "GET",
         credentials: "include",
@@ -58,46 +96,30 @@ export function useVerification() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Save language preference before clearing session
-          const languagePreference = localStorage.getItem("language");
-          
-          clearVerificationSession();
-          
-          // Redirect to sign-in
-          router.push("/sign-in");
-          
-          // Ensure language preference is preserved after redirect
-          if (languagePreference) {
-            setTimeout(() => {
-              localStorage.setItem("language", languagePreference);
-            }, 100);
-          }
-          
+          preserveLanguagePreference(() => {
+            clearVerificationSession();
+            router.push("/sign-in");
+          });
           return;
         }
         throw new Error("Failed to check verification status");
       }
 
       const data = await response.json();
+      
+      // Restore language preference after successful verification check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+      
       setIsVerified(data.isVerified);
 
       // Handle registration and authentication states
       if (!data.isAuthenticated) {
-        // Save language preference before clearing session
-        const languagePreference = localStorage.getItem("language");
-        
-        clearVerificationSession();
-        
-        // Redirect to sign-in
-        router.push("/sign-in");
-        
-        // Ensure language preference is preserved after redirect
-        if (languagePreference) {
-          setTimeout(() => {
-            localStorage.setItem("language", languagePreference);
-          }, 100);
-        }
-        
+        preserveLanguagePreference(() => {
+          clearVerificationSession();
+          router.push("/sign-in");
+        });
         return;
       }
 
@@ -108,21 +130,10 @@ export function useVerification() {
     } catch (error) {
       console.error("Error in checkVerificationStatus:", error);
       if (error instanceof DOMException) {
-        // Save language preference before clearing session
-        const languagePreference = localStorage.getItem("language");
-        
-        clearVerificationSession();
-        
-        // Redirect to sign-in
-        router.push("/sign-in");
-        
-        // Ensure language preference is preserved after redirect
-        if (languagePreference) {
-          setTimeout(() => {
-            localStorage.setItem("language", languagePreference);
-          }, 100);
-        }
-        
+        preserveLanguagePreference(() => {
+          clearVerificationSession();
+          router.push("/sign-in");
+        });
         return;
       }
       setError(
