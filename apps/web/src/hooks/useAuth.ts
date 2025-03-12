@@ -63,7 +63,18 @@ export function useAuth() {
             loading: false,
           });
           if (pathname !== "/sign-in") {
+            // Save language preference before redirecting
+            const languagePreference = localStorage.getItem("language");
+            
+            // Redirect to sign-in
             router.replace("/sign-in");
+            
+            // Ensure language preference is preserved after redirect
+            if (languagePreference) {
+              setTimeout(() => {
+                localStorage.setItem("language", languagePreference);
+              }, 100);
+            }
           }
           return;
         }
@@ -82,7 +93,18 @@ export function useAuth() {
 
       // Handle redirects based on auth state
       if (!sessionData.isAuthenticated && pathname !== "/sign-in") {
+        // Save language preference before redirecting
+        const languagePreference = localStorage.getItem("language");
+        
+        // Redirect to sign-in
         router.replace("/sign-in");
+        
+        // Ensure language preference is preserved after redirect
+        if (languagePreference) {
+          setTimeout(() => {
+            localStorage.setItem("language", languagePreference);
+          }, 100);
+        }
       } else if (sessionData.needsRegistration && pathname !== "/register") {
         router.replace("/register");
       }
@@ -90,7 +112,18 @@ export function useAuth() {
       console.error("Auth check failed:", error);
       if (error instanceof DOMException && error.name === "SyntaxError") {
         if (pathname !== "/sign-in" && pathname !== "/welcome") {
+          // Save language preference before redirecting
+          const languagePreference = localStorage.getItem("language");
+          
+          // Redirect to sign-in
           router.replace("/sign-in");
+          
+          // Ensure language preference is preserved after redirect
+          if (languagePreference) {
+            setTimeout(() => {
+              localStorage.setItem("language", languagePreference);
+            }, 100);
+          }
         }
       }
 

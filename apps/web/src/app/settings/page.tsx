@@ -139,6 +139,10 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
+      
+      // Save language preference before clearing session
+      const languagePreference = localStorage.getItem("language");
+      
       clearVerificationSession();
 
       const response = await fetch("/api/auth/logout", {
@@ -146,6 +150,11 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
+        // Restore language preference if it existed
+        if (languagePreference) {
+          localStorage.setItem("language", languagePreference);
+        }
+        
         window.location.href = "/sign-in";
       }
     } catch {

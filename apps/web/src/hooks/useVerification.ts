@@ -8,7 +8,16 @@ import { useCallback, useEffect, useState } from "react";
 // Utility function to clear verification session data
 export function clearVerificationSession() {
   if (typeof window !== "undefined") {
+    // Save language preference
+    const languagePreference = localStorage.getItem("language");
+    
+    // Clear session storage
     sessionStorage.removeItem("verify-modal-shown");
+    
+    // Restore language preference if it existed
+    if (languagePreference) {
+      localStorage.setItem("language", languagePreference);
+    }
   }
 }
 
@@ -49,8 +58,21 @@ export function useVerification() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          // Save language preference before clearing session
+          const languagePreference = localStorage.getItem("language");
+          
           clearVerificationSession();
+          
+          // Redirect to sign-in
           router.push("/sign-in");
+          
+          // Ensure language preference is preserved after redirect
+          if (languagePreference) {
+            setTimeout(() => {
+              localStorage.setItem("language", languagePreference);
+            }, 100);
+          }
+          
           return;
         }
         throw new Error("Failed to check verification status");
@@ -61,8 +83,21 @@ export function useVerification() {
 
       // Handle registration and authentication states
       if (!data.isAuthenticated) {
+        // Save language preference before clearing session
+        const languagePreference = localStorage.getItem("language");
+        
         clearVerificationSession();
+        
+        // Redirect to sign-in
         router.push("/sign-in");
+        
+        // Ensure language preference is preserved after redirect
+        if (languagePreference) {
+          setTimeout(() => {
+            localStorage.setItem("language", languagePreference);
+          }, 100);
+        }
+        
         return;
       }
 
@@ -73,8 +108,21 @@ export function useVerification() {
     } catch (error) {
       console.error("Error in checkVerificationStatus:", error);
       if (error instanceof DOMException) {
+        // Save language preference before clearing session
+        const languagePreference = localStorage.getItem("language");
+        
         clearVerificationSession();
+        
+        // Redirect to sign-in
         router.push("/sign-in");
+        
+        // Ensure language preference is preserved after redirect
+        if (languagePreference) {
+          setTimeout(() => {
+            localStorage.setItem("language", languagePreference);
+          }, 100);
+        }
+        
         return;
       }
       setError(

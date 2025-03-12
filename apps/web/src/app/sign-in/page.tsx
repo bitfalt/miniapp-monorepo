@@ -29,11 +29,22 @@ export default function SignIn() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Clear any old session data
+    // Clear any old session data but preserve language preference
     if (typeof window !== "undefined") {
+      // Save language preference
+      const languagePreference = localStorage.getItem("language");
+      
+      // Clear sessionStorage
       sessionStorage.clear();
+      
+      // Clear cookies
       for (const c of document.cookie.split(";")) {
         document.cookie = `${c.replace(/^ +/, "").replace(/=.*/, "=;expires=")}${new Date().toUTCString()};path=/`;
+      }
+      
+      // Restore language preference if it existed
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
       }
     }
   }, []);
