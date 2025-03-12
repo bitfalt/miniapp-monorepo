@@ -79,6 +79,11 @@ export default function SignIn() {
       
       // Save language preference before authentication
       const languagePreference = localStorage.getItem("language");
+      
+      // Store language in sessionStorage as well for redundancy
+      if (languagePreference) {
+        sessionStorage.setItem("language", languagePreference);
+      }
 
       if (!MiniKit.isInstalled()) {
         router.push("https://worldcoin.org/download-app");
@@ -87,19 +92,33 @@ export default function SignIn() {
 
       // Clear any existing session before starting a new one
       try {
+        // Create a language cookie to preserve language during redirects
+        if (languagePreference) {
+          document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+        }
+        
         await fetch("/api/auth/logout", {
           method: "POST",
           credentials: "include",
+          headers: {
+            "X-Language-Preference": languagePreference || "en"
+          }
         });
       } catch (err) {
         console.error("Error clearing existing session:", err);
+      }
+      
+      // Restore language preference after logout
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
       }
 
       const nonceResponse = await fetch("/api/nonce", {
         credentials: "include",
         headers: {
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
           "Pragma": "no-cache",
+          "X-Language-Preference": languagePreference || "en"
         },
       });
       if (!nonceResponse.ok) {
@@ -117,6 +136,7 @@ export default function SignIn() {
       // Restore language preference after nonce fetch
       if (languagePreference) {
         localStorage.setItem("language", languagePreference);
+        sessionStorage.setItem("language", languagePreference);
       }
 
       const { finalPayload } = await MiniKit.commandsAsync
@@ -141,8 +161,11 @@ export default function SignIn() {
       }
 
       // Restore language preference after wallet auth
-      if (languagePreference) {
-        localStorage.setItem("language", languagePreference);
+      const languagePreferenceAfterAuth = localStorage.getItem("language") || sessionStorage.getItem("language");
+      if (languagePreferenceAfterAuth) {
+        localStorage.setItem("language", languagePreferenceAfterAuth);
+        sessionStorage.setItem("language", languagePreferenceAfterAuth);
+        document.cookie = `language=${languagePreferenceAfterAuth}; Path=/; Max-Age=86400; SameSite=Lax`;
       }
 
       // Get the wallet address from MiniKit after successful auth
@@ -152,8 +175,9 @@ export default function SignIn() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
           "Pragma": "no-cache",
+          "X-Language-Preference": languagePreferenceAfterAuth || "en"
         },
         credentials: "include",
         body: JSON.stringify({
@@ -174,8 +198,10 @@ export default function SignIn() {
       const data = await response.json();
 
       // Restore language preference after SIWE completion
-      if (languagePreference) {
-        localStorage.setItem("language", languagePreference);
+      if (languagePreferenceAfterAuth) {
+        localStorage.setItem("language", languagePreferenceAfterAuth);
+        sessionStorage.setItem("language", languagePreferenceAfterAuth);
+        document.cookie = `language=${languagePreferenceAfterAuth}; Path=/; Max-Age=86400; SameSite=Lax`;
       }
 
       if (data.status === "error" || !data.isValid) {
@@ -208,8 +234,8 @@ export default function SignIn() {
       const userCheckData = await userCheckResponse.json();
 
       // Restore language preference after user check
-      if (languagePreference) {
-        localStorage.setItem("language", languagePreference);
+      if (languagePreferenceAfterAuth) {
+        localStorage.setItem("language", languagePreferenceAfterAuth);
       }
 
       if (userCheckData.exists) {
@@ -238,8 +264,8 @@ export default function SignIn() {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           
           // Restore language preference after session creation
-          if (languagePreference) {
-            localStorage.setItem("language", languagePreference);
+          if (languagePreferenceAfterAuth) {
+            localStorage.setItem("language", languagePreferenceAfterAuth);
           }
 
           // Check if this is the user's first login
@@ -265,8 +291,8 @@ export default function SignIn() {
           const userData = await userResponse.json();
 
           // Restore language preference before redirect
-          if (languagePreference) {
-            localStorage.setItem("language", languagePreference);
+          if (languagePreferenceAfterAuth) {
+            localStorage.setItem("language", languagePreferenceAfterAuth);
           }
 
           // If this is their first login (checking created_at vs updated_at)
@@ -280,8 +306,8 @@ export default function SignIn() {
           // If something goes wrong after session creation, redirect to home
           
           // Restore language preference before redirect
-          if (languagePreference) {
-            localStorage.setItem("language", languagePreference);
+          if (languagePreferenceAfterAuth) {
+            localStorage.setItem("language", languagePreferenceAfterAuth);
           }
           
           router.push("/");
@@ -290,8 +316,8 @@ export default function SignIn() {
         // User doesn't exist, redirect to registration
         
         // Restore language preference before redirect
-        if (languagePreference) {
-          localStorage.setItem("language", languagePreference);
+        if (languagePreferenceAfterAuth) {
+          localStorage.setItem("language", languagePreferenceAfterAuth);
         }
         
         router.push(

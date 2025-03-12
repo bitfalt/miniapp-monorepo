@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 const COOKIES_TO_CLEAR = [
   "session",
@@ -14,11 +15,16 @@ const COOKIES_TO_CLEAR = [
 const COOKIE_EXPIRY = "Thu, 01 Jan 1970 00:00:00 GMT";
 
 // Helper function to clear cookies and create response
-function clearCookiesAndCreateResponse() {
+function clearCookiesAndCreateResponse(req: NextRequest) {
   try {
     const cookieStore = cookies();
+    
+    // Get language preference from header or cookie
+    const languageHeader = req.headers.get("X-Language-Preference");
+    const languageCookie = req.cookies.get("language")?.value;
+    const languagePreference = languageHeader || languageCookie || "en";
 
-    // Clear all session-related cookies
+    // Clear all session-related cookies except language
     for (const cookie of COOKIES_TO_CLEAR) {
       cookieStore.delete(cookie);
     }
@@ -34,6 +40,12 @@ function clearCookiesAndCreateResponse() {
         `${cookie}=; Path=/; Expires=${COOKIE_EXPIRY}`,
       );
     }
+    
+    // Preserve language preference
+    response.headers.append(
+      "Set-Cookie",
+      `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`,
+    );
 
     return response;
   } catch (error) {
@@ -43,10 +55,10 @@ function clearCookiesAndCreateResponse() {
 }
 
 // Support both POST and GET methods
-export async function POST() {
-  return clearCookiesAndCreateResponse();
+export async function POST(req: NextRequest) {
+  return clearCookiesAndCreateResponse(req);
 }
 
-export async function GET() {
-  return clearCookiesAndCreateResponse();
+export async function GET(req: NextRequest) {
+  return clearCookiesAndCreateResponse(req);
 }

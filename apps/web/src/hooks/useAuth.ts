@@ -62,7 +62,12 @@ export function useAuth() {
 
     try {
       // Save language preference before auth check
-      const languagePreference = localStorage.getItem("language");
+      const languagePreference = localStorage.getItem("language") || sessionStorage.getItem("language");
+      
+      // Also set it as a cookie for server-side access
+      if (languagePreference) {
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
       
       // Add a retry mechanism for session check
       let retries = 3;
@@ -77,7 +82,8 @@ export function useAuth() {
             headers: {
               "Cache-Control": "no-cache, no-store, must-revalidate",
               "Pragma": "no-cache",
-              "Expires": "0"
+              "Expires": "0",
+              "X-Language-Preference": languagePreference || "en"
             },
           });
           
@@ -103,6 +109,13 @@ export function useAuth() {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
+      
+      // Restore language preference after session check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+        sessionStorage.setItem("language", languagePreference);
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
 
       if (!sessionResponse || !sessionResponse.ok) {
         if (sessionResponse && sessionResponse.status === 401) {
@@ -126,11 +139,6 @@ export function useAuth() {
 
       const sessionData = await sessionResponse.json();
       
-      // Restore language preference after successful auth check
-      if (languagePreference) {
-        localStorage.setItem("language", languagePreference);
-      }
-
       setAuthState({
         isAuthenticated: sessionData.isAuthenticated,
         isRegistered: sessionData.isRegistered,

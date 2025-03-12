@@ -90,7 +90,12 @@ export function useVerification() {
     setError(null);
     try {
       // Save language preference before verification check
-      const languagePreference = localStorage.getItem("language");
+      const languagePreference = localStorage.getItem("language") || sessionStorage.getItem("language");
+      
+      // Also set it as a cookie for server-side access
+      if (languagePreference) {
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
       
       // Add a retry mechanism for session check
       let retries = 3;
@@ -104,7 +109,8 @@ export function useVerification() {
             headers: {
               "Cache-Control": "no-cache, no-store, must-revalidate",
               "Pragma": "no-cache",
-              "Expires": "0"
+              "Expires": "0",
+              "X-Language-Preference": languagePreference || "en"
             },
           });
           
@@ -131,6 +137,13 @@ export function useVerification() {
         }
       }
       
+      // Restore language preference after session check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+        sessionStorage.setItem("language", languagePreference);
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
+      
       // If we still don't have a response or it failed after retries
       if (!response || !response.ok) {
         if (response && response.status === 401) {
@@ -144,11 +157,6 @@ export function useVerification() {
       }
 
       const data = await response.json();
-      
-      // Restore language preference after successful verification check
-      if (languagePreference) {
-        localStorage.setItem("language", languagePreference);
-      }
       
       setIsVerified(data.isVerified);
 

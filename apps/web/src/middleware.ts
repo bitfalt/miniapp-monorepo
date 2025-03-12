@@ -67,6 +67,9 @@ async function verifyToken(token: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { method } = request;
+  
+  // Get language preference from cookie
+  const languageCookie = request.cookies.get("language")?.value || "en";
 
   // Special case for POST requests to /sign-in
   if (pathname === "/sign-in" && method === "POST") {
@@ -75,7 +78,16 @@ export async function middleware(request: NextRequest) {
     
     // Create a new response with a 303 See Other status code
     // This forces the browser to use a GET request for the redirect
-    return NextResponse.redirect(redirectUrl, 303);
+    const response = NextResponse.redirect(redirectUrl, 303);
+    
+    // Preserve language preference
+    response.cookies.set("language", languageCookie, {
+      path: "/",
+      maxAge: 86400,
+      sameSite: "lax"
+    });
+    
+    return response;
   }
 
   // Allow public paths
@@ -98,7 +110,14 @@ export async function middleware(request: NextRequest) {
 
   // For all protected routes
   if (!sessionToken) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    const response = NextResponse.redirect(new URL("/sign-in", request.url));
+    // Preserve language preference
+    response.cookies.set("language", languageCookie, {
+      path: "/",
+      maxAge: 86400,
+      sameSite: "lax"
+    });
+    return response;
   }
 
   try {
@@ -107,6 +126,12 @@ export async function middleware(request: NextRequest) {
       const response = NextResponse.redirect(new URL("/sign-in", request.url));
       response.cookies.delete("session");
       response.cookies.delete("registration_status");
+      // Preserve language preference
+      response.cookies.set("language", languageCookie, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax"
+      });
       return response;
     }
 
@@ -116,7 +141,14 @@ export async function middleware(request: NextRequest) {
       if (decoded.walletAddress) {
         url.searchParams.set("walletAddress", decoded.walletAddress);
       }
-      return NextResponse.redirect(url);
+      const response = NextResponse.redirect(url);
+      // Preserve language preference
+      response.cookies.set("language", languageCookie, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax"
+      });
+      return response;
     }
 
     // Add user info to request headers for API routes
@@ -138,6 +170,12 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/sign-in", request.url));
     response.cookies.delete("session");
     response.cookies.delete("registration_status");
+    // Preserve language preference
+    response.cookies.set("language", languageCookie, {
+      path: "/",
+      maxAge: 86400,
+      sameSite: "lax"
+    });
     return response;
   }
 }
