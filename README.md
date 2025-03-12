@@ -94,9 +94,9 @@ Feel free to follow the project for regular updates, bug fixes, and exciting new
 
 
 <a href="#top" style="float:right;">⬆️Back to Top</a>
-## Contributors ✨
+## Maintainers ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+We would like to extend our sincere gratitude to the exceptional individuals whose contributions have been instrumental to the success and growth of this project. Their dedication, hard work, and support are deeply appreciated. ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -104,10 +104,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/t0fudev"><img src="https://avatars.githubusercontent.com/u/167961274?v=4?s=150" width="150px;" alt="Hellen Xie"/><br /><sub><b>Hellen Xie</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=t0fudev" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/evgongora"><img src="https://avatars.githubusercontent.com/u/123427413?v=4?s=150" width="150px;" alt="Erick Vasquez"/><br /><sub><b>Erick Vasquez</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=evgongora" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/LazarusAA"><img src="https://avatars.githubusercontent.com/u/169322121?v=4?s=150" width="150px;" alt="Lazarus"/><br /><sub><b>Lazarus</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=LazarusAA" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bitfalt"><img src="https://avatars.githubusercontent.com/u/75431447?v=4?s=150" width="150px;" alt="Daniel Garbanzo"/><br /><sub><b>Daniel Garbanzo</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=bitfalt" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/t0fudev"><img src="https://avatars.githubusercontent.com/u/167961274?v=4?s=120" width="120px;" alt="Hellen Xie"/><br /><sub><b>Hellen Xie</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=t0fudev" title="Code">💻</a> <a href="#design-t0fudev" title="Design">🎨</a> <a href="https://github.com/evgongora/miniapp-monorepo/commits?author=t0fudev" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/evgongora"><img src="https://avatars.githubusercontent.com/u/123427413?v=4?s=120" width="120px;" alt="Erick Vasquez"/><br /><sub><b>Erick Vasquez</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=evgongora" title="Code">💻</a> <a href="https://github.com/evgongora/miniapp-monorepo/commits?author=evgongora" title="Tests">⚠️</a> <a href="#translation-evgongora" title="Translation">🌍</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/LazarusAA"><img src="https://avatars.githubusercontent.com/u/169322121?v=4?s=120" width="120px;" alt="Lazarus"/><br /><sub><b>Lazarus</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=LazarusAA" title="Code">💻</a> <a href="#design-LazarusAA" title="Design">🎨</a> <a href="#data-LazarusAA" title="Data">🔣</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bitfalt"><img src="https://avatars.githubusercontent.com/u/75431447?v=4?s=120" width="120px;" alt="Daniel Garbanzo"/><br /><sub><b>Daniel Garbanzo</b></sub></a><br /><a href="https://github.com/evgongora/miniapp-monorepo/commits?author=bitfalt" title="Code">💻</a> <a href="https://github.com/evgongora/miniapp-monorepo/commits?author=bitfalt" title="Tests">⚠️</a> <a href="#data-bitfalt" title="Data">🔣</a></td>
     </tr>
   </tbody>
 </table>
@@ -117,4 +117,3 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

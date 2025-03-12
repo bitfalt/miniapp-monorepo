@@ -6,7 +6,7 @@
   "files": [
     "README.md"
   ],
-  "imageSize": 150,
+  "imageSize": 120,
   "commit": true,
   "commitConvention": "atom",
   "contributors": [
@@ -16,7 +16,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/167961274?v=4",
       "profile": "https://github.com/t0fudev",
       "contributions": [
-        "code"
+        "code","design","doc"
       ]
     },
     {
@@ -25,7 +25,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/123427413?v=4",
       "profile": "https://github.com/evgongora",
       "contributions": [
-        "code"
+        "code","test","translation"
       ]
     },
     {
@@ -34,7 +34,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/169322121?v=4",
       "profile": "https://github.com/LazarusAA",
       "contributions": [
-        "code"
+        "code","design","data"
       ]
     },
     {
@@ -43,7 +43,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/75431447?v=4",
       "profile": "https://github.com/bitfalt",
       "contributions": [
-        "code"
+        "code","test","data"
       ]
     }
   ],
