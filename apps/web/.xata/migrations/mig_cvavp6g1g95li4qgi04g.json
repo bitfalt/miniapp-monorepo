@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cvavp6g1g95li4qgi04g",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "IdeologiesTranslate",
+          "column": {
+            "name": "translated_text",
+            "type": "text",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cvavp6g1g95li4qgi04g",
+  "parent": "mig_cvavp181g95li4qgi03g",
+  "schema": "public",
+  "startedAt": "2025-03-15T22:18:02.542456Z"
+}
