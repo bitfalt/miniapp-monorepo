@@ -8,6 +8,7 @@ import { FileChartColumn, Globe, Heart, Star, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface Test {
   testId: string;
@@ -27,6 +28,7 @@ export default function ResultsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -35,7 +37,7 @@ export default function ResultsPage() {
         const data = await response.json();
 
         const transformedResults = data.tests.map((test: Test) => ({
-          title: test.testName || "Political Values Test",
+          title: test.testName || t('results.title'),
           backgroundColor: "#387478",
           iconBgColor: "#2C5154",
           Icon: Globe,
@@ -76,7 +78,7 @@ export default function ResultsPage() {
     };
 
     fetchResults();
-  }, []);
+  }, [t]);
 
   const handleCardClick = (testId: string) => {
     router.push(`/insights?testId=${testId}`);
@@ -99,12 +101,12 @@ export default function ResultsPage() {
           <div className="text-center space-y-3">
             <FileChartColumn className="h-10 w-10 mx-auto text-[#E36C59]" />
             <h1 className="text-center text-white text-3xl sm:text-4xl md:text-5xl font-bold leading-tight sm:leading-[50px] mb-3 sm:mb-4">
-              Tests Results
+              {t('results.title')}
             </h1>
           </div>
 
           <p className="text-center text-[#C9CDCE] text-lg font-normal leading-[25px]">
-            Insights based on <span className="font-bold">your results</span>
+            {t('results.summary')}
           </p>
         </motion.div>
       </div>

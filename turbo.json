@@ -18,6 +18,18 @@
     },
     "type-check": {
       "cache": false
+    },
+    "test": {
+      "dependsOn": [],
+      "outputs": []
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:basic": {
+      "dependsOn": [],
+      "outputs": []
     }
   }
 } 

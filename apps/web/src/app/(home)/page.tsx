@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface User {
   name: string;
@@ -37,6 +38,7 @@ export default function Home() {
   const [userData, setUserData] = useState<User | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const { handleVerify } = useVerification();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +49,16 @@ export default function Home() {
           return;
         }
 
-        const response = await fetch("/api/home");
+        const languagePreference = localStorage.getItem("language") || "en";
+        const response = await fetch("/api/home", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "X-Language-Preference": languagePreference
+          },
+        });
         if (!response.ok) {
           const errorData = await response.json();
           console.error("API Error:", errorData);
@@ -56,13 +67,20 @@ export default function Home() {
           if (response.status === 404) {
             // Handle user not found case silently
             clearVerificationSession();
-            const logoutResponse = await fetch("/api/auth/logout", {
-              method: "POST",
-            });
-            if (logoutResponse.ok) {
-              router.push("/sign-in");
+            
+            // Clear cookies directly without making an API call
+            if (typeof window !== "undefined") {
+              const cookies = document.cookie.split(";");
+              for (const cookie of cookies) {
+                const cookieName = cookie.split("=")[0].trim();
+                if (cookieName && cookieName !== "language") {
+                  document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+                  document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+                }
+              }
             }
-            return;
+            
+            router.push("/sign-in");
           }
           return;
         }
@@ -122,12 +140,12 @@ export default function Home() {
             <div className="space-y-3 text-center">
               <Sun className="mx-auto h-10 w-10 text-[#E36C59]" />
               <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
-                Welcome Back!
+                {t('home.welcome')}
               </h1>
             </div>
 
             <p className="mx-auto mb-4 max-w-sm text-base font-medium text-slate-200 sm:text-lg">
-              Track your progress and continue your journey of self-discovery
+              {t('home.todaysInsight')}
             </p>
           </motion.div>
         </div>

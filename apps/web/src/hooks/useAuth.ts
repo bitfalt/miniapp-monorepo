@@ -9,6 +9,24 @@ interface AuthState {
   loading: boolean;
 }
 
+// Helper function to preserve language preference
+function preserveLanguagePreference(callback: () => void) {
+  if (typeof window !== "undefined") {
+    // Save language preference
+    const languagePreference = localStorage.getItem("language");
+    
+    // Execute the callback
+    callback();
+    
+    // Restore language preference
+    if (languagePreference) {
+      localStorage.setItem("language", languagePreference);
+    }
+  } else {
+    callback();
+  }
+}
+
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
@@ -43,35 +61,84 @@ export function useAuth() {
     }
 
     try {
-      // Check session first
-      const sessionResponse = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-
-      if (!sessionResponse.ok) {
-        if (sessionResponse.status === 401) {
-          setAuthState({
-            isAuthenticated: false,
-            isRegistered: false,
-            needsRegistration: false,
-            walletAddress: null,
-            loading: false,
+      // Save language preference before auth check
+      const languagePreference = localStorage.getItem("language") || sessionStorage.getItem("language");
+      
+      // Also set it as a cookie for server-side access
+      if (languagePreference) {
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
+      
+      // Add a retry mechanism for session check
+      let retries = 3;
+      let sessionResponse;
+      
+      while (retries > 0) {
+        try {
+          // Check session first
+          sessionResponse = await fetch("/api/auth/session", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Language-Preference": languagePreference || "en"
+            },
           });
-          if (pathname !== "/sign-in") {
-            router.replace("/sign-in");
+          
+          // If successful, break out of the retry loop
+          if (sessionResponse.ok) {
+            break;
           }
+          
+          // If unauthorized, no need to retry
+          if (sessionResponse.status === 401) {
+            break;
+          }
+          
+          // Otherwise, wait and retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+          retries--;
+        } catch (err) {
+          console.error("Error checking session:", err);
+          retries--;
+          if (retries === 0) {
+            throw err;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      // Restore language preference after session check
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+        sessionStorage.setItem("language", languagePreference);
+        document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
+
+      if (!sessionResponse || !sessionResponse.ok) {
+        if (sessionResponse && sessionResponse.status === 401) {
+          preserveLanguagePreference(() => {
+            setAuthState({
+              isAuthenticated: false,
+              isRegistered: false,
+              needsRegistration: false,
+              walletAddress: null,
+              loading: false,
+            });
+            
+            if (pathname !== "/sign-in") {
+              router.replace("/sign-in");
+            }
+          });
           return;
         }
         throw new Error("Session check failed");
       }
 
       const sessionData = await sessionResponse.json();
-
+      
       setAuthState({
         isAuthenticated: sessionData.isAuthenticated,
         isRegistered: sessionData.isRegistered,
@@ -82,24 +149,29 @@ export function useAuth() {
 
       // Handle redirects based on auth state
       if (!sessionData.isAuthenticated && pathname !== "/sign-in") {
-        router.replace("/sign-in");
+        preserveLanguagePreference(() => {
+          router.replace("/sign-in");
+        });
       } else if (sessionData.needsRegistration && pathname !== "/register") {
         router.replace("/register");
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      if (error instanceof DOMException && error.name === "SyntaxError") {
-        if (pathname !== "/sign-in" && pathname !== "/welcome") {
-          router.replace("/sign-in");
+      
+      preserveLanguagePreference(() => {
+        if (error instanceof DOMException && error.name === "SyntaxError") {
+          if (pathname !== "/sign-in" && pathname !== "/welcome") {
+            router.replace("/sign-in");
+          }
         }
-      }
 
-      setAuthState({
-        isAuthenticated: false,
-        isRegistered: false,
-        needsRegistration: false,
-        walletAddress: null,
-        loading: false,
+        setAuthState({
+          isAuthenticated: false,
+          isRegistered: false,
+          needsRegistration: false,
+          walletAddress: null,
+          loading: false,
+        });
       });
     }
   }, [pathname, router, shouldSkipAuthCheck]);

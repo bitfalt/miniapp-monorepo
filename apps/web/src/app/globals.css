@@ -204,3 +204,28 @@ body {
   }
 }
 
+/* Remove tap highlight on mobile devices */
+.tap-highlight-transparent {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Add active state styles for mobile */
+@media (hover: none) {
+  .group:active .group-active\:scale-95 {
+    transform: scale(0.95);
+  }
+  
+  .group:active .group-active\:opacity-100 {
+    opacity: 1;
+  }
+  
+  .active\:scale-\[0\.98\]:active {
+    transform: scale(0.98);
+  }
+  
+  .active\:shadow-inner:active {
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  }
+}
+

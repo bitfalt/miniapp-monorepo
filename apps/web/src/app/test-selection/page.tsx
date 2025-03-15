@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Brain } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface Achievement {
   id: string;
@@ -32,6 +33,7 @@ export default function TestsPage() {
     answeredQuestions: 0,
     achievements: [],
   });
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,23 +98,23 @@ export default function TestsPage() {
           <div className="space-y-3 text-center">
             <Brain className="mx-auto h-10 w-10 text-[#E36C59]" />
             <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
-              Available Tests
+              {t('testSelection.title')}
             </h1>
           </div>
 
           <p className="mx-auto max-w-sm text-base font-medium text-slate-200 sm:text-lg">
-            Explore our collection of tests to understand yourself better
+            {t('testSelection.description')}
           </p>
 
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search for tests..."
+            placeholder={t('testSelection.searchPlaceholder')}
             className="mx-auto w-full max-w-sm"
           />
 
           <div className="mt-4 rounded-xl bg-white/10 p-3 backdrop-blur-sm">
             <p className="text-center text-sm text-white/90">
-              Achievements coming soon! 🏆
+              {t('testSelection.achievementsSoon')}
             </p>
           </div>
         </motion.div>
@@ -137,7 +139,7 @@ export default function TestsPage() {
             />
             <div className="pointer-events-none opacity-40">
               <TestCard
-                title="Personality Test"
+                title={t('testSelection.personalityTest')}
                 totalQuestions={50}
                 answeredQuestions={0}
                 achievements={[]}
@@ -148,7 +150,7 @@ export default function TestsPage() {
         </div>
 
         <p className="mt-8 text-center text-sm font-medium text-gray-500">
-          More tests coming soon! Stay tuned 🎉
+          {t('testSelection.moreSoon')}
         </p>
       </motion.div>
     </div>
