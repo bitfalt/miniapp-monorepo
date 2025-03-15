@@ -48,8 +48,7 @@ function clearCookiesAndCreateResponse(req: NextRequest) {
     );
 
     return response;
-  } catch (error) {
-    console.error("Logout error:", error);
+  } catch {
     return NextResponse.json({ error: "Failed to logout" }, { status: 500 });
   }
 }

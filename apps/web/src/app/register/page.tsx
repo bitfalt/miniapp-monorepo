@@ -68,7 +68,6 @@ export default function Register() {
       );
       return payload;
     } catch (error) {
-      console.error("Permission request failed:", error);
       if (error instanceof Error) {
         setErrorCode(error.message as NotificationErrorCode);
       }
@@ -194,17 +193,14 @@ export default function Register() {
         
         if (verifySessionResponse.ok) {
           // Session verified, proceed to welcome page
-          console.log("Session verified successfully, redirecting to welcome page");
           // Use push instead of replace to ensure proper navigation history
           router.push("/welcome");
         } else {
-          console.error("Session verification failed, retrying...");
           // If session verification failed, try again after a delay
           await new Promise((resolve) => setTimeout(resolve, 1000));
           router.push("/welcome");
         }
-      } catch (error) {
-        console.error("Error verifying session:", error);
+      } catch (_) {
         // Even if verification fails, still try to redirect
         router.push("/welcome");
       }
