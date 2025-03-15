@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
           isAuthenticated: false,
           isRegistered: false,
           isVerified: false,
-          error: "Invalid session",
+          error: "Invalid session token",
         },
         {
           status: 401,
@@ -119,24 +119,59 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
-    // Check if user exists in database
+    // Get user from database with retry mechanism
     const xata = getXataClient();
-    const user = await xata.db.Users.filter({
-      wallet_address: (decoded.address as string).toLowerCase(),
-    }).getFirst();
-
+    let user = null;
+    let dbError = null;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries && !user) {
+      try {
+        user = await xata.db.Users.filter({
+          wallet_address: decoded.address,
+        }).getFirst();
+        
+        if (user) break;
+        
+        // If no user found, try again with lowercase address
+        user = await xata.db.Users.filter({
+          wallet_address: typeof decoded.address === 'string' ? decoded.address.toLowerCase() : decoded.address,
+        }).getFirst();
+        
+        if (user) break;
+        
+        // If still no user, wait and retry
+        if (retryCount < maxRetries) {
+          console.warn(`User not found, retrying (attempt ${retryCount + 1}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error(`Database error on attempt ${retryCount + 1}:`, error);
+        dbError = error;
+        
+        // Wait before retrying
+        if (retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      retryCount++;
+    }
+    
+    // If we still don't have a user after retries
     if (!user) {
-      console.error("User not found in database");
+      console.error("User not found in database after retries");
       const response = NextResponse.json(
         {
           isAuthenticated: false,
           isRegistered: false,
           isVerified: false,
-          error: "User not found",
+          error: dbError ? "Database error" : "User not found",
           address: decoded.address,
         },
         {
-          status: 404,
+          status: dbError ? 500 : 404,
           headers: {
             "Content-Type": "application/json",
             "Cache-Control": "no-store",

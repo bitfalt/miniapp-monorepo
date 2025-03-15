@@ -17,6 +17,8 @@ export function GET(req: NextRequest) {
     const languageCookie = req.cookies.get("language")?.value;
     const languagePreference = languageHeader || languageCookie || "en";
     
+    console.log("Generating nonce with language preference:", languagePreference);
+    
     // Generate a simple alphanumeric nonce
     const nonce = crypto.randomBytes(32).toString("base64url");
 
@@ -30,6 +32,8 @@ export function GET(req: NextRequest) {
       sameSite: "lax", // Changed to lax to work with redirects
     });
 
+    console.log("Nonce generated successfully:", nonce.substring(0, 10) + "...");
+    
     const response: NonceResponse = { nonce };
     const nextResponse = NextResponse.json(response);
     

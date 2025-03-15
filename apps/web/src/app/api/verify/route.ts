@@ -147,6 +147,11 @@ const secret = new TextEncoder().encode(JWT_SECRET);
  */
 export async function POST(req: NextRequest) {
   try {
+    // Get language preference from headers or cookies
+    const languagePreference = req.headers.get("x-language-preference") || 
+                           req.cookies.get("language")?.value || 
+                           "en";
+    
     const { payload, action, signal } = (await req.json()) as IRequestPayload;
     const rawAppId = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
@@ -155,7 +160,16 @@ export async function POST(req: NextRequest) {
         success: false,
         error: "Invalid app_id configuration",
       };
-      return NextResponse.json(response, { status: 400 });
+      const jsonResponse = NextResponse.json(response, { status: 400 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     const app_id = rawAppId as `app_${string}`;
@@ -173,7 +187,16 @@ export async function POST(req: NextRequest) {
         error: "Verification failed",
         details: verifyRes,
       };
-      return NextResponse.json(response, { status: 400 });
+      const jsonResponse = NextResponse.json(response, { status: 400 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     const xata = getXataClient();
@@ -181,7 +204,16 @@ export async function POST(req: NextRequest) {
 
     if (!token) {
       const response: VerifyResponse = { error: "Unauthorized" };
-      return NextResponse.json(response, { status: 401 });
+      const jsonResponse = NextResponse.json(response, { status: 401 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
 
     try {
@@ -190,7 +222,16 @@ export async function POST(req: NextRequest) {
 
       if (!typedPayload.address) {
         const response: VerifyResponse = { error: "Invalid session" };
-        return NextResponse.json(response, { status: 401 });
+        const jsonResponse = NextResponse.json(response, { status: 401 });
+        
+        // Preserve language preference cookie
+        jsonResponse.cookies.set("language", languagePreference, {
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: "/",
+          sameSite: "lax",
+        });
+        
+        return jsonResponse;
       }
 
       const user = await xata.db.Users.filter({
@@ -199,7 +240,16 @@ export async function POST(req: NextRequest) {
 
       if (!user) {
         const response: VerifyResponse = { error: "User not found" };
-        return NextResponse.json(response, { status: 404 });
+        const jsonResponse = NextResponse.json(response, { status: 404 });
+        
+        // Preserve language preference cookie
+        jsonResponse.cookies.set("language", languagePreference, {
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: "/",
+          sameSite: "lax",
+        });
+        
+        return jsonResponse;
       }
 
       await xata.db.Users.update(user.xata_id, {
@@ -211,14 +261,52 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Verification successful",
       };
-      return NextResponse.json(response);
+      const jsonResponse = NextResponse.json(response);
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     } catch {
       const response: VerifyResponse = { error: "Invalid session" };
-      return NextResponse.json(response, { status: 401 });
+      const jsonResponse = NextResponse.json(response, { status: 401 });
+      
+      // Preserve language preference cookie
+      jsonResponse.cookies.set("language", languagePreference, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: "/",
+        sameSite: "lax",
+      });
+      
+      return jsonResponse;
     }
   } catch (error) {
     console.error("Verification error:", error);
+    
+    // Try to get language preference even in case of error
+    let languagePreference = "en";
+    try {
+      languagePreference = req.headers.get("x-language-preference") || 
+                          req.cookies.get("language")?.value || 
+                          "en";
+    } catch (e) {
+      console.error("Error getting language preference:", e);
+    }
+    
     const response: VerifyResponse = { error: "Internal server error" };
-    return NextResponse.json(response, { status: 500 });
+    const jsonResponse = NextResponse.json(response, { status: 500 });
+    
+    // Preserve language preference cookie
+    jsonResponse.cookies.set("language", languagePreference, {
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      sameSite: "lax",
+    });
+    
+    return jsonResponse;
   }
 }

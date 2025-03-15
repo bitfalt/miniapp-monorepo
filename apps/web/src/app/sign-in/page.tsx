@@ -79,6 +79,7 @@ export default function SignIn() {
       
       // Save language preference before authentication
       const languagePreference = localStorage.getItem("language");
+      console.log("Starting sign-in process with language:", languagePreference);
       
       // Store language in sessionStorage as well for redundancy
       if (languagePreference) {
@@ -86,26 +87,54 @@ export default function SignIn() {
       }
 
       if (!MiniKit.isInstalled()) {
+        console.log("MiniKit not installed, redirecting to download page");
         router.push("https://worldcoin.org/download-app");
         return;
       }
 
       // Clear any existing session before starting a new one
       try {
+        console.log("Clearing existing session...");
         // Create a language cookie to preserve language during redirects
         if (languagePreference) {
           document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
         }
         
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "X-Language-Preference": languagePreference || "en"
+        // Use a more robust approach to clear the session
+        try {
+          console.log("Attempting to logout via API...");
+          const logoutResponse = await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "X-Language-Preference": languagePreference || "en",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache"
+            }
+          });
+          
+          if (!logoutResponse.ok) {
+            console.warn("Logout response not OK, but continuing:", await logoutResponse.text());
+          } else {
+            console.log("Logout successful");
           }
-        });
+        } catch (logoutErr) {
+          console.warn("Error during logout, but continuing:", logoutErr);
+          
+          // Fallback: Clear cookies directly
+          console.log("Using fallback cookie clearing method");
+          const cookies = document.cookie.split(";");
+          for (const cookie of cookies) {
+            const cookieName = cookie.split("=")[0].trim();
+            if (cookieName && cookieName !== "language") {
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+            }
+          }
+        }
       } catch (err) {
-        console.error("Error clearing existing session:", err);
+        console.warn("Error clearing existing session, but continuing:", err);
+        // Continue with authentication despite session clearing errors
       }
       
       // Restore language preference after logout
@@ -113,6 +142,7 @@ export default function SignIn() {
         localStorage.setItem("language", languagePreference);
       }
 
+      console.log("Fetching nonce...");
       const nonceResponse = await fetch("/api/nonce", {
         credentials: "include",
         headers: {
@@ -128,8 +158,10 @@ export default function SignIn() {
       }
 
       const { nonce } = await nonceResponse.json();
+      console.log("Nonce received successfully");
 
       if (!nonce) {
+        console.error("Invalid nonce received");
         throw new Error("Invalid nonce received");
       }
 
@@ -139,21 +171,67 @@ export default function SignIn() {
         sessionStorage.setItem("language", languagePreference);
       }
 
-      const { finalPayload } = await MiniKit.commandsAsync
-        .walletAuth({
-          nonce,
-          statement: t('signIn.walletAuthStatement'),
-        })
-        .catch((error: unknown) => {
-          console.error("Wallet auth command failed:", error);
-          if (error instanceof DOMException) {
-            if (error.name === "SyntaxError") {
-              throw new Error("Invalid SIWE message format");
-            }
-            throw new Error("Authentication cancelled");
+      // Implement a retry mechanism for wallet auth
+      let finalPayload;
+      let walletAuthRetryCount = 0;
+      const walletAuthMaxRetries = 3; // Increased from 2 to 3
+      
+      console.log("Starting wallet authentication...");
+      while (walletAuthRetryCount <= walletAuthMaxRetries) {
+        try {
+          console.log(`Wallet auth attempt ${walletAuthRetryCount + 1}/${walletAuthMaxRetries + 1}...`);
+          const result = await MiniKit.commandsAsync
+            .walletAuth({
+              nonce,
+              statement: "Sign in with your Ethereum wallet",
+            })
+            .catch((error: unknown) => {
+              console.error(`Wallet auth attempt ${walletAuthRetryCount + 1} failed:`, error);
+              
+              // Handle specific error types
+              if (error instanceof DOMException) {
+                if (error.name === "SyntaxError") {
+                  throw new Error("Invalid SIWE message format");
+                }
+                throw new Error("Authentication cancelled");
+              }
+              
+              // Handle signature verification failures
+              if (typeof error === 'object' && error !== null) {
+                const errorObj = error as Record<string, unknown>;
+                if (errorObj.message === "Signature verification failed" || 
+                    (typeof errorObj.message === 'string' && errorObj.message.includes("Signature"))) {
+                  throw new Error("Signature verification failed. Please try again.");
+                }
+                
+                // Handle load failures
+                if (typeof errorObj.message === 'string' && errorObj.message.includes("Load failed")) {
+                  throw new Error("Connection error. Please check your internet connection and try again.");
+                }
+              }
+              
+              throw new Error("Authentication failed: " + (error instanceof Error ? error.message : String(error)));
+            });
+          
+          finalPayload = result.finalPayload;
+          console.log("Wallet auth successful");
+          break; // If successful, exit the loop
+        } catch (authError) {
+          if (walletAuthRetryCount === walletAuthMaxRetries || 
+              (authError instanceof Error && authError.message === "Authentication cancelled")) {
+            // If we've exhausted retries or the user cancelled, rethrow the error
+            console.error("Wallet auth failed after all retries or was cancelled:", authError);
+            throw authError;
           }
-          throw error;
-        });
+          
+          console.warn(`Retrying wallet auth (attempt ${walletAuthRetryCount + 1}/${walletAuthMaxRetries})...`);
+          // Wait before retrying with increasing delay
+          const delay = 1000 * (walletAuthRetryCount + 1);
+          console.log(`Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          walletAuthRetryCount++;
+        }
+      }
 
       if (!finalPayload || finalPayload.status !== "success") {
         console.error("Wallet auth failed:", finalPayload);
@@ -170,52 +248,113 @@ export default function SignIn() {
 
       // Get the wallet address from MiniKit after successful auth
       const walletAddress = MiniKit.user?.walletAddress;
+      console.log("Wallet address from MiniKit:", walletAddress);
 
-      const response = await fetch("/api/complete-siwe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "X-Language-Preference": languagePreferenceAfterAuth || "en"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          payload: finalPayload,
-          nonce,
-        }),
-      });
+      // Implement a retry mechanism for complete-siwe
+      let siweResponse;
+      let siweData;
+      let siweRetryCount = 0;
+      const siweMaxRetries = 3; // Increased from 2 to 3
+      
+      console.log("Starting SIWE verification...");
+      while (siweRetryCount <= siweMaxRetries) {
+        try {
+          console.log(`SIWE verification attempt ${siweRetryCount + 1}/${siweMaxRetries + 1}...`);
+          siweResponse = await fetch("/api/complete-siwe", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "X-Language-Preference": languagePreferenceAfterAuth || "en"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              payload: finalPayload,
+              nonce,
+            }),
+          });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            errorData.error ||
-            "Failed to complete SIWE verification",
-        );
-      }
+          // Restore language preference after SIWE completion attempt
+          if (languagePreferenceAfterAuth) {
+            localStorage.setItem("language", languagePreferenceAfterAuth);
+            sessionStorage.setItem("language", languagePreferenceAfterAuth);
+            document.cookie = `language=${languagePreferenceAfterAuth}; Path=/; Max-Age=86400; SameSite=Lax`;
+          }
 
-      const data = await response.json();
+          if (!siweResponse.ok) {
+            const errorText = await siweResponse.text();
+            let errorMessage = "Failed to complete SIWE verification";
+            
+            try {
+              const errorData = JSON.parse(errorText);
+              errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+              console.error("Error parsing error response:", e);
+            }
+            
+            console.error(`SIWE verification attempt ${siweRetryCount + 1} failed:`, errorMessage, errorText);
+            
+            if (siweRetryCount === siweMaxRetries) {
+              throw new Error(errorMessage);
+            }
+            
+            // Wait before retrying with increasing delay
+            const delay = 1000 * (siweRetryCount + 1);
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            siweRetryCount++;
+            continue;
+          }
 
-      // Restore language preference after SIWE completion
-      if (languagePreferenceAfterAuth) {
-        localStorage.setItem("language", languagePreferenceAfterAuth);
-        sessionStorage.setItem("language", languagePreferenceAfterAuth);
-        document.cookie = `language=${languagePreferenceAfterAuth}; Path=/; Max-Age=86400; SameSite=Lax`;
-      }
-
-      if (data.status === "error" || !data.isValid) {
-        throw new Error(data.message || "Failed to verify SIWE message");
+          siweData = await siweResponse.json();
+          console.log("SIWE verification response:", siweData);
+          
+          if (siweData.status === "error" || !siweData.isValid) {
+            const errorMessage = siweData.message || "Failed to verify SIWE message";
+            console.error(`SIWE verification attempt ${siweRetryCount + 1} failed:`, errorMessage);
+            
+            if (siweRetryCount === siweMaxRetries) {
+              throw new Error(errorMessage);
+            }
+            
+            // Wait before retrying with increasing delay
+            const delay = 1000 * (siweRetryCount + 1);
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            siweRetryCount++;
+            continue;
+          }
+          
+          // If we got here, the verification was successful
+          console.log("SIWE verification successful");
+          break;
+        } catch (error) {
+          console.error(`SIWE verification attempt ${siweRetryCount + 1} error:`, error);
+          
+          if (siweRetryCount === siweMaxRetries) {
+            throw error;
+          }
+          
+          // Wait before retrying with increasing delay
+          const delay = 1000 * (siweRetryCount + 1);
+          console.log(`Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          siweRetryCount++;
+        }
       }
 
       // Get the normalized wallet address
-      const userWalletAddress = (walletAddress || data.address)?.toLowerCase();
+      const userWalletAddress = (walletAddress || siweData?.address)?.toLowerCase();
+      console.log("Using wallet address for user check:", userWalletAddress);
 
       if (!userWalletAddress) {
+        console.error("No wallet address available");
         throw new Error("No wallet address available");
       }
 
       // Check if user exists using the API endpoint
+      console.log("Checking if user exists...");
       const userCheckResponse = await fetch("/api/user/check", {
         method: "POST",
         headers: { 
@@ -229,10 +368,12 @@ export default function SignIn() {
 
       if (!userCheckResponse.ok) {
         const errorData = await userCheckResponse.json();
+        console.error("User check failed:", errorData);
         throw new Error(errorData.error || "Failed to check user existence");
       }
 
       const userCheckData = await userCheckResponse.json();
+      console.log("User check result:", userCheckData);
 
       // Restore language preference after user check
       if (languagePreferenceAfterAuth) {
@@ -242,6 +383,7 @@ export default function SignIn() {
       if (userCheckData.exists) {
         // User exists, create session and redirect to home
         try {
+          console.log("Creating session...");
           const sessionResponse = await fetch("/api/auth/session", {
             method: "POST",
             headers: { 
@@ -253,15 +395,17 @@ export default function SignIn() {
             credentials: "include",
             body: JSON.stringify({
               walletAddress: userWalletAddress,
-              isSiweVerified: data.isValid,
+              isSiweVerified: siweData.isValid,
             }),
           });
 
           if (!sessionResponse.ok) {
             const sessionError = await sessionResponse.json();
+            console.error("Session creation failed:", sessionError);
             throw new Error(sessionError.error || "Failed to create session");
           }
 
+          console.log("Session created successfully");
           // Add a small delay to ensure session is properly set
           await new Promise((resolve) => setTimeout(resolve, 1000));
           
@@ -271,13 +415,15 @@ export default function SignIn() {
           }
 
           // Check if this is the user's first login
+          console.log("Fetching user data...");
           const userResponse = await fetch("/api/user/me", {
             method: "GET",
             credentials: "include",
             headers: {
               "Cache-Control": "no-cache, no-store, must-revalidate",
               "Pragma": "no-cache",
-              "X-Language-Preference": languagePreferenceAfterAuth || "en"
+              "X-Language-Preference": languagePreferenceAfterAuth || "en",
+              "X-Wallet-Address": userWalletAddress
             },
           });
 
@@ -287,11 +433,13 @@ export default function SignIn() {
               await userResponse.text(),
             );
             // If we can't fetch user data, just redirect to home
+            console.log("Redirecting to home page due to user data fetch failure");
             router.push("/");
             return;
           }
 
           const userData = await userResponse.json();
+          console.log("User data fetched successfully");
 
           // Restore language preference before redirect
           if (languagePreferenceAfterAuth) {
@@ -300,8 +448,10 @@ export default function SignIn() {
 
           // If this is their first login (checking created_at vs updated_at)
           if (userData.createdAt === userData.updatedAt) {
+            console.log("First login detected, redirecting to welcome page");
             router.push("/welcome");
           } else {
+            console.log("Returning user, redirecting to home page");
             router.push("/");
           }
         } catch (error) {
@@ -313,10 +463,12 @@ export default function SignIn() {
             localStorage.setItem("language", languagePreferenceAfterAuth);
           }
           
+          console.log("Redirecting to home page due to error");
           router.push("/");
         }
       } else {
         // User doesn't exist, redirect to registration
+        console.log("New user, redirecting to registration page");
         
         // Restore language preference before redirect
         if (languagePreferenceAfterAuth) {
@@ -328,14 +480,24 @@ export default function SignIn() {
         );
       }
     } catch (error) {
+      // Always restore language preference on error
+      const languagePreferenceAfterError = localStorage.getItem("language") || sessionStorage.getItem("language") || "en";
+      if (languagePreferenceAfterError) {
+        localStorage.setItem("language", languagePreferenceAfterError);
+        sessionStorage.setItem("language", languagePreferenceAfterError);
+        document.cookie = `language=${languagePreferenceAfterError}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
+      
       if (
         error instanceof Error &&
         error.message === "Authentication cancelled"
       ) {
+        console.log("Authentication was cancelled by user");
         setError(t('signIn.errors.authCancelled'));
         return;
       }
 
+      // Log detailed error information
       console.error("WorldID auth failed:", {
         error,
         message: error instanceof Error ? error.message : "Unknown error",
@@ -346,16 +508,26 @@ export default function SignIn() {
       });
 
       let errorMessage = t('signIn.errors.authFailed');
+      
+      // Handle specific error types
       if (error instanceof Error) {
         if (error.message === "Invalid SIWE message format") {
           errorMessage = t('signIn.errors.invalidSiweFormat');
+        } else if (error.message.includes("Signature verification failed")) {
+          errorMessage = "Signature verification failed. Please try again.";
+        } else if (error.message.includes("Load failed")) {
+          errorMessage = "Connection error. Please check your internet connection and try again.";
         } else {
           errorMessage = error.message;
         }
       } else if (typeof error === "string") {
         errorMessage = error;
-      } else if (error && typeof error === "object" && "message" in error) {
-        errorMessage = String(error.message);
+      } else if (error && typeof error === "object") {
+        if ("message" in error) {
+          errorMessage = String(error.message);
+        } else if ("error" in error && typeof error.error === "object" && error.error && "message" in error.error) {
+          errorMessage = String(error.error.message);
+        }
       }
 
       setError(errorMessage);

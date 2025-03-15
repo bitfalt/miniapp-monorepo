@@ -22,7 +22,14 @@
 		"update-deps": "pnpm update -r --latest",
 		"check-deps": "pnpm audit",
 		"prune": "pnpm store prune",
-		"reset": "pnpm clean && rm -rf node_modules && pnpm install"
+		"reset": "pnpm clean && rm -rf node_modules && pnpm install",
+		"test": "turbo run test",
+		"test:watch": "turbo run test:watch",
+		"test:coverage": "turbo run test -- --coverage",
+		"test:all": "./scripts/run-tests.sh",
+		"test:all:watch": "./scripts/run-tests.sh --watch",
+		"test:all:coverage": "./scripts/run-tests.sh --coverage",
+		"test:basic": "turbo run test:basic"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",

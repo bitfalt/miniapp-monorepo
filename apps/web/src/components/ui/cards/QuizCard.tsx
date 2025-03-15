@@ -19,19 +19,18 @@ export function QuizCard() {
 				"transition-all duration-300",
 			)}
 		>
-
 			<div className="relative z-10 flex h-full flex-col justify-between p-4">
 				<div className="mb-3 text-center font-spaceGrotesk text-base font-medium leading-tight text-white sm:text-lg">
 					<div className="flex items-center justify-center gap-2 mb-1">
-						<span>{t('home.completedTests')}</span>
+						<span>{t('home.dailyStreaks')}</span>
 					</div>
-					{t('home.takeTest')}
+					{t('home.buildLearningPath')}
 				</div>
 				<div className="space-y-3">
 					<div className="w-full rounded-[12px] bg-white/20 p-2 backdrop-blur-md">
 						<div className="flex items-center justify-between">
 							<div className="ml-2 font-spaceGrotesk text-xs font-medium leading-tight text-white sm:text-sm">
-								{t('home.noTestsYet')}
+								{t('home.dailyChallenges')}
 							</div>
 							<Flame
 								className="h-5 w-5 text-accent-red animate-pulse"
@@ -46,7 +45,7 @@ export function QuizCard() {
 						className="h-10 w-full transform text-sm transition-all duration-300 cursor-not-allowed opacity-80 bg-gradient-to-r from-accent-red to-[#FF8066]"
 						disabled
 					>
-						{t('common.loading')}
+						{t('home.comingSoon')}
 					</FilledButton>
 				</div>
 			</div>

@@ -208,6 +208,13 @@ export function useVerification() {
       return false;
     }
 
+    // Save language preference before verification
+    const languagePreference = localStorage.getItem("language");
+    if (languagePreference) {
+      sessionStorage.setItem("language", languagePreference);
+      document.cookie = `language=${languagePreference}; Path=/; Max-Age=86400; SameSite=Lax`;
+    }
+
     setIsVerifying(true);
     try {
       const verifyPayload: VerifyCommandInput = {
@@ -215,25 +222,73 @@ export function useVerification() {
         verification_level: VerificationLevel.Orb,
       };
 
-      const { finalPayload } = await MiniKit.commandsAsync
-        .verify(verifyPayload)
-        .catch((error) => {
-          if (error instanceof DOMException) {
-            throw new Error("Verification cancelled");
+      // Implement a retry mechanism for verification
+      let finalPayload;
+      let retryCount = 0;
+      const maxRetries = 2;
+      
+      while (retryCount <= maxRetries) {
+        try {
+          const result = await MiniKit.commandsAsync
+            .verify(verifyPayload)
+            .catch((error) => {
+              console.error(`Verification command attempt ${retryCount + 1} failed:`, error);
+              
+              // Handle specific error types
+              if (error instanceof DOMException) {
+                throw new Error("Verification cancelled");
+              }
+              
+              // Handle other error types
+              if (typeof error === 'object' && error !== null) {
+                const errorObj = error as Record<string, unknown>;
+                if (errorObj.message === "Signature verification failed" || 
+                    (typeof errorObj.message === 'string' && errorObj.message.includes("Signature"))) {
+                  throw new Error("Signature verification failed. Please try again.");
+                }
+                if (typeof errorObj.message === 'string' && errorObj.message.includes("Load failed")) {
+                  throw new Error("Connection error. Please check your internet connection and try again.");
+                }
+              }
+              
+              throw error;
+            });
+          
+          finalPayload = result.finalPayload;
+          break; // If successful, exit the loop
+        } catch (verifyError) {
+          if (retryCount === maxRetries || 
+              (verifyError instanceof Error && verifyError.message === "Verification cancelled")) {
+            // If we've exhausted retries or the user cancelled, rethrow the error
+            throw verifyError;
           }
-          throw error;
-        });
+          
+          console.warn(`Retrying verification (attempt ${retryCount + 1}/${maxRetries})...`);
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          retryCount++;
+        }
+      }
 
-      if (finalPayload.status === "error") {
+      if (!finalPayload || finalPayload.status === "error") {
         console.error("World ID verification failed:", finalPayload);
         setError("Verification failed");
         return false;
+      }
+
+      // Restore language preference after verification
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+        sessionStorage.setItem("language", languagePreference);
       }
 
       const verifyResponse = await fetch("/api/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "X-Language-Preference": languagePreference || "en"
         },
         credentials: "include",
         body: JSON.stringify({
@@ -260,11 +315,38 @@ export function useVerification() {
       return false;
     } catch (error) {
       console.error("Verification error:", error);
+      
+      // Always restore language preference on error
+      const languagePreferenceAfterError = localStorage.getItem("language") || sessionStorage.getItem("language") || "en";
+      if (languagePreferenceAfterError) {
+        localStorage.setItem("language", languagePreferenceAfterError);
+        sessionStorage.setItem("language", languagePreferenceAfterError);
+        document.cookie = `language=${languagePreferenceAfterError}; Path=/; Max-Age=86400; SameSite=Lax`;
+      }
+      
       if (
         error instanceof Error &&
         error.message === "Verification cancelled"
       ) {
         setError("Verification was cancelled");
+      } else if (error instanceof Error) {
+        if (error.message.includes("Signature verification failed")) {
+          setError("Signature verification failed. Please try again.");
+        } else if (error.message.includes("Load failed")) {
+          setError("Connection error. Please check your internet connection and try again.");
+        } else {
+          setError(error.message || "Verification failed");
+        }
+      } else if (typeof error === "string") {
+        setError(error);
+      } else if (error && typeof error === "object") {
+        if ("message" in error && typeof error.message === "string") {
+          setError(error.message);
+        } else if ("error" in error && typeof error.error === "object" && error.error && "message" in error.error) {
+          setError(String(error.error.message));
+        } else {
+          setError("Verification failed");
+        }
       } else {
         setError("Verification failed");
       }

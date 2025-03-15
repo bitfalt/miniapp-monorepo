@@ -38,13 +38,17 @@ export const translations = {
       signingOut: 'Signing out...'
     },
     home: {
-      welcome: 'Welcome',
-      todaysInsight: "Today's Insight",
+      welcome: 'Welcome Back!',
+      todaysInsight: 'Track your progress and continue your journey of self-discovery',
       viewAll: 'View All',
       completedTests: 'Completed Tests',
       noTestsYet: 'No tests completed yet',
       takeTest: 'Take a Test',
       verifyAccount: 'Verify your account',
+      dailyStreaks: 'Daily Streaks',
+      buildLearningPath: 'Build your learning path',
+      dailyChallenges: 'DAILY CHALLENGES',
+      comingSoon: 'Coming Soon',
       verifyModal: {
         title: 'Not Verified yet?',
         description: 'Use your World ID app to verify your identity!',
@@ -105,7 +109,8 @@ export const translations = {
         email: 'Email',
         age: 'Age',
         country: 'Country',
-        submit: 'Complete Registration'
+        submit: 'Complete Registration',
+        selectAge: 'Select age'
       }
     },
     welcome: {
@@ -135,7 +140,7 @@ export const translations = {
     },
     results: {
       title: 'Your Results',
-      summary: 'Test completed successfully!',
+      summary: 'Insights based on your results',
       shareResults: 'Share Results',
       viewInsights: 'View Insights',
       retakeTest: 'Retake Test',
@@ -147,19 +152,19 @@ export const translations = {
       }
     },
     insights: {
-      title: 'Your Insights',
-      description: 'Deeper understanding of your test results',
+      title: 'Your Ideology Insights',
+      description: 'Explore how your values align across key ideological dimensions.',
       advancedInsights: 'Advanced Insights',
-      shareInsights: 'Share Insights',
-      categories: {
-        economic: 'Economic',
-        diplomatic: 'Diplomatic',
-        civil: 'Civil',
-        societal: 'Societal'
-      },
-      loading: 'Generating insights...',
-      aiAnalysis: 'AI Analysis',
-      viewMore: 'View More'
+      unlockAdvancedInsights: 'Unlock Advanced Insights',
+      shareResults: 'Share Results',
+      noInsightsAvailable: 'No insights available. Please try again later.',
+      shareYourResults: 'Share Your Results',
+      advancedIdeologicalAnalysis: 'Advanced Ideological Analysis',
+      unlockAdvancedInsightsTitle: 'Unlock Advanced Insights',
+      proDescription: 'Dive deeper into your ideological profile with Awaken Pro. Get comprehensive analysis and personalized insights.',
+      upgradeToPro: 'Upgrade to Pro',
+      shareAnalysis: 'Share Analysis',
+      perspective: 'Perspective'
     },
     testSelection: {
       title: 'Available Tests',
@@ -299,13 +304,17 @@ export const translations = {
       signingOut: 'Cerrando sesión...'
     },
     home: {
-      welcome: 'Bienvenido',
-      todaysInsight: 'Perspectiva del Día',
+      welcome: '¡Bienvenido de Nuevo!',
+      todaysInsight: 'Sigue tu progreso y continúa tu viaje de autodescubrimiento',
       viewAll: 'Ver Todo',
       completedTests: 'Pruebas Completadas',
       noTestsYet: 'Aún no has completado pruebas',
       takeTest: 'Realizar una Prueba',
       verifyAccount: 'Verifica tu cuenta',
+      dailyStreaks: 'Rachas Diarias',
+      buildLearningPath: 'Construye tu camino',
+      dailyChallenges: 'DESAFÍOS DIARIOS',
+      comingSoon: 'Próximamente',
       verifyModal: {
         title: '¿Aún no verificado?',
         description: '¡Usa tu aplicación World ID para verificar tu identidad!',
@@ -366,7 +375,8 @@ export const translations = {
         email: 'Correo Electrónico',
         age: 'Edad',
         country: 'País',
-        submit: 'Completar Registro'
+        submit: 'Completar Registro',
+        selectAge: 'Seleccionar edad'
       }
     },
     welcome: {
@@ -396,7 +406,7 @@ export const translations = {
     },
     results: {
       title: 'Tus Resultados',
-      summary: '¡Prueba completada con éxito!',
+      summary: 'Perspectivas basadas en tus resultados',
       shareResults: 'Compartir Resultados',
       viewInsights: 'Ver Perspectivas',
       retakeTest: 'Repetir Prueba',
@@ -408,19 +418,19 @@ export const translations = {
       }
     },
     insights: {
-      title: 'Tus Perspectivas',
-      description: 'Comprensión más profunda de tus resultados',
-      advancedInsights: 'Perspectivas Avanzadas',
-      shareInsights: 'Compartir Perspectivas',
-      categories: {
-        economic: 'Económico',
-        diplomatic: 'Diplomático',
-        civil: 'Civil',
-        societal: 'Social'
-      },
-      loading: 'Generando perspectivas...',
-      aiAnalysis: 'Análisis de IA',
-      viewMore: 'Ver Más'
+      title: 'Tus Perspectivas Ideológicas',
+      description: 'Explora cómo tus valores se alinean en dimensiones ideológicas clave.',
+      advancedInsights: 'Análisis Avanzados',
+      unlockAdvancedInsights: 'Desbloquear Análisis Avanzados',
+      shareResults: 'Compartir Resultados',
+      noInsightsAvailable: 'No hay perspectivas disponibles. Por favor, inténtalo más tarde.',
+      shareYourResults: 'Comparte Tus Resultados',
+      advancedIdeologicalAnalysis: 'Análisis Ideológico Avanzado',
+      unlockAdvancedInsightsTitle: 'Desbloquear Análisis Avanzados',
+      proDescription: 'Profundiza en tu perfil ideológico con Awaken Pro. Obtén análisis completos y perspectivas personalizadas.',
+      upgradeToPro: 'Actualizar a Pro',
+      shareAnalysis: 'Compartir Análisis',
+      perspective: 'Perspectiva'
     },
     testSelection: {
       title: 'Pruebas Disponibles',
@@ -430,7 +440,7 @@ export const translations = {
       personalityTest: 'Prueba de Personalidad',
       startTest: 'Iniciar Prueba',
       achievementsSoon: '¡Logros próximamente! 🏆',
-      moreSoon: '¡Más pruebas próximamente! Mantente atento 🎉'
+      moreSoon: '¡Más pruebas próximamente! 🎉'
     },
     leaderboard: {
       title: 'Tabla de Clasificación',
@@ -490,7 +500,7 @@ export const translations = {
       instructions: {
         title: 'Descubre Tus Valores Políticos',
         beforeYouStart: 'Antes de comenzar',
-        testDescription: 'Esta prueba consta de {{count}} declaraciones estimulantes diseñadas para explorar tus creencias políticas. Tus respuestas reflejarán tu posición en ocho valores fundamentales.',
+        testDescription: 'Esta prueba consta de {{count}} declaraciones estimulantes diseñadas para explorar tus creencias políticas.',
         honestResponses: 'Por favor, responde honestamente, basándote en tus verdaderas opiniones.',
         estimatedTime: 'Tiempo Estimado',
         minutes: '{{count}} min',

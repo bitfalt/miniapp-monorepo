@@ -252,113 +252,134 @@ export default function Register() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6 mb-20">
-          <div className="space-y-4">
-            <div>
-              <Input
-                type="text"
-                id="name"
-                name="name"
-                placeholder={t('register.form.name')}
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 rounded-[30px] border border-[#E5E5E5] focus:border-[#E36C59] focus:ring-[#E36C59] placeholder-[#AEAEAE]"
-              />
-            </div>
-
-            <div>
-              <Input
-                type="text"
-                id="lastName"
-                name="lastName"
-                placeholder={t('register.form.lastName')}
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 rounded-[30px] border border-[#E5E5E5] focus:border-[#E36C59] focus:ring-[#E36C59] placeholder-[#AEAEAE]"
-              />
-            </div>
-
-            <div>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                placeholder={t('register.form.email')}
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 rounded-[30px] border border-[#E5E5E5] focus:border-[#E36C59] focus:ring-[#E36C59] placeholder-[#AEAEAE]"
-              />
-            </div>
-
-            <div>
-              <Input
-                type="number"
-                id="age"
-                name="age"
-                placeholder={t('register.form.age')}
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: e.target.value })
-                }
-                required
-                min="18"
-                max="120"
-                className="w-full px-4 py-3 rounded-[30px] border border-[#E5E5E5] focus:border-[#E36C59] focus:ring-[#E36C59] placeholder-[#AEAEAE]"
-              />
-            </div>
-
-            <div>
-              <select
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    country: e.target.value as CountryCode,
-                  })
-                }
-                required
-                className="w-full px-4 py-3 rounded-[30px] border border-[#E5E5E5] focus:border-[#E36C59] focus:ring-[#E36C59] placeholder-[#AEAEAE] bg-white"
-              >
-                <option value="" disabled>
-                  {t('register.form.country')}
-                </option>
-                {COUNTRIES.map((country) => (
-                  <option key={country.countryCode} value={country.countryCode}>
-                    {country.country}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-[#232931] text-base">
+              {t('register.form.name')}
+            </label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              required
+              minLength={2}
+              maxLength={50}
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
+            />
           </div>
 
-          {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
+          <div className="space-y-2">
+            <label htmlFor="last_name" className="text-[#232931] text-base">
+              {t('register.form.lastName')}
+            </label>
+            <Input
+              id="last_name"
+              name="last_name"
+              type="text"
+              required
+              minLength={2}
+              maxLength={50}
+              value={formData.lastName}
+              onChange={(e) =>
+                setFormData({ ...formData, lastName: e.target.value })
+              }
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
+            />
+          </div>
 
-          <FilledButton
-            variant="primary"
-            size="lg"
-            type="submit"
-            className="w-full bg-[#E36C59] hover:bg-[#E36C59]/90"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
-                <span>{t('common.loading')}</span>
-              </div>
-            ) : (
-              t('register.form.submit')
-            )}
-          </FilledButton>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-[#232931] text-base">
+              {t('register.form.email')}
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="age" className="text-[#232931] text-base">
+              {t('register.form.age')}
+            </label>
+            <select
+              id="age"
+              name="age"
+              required
+              value={formData.age}
+              onChange={(e) =>
+                setFormData({ ...formData, age: e.target.value })
+              }
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black px-3 w-full text-black"
+            >
+              <option value="" className="text-gray-500">
+                {t('register.form.selectAge')}
+              </option>
+              {Array.from({ length: 113 }, (_, i) => i + 18).map((age) => (
+                <option key={age} value={age} className="text-black">
+                  {age}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="country" className="text-[#232931] text-base">
+              {t('register.form.country')}
+            </label>
+            <select
+              id="country"
+              name="country"
+              required
+              value={formData.country}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  country: e.target.value as CountryCode,
+                })
+              }
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black px-3 w-full text-black"
+            >
+              {COUNTRIES.map(({ countryCode, country, flag }) => (
+                <option
+                  key={countryCode}
+                  value={countryCode}
+                  className="text-black"
+                >
+                  {flag} {country}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end">
+            <FilledButton
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-accent-red to-[#FF8066]"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                  {t('common.loading')}
+                </div>
+              ) : (
+                t('register.form.submit')
+              )}
+            </FilledButton>
+          </div>
         </form>
       </div>
     </div>

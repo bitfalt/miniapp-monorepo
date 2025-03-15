@@ -1,4 +1,5 @@
 import { getXataClient } from "@/lib/database/xata";
+import { jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -16,6 +17,15 @@ interface UserResponse {
   error?: string;
 }
 
+// Get the secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+
+// Create secret for JWT tokens
+const secret = new TextEncoder().encode(JWT_SECRET);
+
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
@@ -25,9 +35,28 @@ export async function GET(req: NextRequest) {
                            req.cookies.get("language")?.value || 
                            "en";
     
-    const userId = req.headers.get("x-user-id");
-    const walletAddress = req.headers.get("x-wallet-address");
+    // Try to get user ID and wallet address from headers
+    let userId = req.headers.get("x-user-id");
+    let walletAddress = req.headers.get("x-wallet-address");
 
+    // If headers are not present, try to get from session cookie
+    if (!userId || !walletAddress) {
+      const sessionToken = req.cookies.get("session")?.value;
+      
+      if (sessionToken) {
+        try {
+          const { payload } = await jwtVerify(sessionToken, secret);
+          if (payload && typeof payload === 'object' && 'sub' in payload && 'address' in payload) {
+            userId = payload.sub as string;
+            walletAddress = payload.address as string;
+          }
+        } catch (error) {
+          console.error("Error verifying session token:", error);
+        }
+      }
+    }
+
+    // If we still don't have user ID or wallet address, return unauthorized
     if (!userId || !walletAddress) {
       const response: UserResponse = { error: "Unauthorized" };
       const jsonResponse = NextResponse.json(response, { status: 401 });
@@ -45,7 +74,6 @@ export async function GET(req: NextRequest) {
     const xata = getXataClient();
     const user = await xata.db.Users.filter({
       wallet_address: walletAddress,
-      xata_id: userId,
     }).getFirst();
 
     if (!user) {
