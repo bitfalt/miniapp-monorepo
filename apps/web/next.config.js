@@ -32,7 +32,27 @@ const nextConfig = {
     unoptimized: true
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production'
+    removeConsole: process.env.NODE_ENV === 'production',
+    styledComponents: true
+  },
+  swcMinify: true,
+  transpilePackages: [],
+  webpack: (config) => {
+    config.module.rules = config.module.rules.map(rule => {
+      if (rule.test && rule.test.toString().includes('|tsx|')) {
+        return {
+          ...rule,
+          use: rule.use.filter(loader => 
+            typeof loader === 'object' && 
+            loader.loader && 
+            !loader.loader.includes('babel-loader')
+          )
+        };
+      }
+      return rule;
+    });
+    
+    return config;
   },
   typescript: {
     ignoreBuildErrors: false,

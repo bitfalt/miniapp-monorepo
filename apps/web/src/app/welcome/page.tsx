@@ -7,11 +7,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { FilledButton } from "@/components/ui/buttons/FilledButton";
+import { useTranslation } from "@/i18n";
 
 export default function Welcome() {
   const router = useRouter();
   const [firstName, setFirstName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
+  const { t, tWithVars } = useTranslation();
 
   useEffect(() => {
     // Function to fetch user data with better error handling
@@ -172,12 +174,12 @@ export default function Welcome() {
             >
               <Sparkles className="h-5 w-5 text-[#e36c59]" />
               <span className="font-medium text-white/90">
-                Welcome to your journey
+                {t('welcome.title')}
               </span>
             </motion.div>
 
             <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-              Welcome, <span className="text-[#e36c59]">{firstName}</span>!
+              {tWithVars('welcome.greeting', { name: firstName })}
             </h1>
           </div>
 
@@ -188,8 +190,7 @@ export default function Welcome() {
             className="space-y-8"
           >
             <p className="mx-auto max-w-2xl text-xl font-light leading-relaxed text-white/90 sm:text-2xl">
-              Your journey toward understanding your true self begins here.
-              Let&apos;s unlock your potential together!
+              {t('welcome.description')}
             </p>
 
             <motion.div
@@ -204,7 +205,7 @@ export default function Welcome() {
                 className="w-full max-w-[280px] transform rounded-full bg-[#e36c59] px-12 py-4 text-lg font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-[#e36c59]/90 hover:shadow-xl"
                 onClick={handleGetStarted}
               >
-                Get Started
+                {t('welcome.getStarted')}
               </FilledButton>
             </motion.div>
           </motion.div>

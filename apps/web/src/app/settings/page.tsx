@@ -18,6 +18,7 @@ import {
   Crown,
   FileText,
   Flag,
+  Globe,
   HelpCircle,
   type LucideIcon,
   Moon,
@@ -26,16 +27,21 @@ import {
 import { useRouter } from "next/navigation";
 import type * as React from "react";
 import { useEffect, useState } from "react";
+import { LanguageDropdown } from "@/components/ui/LanguageDropdown";
+import { useTranslation } from "@/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Dummy toggle switch that doesn't actually change theme
 function DummyToggleSwitch() {
   const [checked, setChecked] = useState(true);
+  const { t } = useTranslation();
   
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={checked ? t('toggle.darkModeOn') : t('toggle.darkModeOff')}
       onClick={() => setChecked(prev => !prev)}
       className={cn(
         "h-6 w-12 rounded-full transition-colors duration-200",
@@ -77,6 +83,8 @@ export default function SettingsPage() {
     subscription_expires: null,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
+  const { setLanguage } = useLanguage();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -128,23 +136,54 @@ export default function SettingsPage() {
     router.push("/awaken-pro");
   };
 
+  // Helper function to preserve language preference
+  function preserveLanguagePreference(callback: () => void) {
+    if (typeof window !== "undefined") {
+      // Save language preference
+      const languagePreference = localStorage.getItem("language");
+      
+      // Execute the callback
+      callback();
+      
+      // Restore language preference
+      if (languagePreference) {
+        localStorage.setItem("language", languagePreference);
+      }
+    } else {
+      callback();
+    }
+  }
+
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      clearVerificationSession();
+      
+      preserveLanguagePreference(async () => {
+        clearVerificationSession();
 
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
+        // Clear cookies directly without making an API call
+        if (typeof window !== "undefined") {
+          const cookies = document.cookie.split(";");
+          for (const cookie of cookies) {
+            const cookieName = cookie.split("=")[0].trim();
+            if (cookieName && cookieName !== "language") {
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Domain=${window.location.hostname}`;
+              document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+            }
+          }
+        }
 
-      if (response.ok) {
         window.location.href = "/sign-in";
-      }
+      });
     } catch {
       // Error handling is done via the UI state
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLanguageChange = (language: "en" | "es") => {
+    setLanguage(language);
   };
 
   if (loading) {
@@ -164,7 +203,7 @@ export default function SettingsPage() {
           <div className="space-y-3 text-center">
             <Settings className="mx-auto h-10 w-10 text-[#E36C59]" />
             <h1 className="text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
-              Settings
+              {t('settings.title')}
             </h1>
           </div>
 
@@ -179,7 +218,7 @@ export default function SettingsPage() {
                 <Crown className="h-5 w-5 text-[#e36c59]" />
               )}
               <span className="font-medium text-white/90">
-                {subscriptionData.isPro ? "Premium Member" : "Basic Member"}
+                {subscriptionData.isPro ? t('settings.membership.premium') : t('settings.membership.basic')}
               </span>
             </motion.div>
           </p>
@@ -200,7 +239,7 @@ export default function SettingsPage() {
         >
           <MembershipCard
             expiryDate={
-              subscriptionData.next_payment_date || "No active subscription"
+              subscriptionData.next_payment_date || t('settings.membership.noSubscription')
             }
             isActive={subscriptionData.isPro}
             cost={3.5}
@@ -219,16 +258,13 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center justify-center gap-2">
                   <Crown className="h-5 w-5" />
-                  <span>Upgrade to Awaken Pro</span>
+                  <span>{t('settings.membership.upgrade')}</span>
                 </div>
               </FilledButton>
 
               <div className="relative z-10 mt-3 mb-4 px-4 py-2 text-center">
                 <p className="text-sm font-medium">
-                  <span className="text-neutral-black">Unlock</span>
-                  <span className="text-accent-red"> advanced features </span>
-                  <span className="text-neutral-black">and</span>
-                  <span className="text-accent-red"> exclusive content </span>
+                  <span className="text-neutral-black">{t('settings.membership.unlockFeatures')}</span>
                 </p>
               </div>
             </div>
@@ -245,18 +281,24 @@ export default function SettingsPage() {
             [
               {
                 Icon: Bell,
-                label: "Notifications",
+                label: t('settings.items.notifications'),
                 element: <NotificationsToggle />,
               },
               // Dark Theme toggle with dummy functionality
-              { Icon: Moon, label: "Dark Theme", element: <DummyToggleSwitch /> },
+              { Icon: Moon, label: t('settings.items.darkTheme'), element: <DummyToggleSwitch /> },
+              // Language dropdown
+              { 
+                Icon: Globe, 
+                label: t('settings.items.language'), 
+                element: <LanguageDropdown onChange={handleLanguageChange} /> 
+              },
               {
                 Icon: FileText,
-                label: "View Privacy Policy",
+                label: t('settings.items.privacyPolicy'),
                 onClick: () => {},
               },
-              { Icon: HelpCircle, label: "Help Center", onClick: () => {} },
-              { Icon: Flag, label: "Report an Issue", onClick: () => {} },
+              { Icon: HelpCircle, label: t('settings.items.helpCenter'), onClick: () => {} },
+              { Icon: Flag, label: t('settings.items.reportIssue'), onClick: () => {} },
             ] as SettingItem[]
           ).map((setting, index) => (
             <motion.div
@@ -288,7 +330,7 @@ export default function SettingsPage() {
             onClick={handleLogout}
             disabled={isLoading}
           >
-            {isLoading ? "Signing out..." : "Sign Out"}
+            {isLoading ? t('settings.signingOut') : t('settings.signOut')}
           </FilledButton>
         </motion.div>
       </motion.div>

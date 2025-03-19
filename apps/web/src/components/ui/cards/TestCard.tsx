@@ -1,6 +1,7 @@
 "use client";
 
 import type * as React from "react";
+import { useTranslation } from "@/i18n";
 
 interface Achievement {
 	id: string;
@@ -24,6 +25,7 @@ export function TestCard({
 	title,
 }: TestCardProps) {
 	const progress = Math.round((answeredQuestions / totalQuestions) * 100);
+	const { t } = useTranslation();
 
 	return (
 		<button
@@ -40,12 +42,12 @@ export function TestCard({
 					<div className="space-y-4">
 						<div className="space-y-2">
 							<div className="flex justify-between text-sm font-medium">
-								<span>Progress</span>
+								<span>{t('testCard.progress')}</span>
 								<span className="font-bold text-[#E36C59]">{progress}%</span>
 							</div>
 							<div
 								className="relative h-2 overflow-hidden rounded-full bg-white/20"
-								aria-label={`${progress}% of test completed`}
+								aria-label={`${progress}% ${t('testCard.ofTestCompleted')}`}
 							>
 								<div
 									className="absolute left-0 top-0 h-full bg-[#E36C59] transition-all duration-300 ease-in-out"
@@ -77,7 +79,7 @@ export function TestCard({
 									<path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
 									<path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
 								</svg>
-								<span>Achievements</span>
+								<span>{t('testCard.achievements')}</span>
 							</div>
 							<div className="flex gap-2">
 								{achievements.map((achievement) => (
@@ -86,7 +88,7 @@ export function TestCard({
 										className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-transform hover:scale-110"
 										title={`${achievement.title} - ${achievement.description}`}
 										role="img"
-										aria-label={`${achievement.title} achievement - ${achievement.description}`}
+										aria-label={`${achievement.title} ${t('testCard.achievement')} - ${achievement.description}`}
 									>
 										<span className="text-xs font-bold">
 											{achievement.title.charAt(0)}

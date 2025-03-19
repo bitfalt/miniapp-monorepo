@@ -1,6 +1,7 @@
 "use client";
 
 import type * as React from "react";
+import { useTranslation } from "@/i18n";
 
 interface AchievementCardProps {
 	title?: string;
@@ -13,6 +14,8 @@ export function AchievementCard({
 	description = "Completed the Ideology Test",
 	date = "[date]",
 }: AchievementCardProps) {
+	const { t, tWithVars } = useTranslation();
+	
 	return (
 		<article className="flex w-full max-w-md items-center gap-8 rounded-3xl bg-white p-6 shadow-md">
 			<div className="relative flex-shrink-0" aria-hidden="true">
@@ -34,7 +37,11 @@ export function AchievementCard({
 			<div className="space-y-1">
 				<h3 className="text-xl font-semibold text-gray-900">{title}</h3>
 				<p className="text-sm text-gray-600">{description}</p>
-				<p className="text-xs text-gray-500">Obtained on {date}</p>
+				<p className="text-xs text-gray-500">
+					{date === t('achievements.locked') 
+						? date 
+						: tWithVars('achievementCard.obtainedOn', { date })}
+				</p>
 			</div>
 		</article>
 	);

@@ -10,6 +10,7 @@ import { MiniKit } from "@worldcoin/minikit-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import type * as React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 type NotificationErrorCode =
   | "user_rejected"
@@ -23,6 +24,7 @@ export default function Register() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -66,7 +68,6 @@ export default function Register() {
       );
       return payload;
     } catch (error) {
-      console.error("Permission request failed:", error);
       if (error instanceof Error) {
         setErrorCode(error.message as NotificationErrorCode);
       }
@@ -192,17 +193,14 @@ export default function Register() {
         
         if (verifySessionResponse.ok) {
           // Session verified, proceed to welcome page
-          console.log("Session verified successfully, redirecting to welcome page");
           // Use push instead of replace to ensure proper navigation history
           router.push("/welcome");
         } else {
-          console.error("Session verification failed, retrying...");
           // If session verification failed, try again after a delay
           await new Promise((resolve) => setTimeout(resolve, 1000));
           router.push("/welcome");
         }
-      } catch (error) {
-        console.error("Error verifying session:", error);
+      } catch (_) {
         // Even if verification fails, still try to redirect
         router.push("/welcome");
       }
@@ -238,7 +236,7 @@ export default function Register() {
         <div className="w-screen h-full px-[34px] pt-[104px] pb-[70px] absolute top-0 bg-[#2c5154] rounded-b-[65px] shadow-[21px_38px_64.69999694824219px_3px_rgba(0,0,0,0.25)] overflow-hidden">
           <div className="max-w-md mx-auto">
             <h1 className="text-white text-[50px] font-medium leading-[50px]">
-              Let&apos;s get to know a little bit about you...
+              {t('register.title')}
             </h1>
           </div>
         </div>
@@ -246,7 +244,7 @@ export default function Register() {
 
       <div className="w-full max-w-md p-4 mt-4">
         <p className="text-center text-[#232931] text-base font-normal mb-8">
-          Please fill up the following spaces to begin.
+          {t('register.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6 mb-20">
@@ -255,7 +253,7 @@ export default function Register() {
           )}
           <div className="space-y-2">
             <label htmlFor="name" className="text-[#232931] text-base">
-              Name
+              {t('register.form.name')}
             </label>
             <Input
               id="name"
@@ -268,13 +266,13 @@ export default function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="last_name" className="text-[#232931] text-base">
-              Last Name
+              {t('register.form.lastName')}
             </label>
             <Input
               id="last_name"
@@ -287,13 +285,13 @@ export default function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, lastName: e.target.value })
               }
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="email" className="text-[#232931] text-base">
-              Email
+              {t('register.form.email')}
             </label>
             <Input
               id="email"
@@ -304,13 +302,13 @@ export default function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 text-black placeholder:text-gray-500"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black text-black placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="age" className="text-[#232931] text-base">
-              Age
+              {t('register.form.age')}
             </label>
             <select
               id="age"
@@ -320,10 +318,10 @@ export default function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, age: e.target.value })
               }
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black px-3 w-full text-black"
             >
               <option value="" className="text-gray-500">
-                Select age
+                {t('register.form.selectAge')}
               </option>
               {Array.from({ length: 113 }, (_, i) => i + 18).map((age) => (
                 <option key={age} value={age} className="text-black">
@@ -335,7 +333,7 @@ export default function Register() {
 
           <div className="space-y-2">
             <label htmlFor="country" className="text-[#232931] text-base">
-              Country
+              {t('register.form.country')}
             </label>
             <select
               id="country"
@@ -348,7 +346,7 @@ export default function Register() {
                   country: e.target.value as CountryCode,
                 })
               }
-              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border-0 px-3 w-full text-black"
+              className="h-[30px] bg-[#d9d9d9] rounded-[20px] border border-black px-3 w-full text-black"
             >
               {COUNTRIES.map(({ countryCode, country, flag }) => (
                 <option
@@ -370,11 +368,11 @@ export default function Register() {
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2 " />
-                  Registering...
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                  {t('common.loading')}
                 </div>
               ) : (
-                "Complete Registration"
+                t('register.form.submit')
               )}
             </FilledButton>
           </div>

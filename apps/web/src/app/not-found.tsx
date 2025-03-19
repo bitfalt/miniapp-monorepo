@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslation } from "@/i18n";
+
 export default function NotFound() {
+  const { t } = useTranslation();
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#2C5154] p-4">
       <div className="w-full max-w-md space-y-6 text-center">
@@ -51,12 +55,11 @@ export default function NotFound() {
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-white">
-              Page Not Found
+              {t('notFound.title')}
             </h1>
 
             <p className="mx-auto max-w-sm text-lg text-white/80">
-              Oops! This page has embarked on an unexpected adventure.
-              Let&apos;s help you find your way back!
+              {t('notFound.description')}
             </p>
 
             <button
@@ -82,7 +85,7 @@ export default function NotFound() {
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              Go to Home
+              {t('notFound.backHome')}
             </button>
           </div>
         </div>

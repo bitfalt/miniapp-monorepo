@@ -4,6 +4,7 @@ import { Canvas as ResultsCanvas } from "@/components/features";
 import { FilledButton } from "@/components/ui/buttons/FilledButton";
 import { InsightResultCard } from "@/components/ui/cards/InsightResultCard";
 import { LoadingSpinner } from "@/components/ui/feedback/LoadingSpinner";
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
@@ -39,6 +40,7 @@ export default function InsightsPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCanvasLoading, setIsCanvasLoading] = useState(true);
   const [isGeminiLoading, setIsGeminiLoading] = useState(false);
+  const { t } = useTranslation();
 
   // Emit modal state changes
   useEffect(() => {
@@ -257,7 +259,7 @@ export default function InsightsPage() {
           <div className="text-center space-y-3">
             <BookOpen className="h-10 w-10 mx-auto text-[#E36C59]" />
             <h1 className="text-4xl font-bold text-slate-100 mb-4 tracking-tight">
-              Your Ideology Insights
+              {t('insights.title')}
             </h1>
           </div>
           {ideology && (
@@ -273,7 +275,7 @@ export default function InsightsPage() {
             </motion.div>
           )}
           <p className="text-slate-200/90 text-lg mb-4 max-w-sm mx-auto font-medium leading-relaxed">
-            Explore how your values align across key ideological dimensions.
+            {t('insights.description')}
           </p>
 
           <motion.div
@@ -291,7 +293,7 @@ export default function InsightsPage() {
                 "bg-gradient-to-r from-accent-red to-[#FF8066]"
               )}
             >
-              {isProUser ? "Advanced Insights" : "Unlock Advanced Insights"}
+              {isProUser ? t('insights.advancedInsights') : t('insights.unlockAdvancedInsights')}
             </FilledButton>
           </motion.div>
         </motion.div>
@@ -312,10 +314,7 @@ export default function InsightsPage() {
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               <InsightResultCard
-                title={`${
-                  insight.category.charAt(0).toUpperCase() +
-                  insight.category.slice(1)
-                } Perspective`}
+                title={`${insight.category.charAt(0).toUpperCase() + insight.category.slice(1)} ${t('insights.perspective')}`}
                 insight={insight.insight}
                 description={insight.description}
                 percentage={insight.percentage}
@@ -332,7 +331,7 @@ export default function InsightsPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            No insights available. Please try again later.
+            {t('insights.noInsightsAvailable')}
           </motion.p>
         )}
 
@@ -343,7 +342,7 @@ export default function InsightsPage() {
             variant="primary"
             className="px-12 py-6 text-lg transform transition-all duration-300 hover:scale-105 bg-gradient-to-r from-accent-red to-[#FF8066]"
           >
-            Share Results
+            {t('insights.shareResults')}
           </FilledButton>
         </div>
       </motion.div>
@@ -390,7 +389,7 @@ export default function InsightsPage() {
                 </svg>
               </button>
               <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-300">
-                Share Your Results
+                {t('insights.shareYourResults')}
               </h2>
             </div>
 
@@ -440,7 +439,7 @@ export default function InsightsPage() {
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                   />
                 </svg>
-                <span className="whitespace-nowrap">Share Results</span>
+                <span className="whitespace-nowrap">{t('insights.shareResults')}</span>
               </FilledButton>
             </div>
           </motion.div>
@@ -491,8 +490,8 @@ export default function InsightsPage() {
               </button>
               <h2 className="text-2xl font-bold text-slate-100">
                 {isProUser
-                  ? "Advanced Ideological Analysis"
-                  : "Unlock Advanced Insights"}
+                  ? t('insights.advancedIdeologicalAnalysis')
+                  : t('insights.unlockAdvancedInsightsTitle')}
               </h2>
             </div>
 
@@ -512,8 +511,7 @@ export default function InsightsPage() {
               ) : (
                 <div className="w-full max-w-md mx-auto space-y-4">
                   <p className="text-white text-lg">
-                    Dive deeper into your ideological profile with Awaken Pro.
-                    Get comprehensive analysis and personalized insights.
+                    {t('insights.proDescription')}
                   </p>
                   <div className="flex justify-center pt-2">
                     <FilledButton
@@ -521,7 +519,7 @@ export default function InsightsPage() {
                       onClick={() => router.push("/awaken-pro")}
                       className="bg-[#E36C59] hover:bg-[#E36C59]/90 transform transition-all duration-300 hover:scale-105"
                     >
-                      Upgrade to Pro
+                      {t('insights.upgradeToPro')}
                     </FilledButton>
                   </div>
                 </div>
@@ -552,7 +550,7 @@ export default function InsightsPage() {
                       d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                     />
                   </svg>
-                  <span className="whitespace-nowrap">Share Analysis</span>
+                  <span className="whitespace-nowrap">{t('insights.shareAnalysis')}</span>
                 </FilledButton>
               </div>
             )}
