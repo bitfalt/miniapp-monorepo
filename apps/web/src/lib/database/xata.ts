@@ -206,6 +206,99 @@ const tables = [
     ],
   },
   {
+    name: "CategoriesTranslate",
+    checkConstraints: {
+      CategoriesTranslate_xata_id_length_xata_id: {
+        name: "CategoriesTranslate_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      category_link: {
+        name: "category_link",
+        columns: ["category"],
+        referencedTable: "Categories",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      language_link: {
+        name: "language_link",
+        columns: ["language"],
+        referencedTable: "Languages",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_CategoriesTranslate_xata_id_key: {
+        name: "_pgroll_new_CategoriesTranslate_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "category",
+        type: "link",
+        link: { table: "Categories" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Categories"}',
+      },
+      {
+        name: "language",
+        type: "link",
+        link: { table: "Languages" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Languages"}',
+      },
+      {
+        name: "translated_text",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
     name: "Countries",
     checkConstraints: {
       Countries_xata_id_length_xata_id: {
@@ -351,6 +444,99 @@ const tables = [
       {
         name: "scores",
         type: "json",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "IdeologiesTranslate",
+    checkConstraints: {
+      IdeologiesTranslate_xata_id_length_xata_id: {
+        name: "IdeologiesTranslate_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      ideology_link: {
+        name: "ideology_link",
+        columns: ["ideology"],
+        referencedTable: "Ideologies",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      language_link: {
+        name: "language_link",
+        columns: ["language"],
+        referencedTable: "Languages",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_IdeologiesTranslate_xata_id_key: {
+        name: "_pgroll_new_IdeologiesTranslate_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "ideology",
+        type: "link",
+        link: { table: "Ideologies" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Ideologies"}',
+      },
+      {
+        name: "language",
+        type: "link",
+        link: { table: "Languages" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Languages"}',
+      },
+      {
+        name: "translated_text",
+        type: "text",
         notNull: true,
         unique: false,
         defaultValue: null,
@@ -698,6 +884,175 @@ const tables = [
         unique: false,
         defaultValue: null,
         comment: '{"xata.link":"Users"}',
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "InsightsTranslate",
+    checkConstraints: {
+      InsightsTranslate_xata_id_length_xata_id: {
+        name: "InsightsTranslate_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      insight_link: {
+        name: "insight_link",
+        columns: ["insight"],
+        referencedTable: "Insights",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      language_link: {
+        name: "language_link",
+        columns: ["language"],
+        referencedTable: "Languages",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_InsightsTranslate_xata_id_key: {
+        name: "_pgroll_new_InsightsTranslate_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "insight",
+        type: "link",
+        link: { table: "Insights" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Insights"}',
+      },
+      {
+        name: "language",
+        type: "link",
+        link: { table: "Languages" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Languages"}',
+      },
+      {
+        name: "translated_text",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "Languages",
+    checkConstraints: {
+      Languages_xata_id_length_xata_id: {
+        name: "Languages_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {},
+    primaryKey: [],
+    uniqueConstraints: {
+      Languages__pgroll_new_language_key: {
+        name: "Languages__pgroll_new_language_key",
+        columns: ["language"],
+      },
+      Languages__pgroll_new_short_key: {
+        name: "Languages__pgroll_new_short_key",
+        columns: ["short"],
+      },
+      _pgroll_new_Languages_xata_id_key: {
+        name: "_pgroll_new_Languages_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "language",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "short",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: null,
+        comment: "",
       },
       {
         name: "xata_createdat",
@@ -1130,6 +1485,99 @@ const tables = [
     ],
   },
   {
+    name: "QuestionsTranslate",
+    checkConstraints: {
+      QuestionsTranslate_xata_id_length_xata_id: {
+        name: "QuestionsTranslate_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      language_link: {
+        name: "language_link",
+        columns: ["language"],
+        referencedTable: "Languages",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      question_link: {
+        name: "question_link",
+        columns: ["question"],
+        referencedTable: "Questions",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_QuestionsTranslate_xata_id_key: {
+        name: "_pgroll_new_QuestionsTranslate_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "language",
+        type: "link",
+        link: { table: "Languages" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Languages"}',
+      },
+      {
+        name: "question",
+        type: "link",
+        link: { table: "Questions" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Questions"}',
+      },
+      {
+        name: "translated_text",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
     name: "Regions",
     checkConstraints: {
       Regions_xata_id_length_xata_id: {
@@ -1398,6 +1846,107 @@ const tables = [
       {
         name: "total_questions",
         type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "xata_createdat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_id",
+        type: "text",
+        notNull: true,
+        unique: true,
+        defaultValue: "('rec_'::text || (xata_private.xid())::text)",
+        comment: "",
+      },
+      {
+        name: "xata_updatedat",
+        type: "datetime",
+        notNull: true,
+        unique: false,
+        defaultValue: "now()",
+        comment: "",
+      },
+      {
+        name: "xata_version",
+        type: "int",
+        notNull: true,
+        unique: false,
+        defaultValue: "0",
+        comment: "",
+      },
+    ],
+  },
+  {
+    name: "TestsTranslate",
+    checkConstraints: {
+      TestsTranslate_xata_id_length_xata_id: {
+        name: "TestsTranslate_xata_id_length_xata_id",
+        columns: ["xata_id"],
+        definition: "CHECK ((length(xata_id) < 256))",
+      },
+    },
+    foreignKeys: {
+      language_link: {
+        name: "language_link",
+        columns: ["language"],
+        referencedTable: "Languages",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+      test_link: {
+        name: "test_link",
+        columns: ["test"],
+        referencedTable: "Tests",
+        referencedColumns: ["xata_id"],
+        onDelete: "SET NULL",
+      },
+    },
+    primaryKey: [],
+    uniqueConstraints: {
+      _pgroll_new_TestsTranslate_xata_id_key: {
+        name: "_pgroll_new_TestsTranslate_xata_id_key",
+        columns: ["xata_id"],
+      },
+    },
+    columns: [
+      {
+        name: "language",
+        type: "link",
+        link: { table: "Languages" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Languages"}',
+      },
+      {
+        name: "test",
+        type: "link",
+        link: { table: "Tests" },
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: '{"xata.link":"Tests"}',
+      },
+      {
+        name: "translated_description",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "translated_name",
+        type: "text",
         notNull: true,
         unique: false,
         defaultValue: null,
@@ -1916,11 +2465,17 @@ export type AreasRecord = Areas & XataRecord;
 export type Categories = InferredTypes["Categories"];
 export type CategoriesRecord = Categories & XataRecord;
 
+export type CategoriesTranslate = InferredTypes["CategoriesTranslate"];
+export type CategoriesTranslateRecord = CategoriesTranslate & XataRecord;
+
 export type Countries = InferredTypes["Countries"];
 export type CountriesRecord = Countries & XataRecord;
 
 export type Ideologies = InferredTypes["Ideologies"];
 export type IdeologiesRecord = Ideologies & XataRecord;
+
+export type IdeologiesTranslate = InferredTypes["IdeologiesTranslate"];
+export type IdeologiesTranslateRecord = IdeologiesTranslate & XataRecord;
 
 export type IdeologyPerUser = InferredTypes["IdeologyPerUser"];
 export type IdeologyPerUserRecord = IdeologyPerUser & XataRecord;
@@ -1931,6 +2486,12 @@ export type InsightsRecord = Insights & XataRecord;
 export type InsightsPerUserCategory = InferredTypes["InsightsPerUserCategory"];
 export type InsightsPerUserCategoryRecord = InsightsPerUserCategory &
   XataRecord;
+
+export type InsightsTranslate = InferredTypes["InsightsTranslate"];
+export type InsightsTranslateRecord = InsightsTranslate & XataRecord;
+
+export type Languages = InferredTypes["Languages"];
+export type LanguagesRecord = Languages & XataRecord;
 
 export type Payments = InferredTypes["Payments"];
 export type PaymentsRecord = Payments & XataRecord;
@@ -1944,6 +2505,9 @@ export type PublicFiguresRecord = PublicFigures & XataRecord;
 export type Questions = InferredTypes["Questions"];
 export type QuestionsRecord = Questions & XataRecord;
 
+export type QuestionsTranslate = InferredTypes["QuestionsTranslate"];
+export type QuestionsTranslateRecord = QuestionsTranslate & XataRecord;
+
 export type Regions = InferredTypes["Regions"];
 export type RegionsRecord = Regions & XataRecord;
 
@@ -1955,6 +2519,9 @@ export type SubscriptionPriceRecord = SubscriptionPrice & XataRecord;
 
 export type Tests = InferredTypes["Tests"];
 export type TestsRecord = Tests & XataRecord;
+
+export type TestsTranslate = InferredTypes["TestsTranslate"];
+export type TestsTranslateRecord = TestsTranslate & XataRecord;
 
 export type UserTestProgress = InferredTypes["UserTestProgress"];
 export type UserTestProgressRecord = UserTestProgress & XataRecord;
@@ -1968,19 +2535,25 @@ export type WeightsPerAnswerRecord = WeightsPerAnswer & XataRecord;
 export type DatabaseSchema = {
   Areas: AreasRecord;
   Categories: CategoriesRecord;
+  CategoriesTranslate: CategoriesTranslateRecord;
   Countries: CountriesRecord;
   Ideologies: IdeologiesRecord;
+  IdeologiesTranslate: IdeologiesTranslateRecord;
   IdeologyPerUser: IdeologyPerUserRecord;
   Insights: InsightsRecord;
   InsightsPerUserCategory: InsightsPerUserCategoryRecord;
+  InsightsTranslate: InsightsTranslateRecord;
+  Languages: LanguagesRecord;
   Payments: PaymentsRecord;
   PersonalizedAnswers: PersonalizedAnswersRecord;
   PublicFigures: PublicFiguresRecord;
   Questions: QuestionsRecord;
+  QuestionsTranslate: QuestionsTranslateRecord;
   Regions: RegionsRecord;
   StandardAnswers: StandardAnswersRecord;
   SubscriptionPrice: SubscriptionPriceRecord;
   Tests: TestsRecord;
+  TestsTranslate: TestsTranslateRecord;
   UserTestProgress: UserTestProgressRecord;
   Users: UsersRecord;
   WeightsPerAnswer: WeightsPerAnswerRecord;
@@ -1989,17 +2562,11 @@ export type DatabaseSchema = {
 const DatabaseClient = buildClient();
 
 const defaultOptions = {
-  databaseURL: process.env.XATA_DATABASE_URL || 'https://bitfalt-mmda85.us-east-1.xata.sh/db/MindVault-MiniApp',
-  apiKey: process.env.XATA_API_KEY || process.env.NEXT_PUBLIC_XATA_API_KEY,
-  branch: process.env.XATA_BRANCH || process.env.NEXT_PUBLIC_XATA_BRANCH || 'main'
+  databaseURL: "https://bitfalt-mmda85.us-east-1.xata.sh/db/MindVault-MiniApp",
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {
   constructor(options?: BaseClientOptions) {
-    const apiKey = options?.apiKey || defaultOptions.apiKey;
-    if (!apiKey) {
-      throw new Error('Xata API key is required. Set either XATA_API_KEY or NEXT_PUBLIC_XATA_API_KEY environment variable.');
-    }
     super({ ...defaultOptions, ...options }, tables);
   }
 }
@@ -2008,6 +2575,7 @@ let instance: XataClient | undefined = undefined;
 
 export const getXataClient = () => {
   if (instance) return instance;
+
   instance = new XataClient();
   return instance;
 };

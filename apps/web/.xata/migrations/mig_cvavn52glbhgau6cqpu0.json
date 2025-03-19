@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cvavn52glbhgau6cqpu0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "QuestionsTranslate",
+          "column": {
+            "name": "question",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Questions\"}",
+            "references": {
+              "name": "question_link",
+              "table": "Questions",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cvavn52glbhgau6cqpu0",
+  "parent": "mig_cvavms2glbhgau6cqpt0",
+  "schema": "public",
+  "startedAt": "2025-03-15T22:13:41.063329Z"
+}

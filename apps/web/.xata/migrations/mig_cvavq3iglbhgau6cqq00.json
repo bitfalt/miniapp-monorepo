@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cvavq3iglbhgau6cqq00",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "TestsTranslate",
+          "column": {
+            "name": "test",
+            "type": "text",
+            "comment": "{\"xata.link\":\"Tests\"}",
+            "references": {
+              "name": "test_link",
+              "table": "Tests",
+              "column": "xata_id",
+              "on_delete": "SET NULL"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cvavq3iglbhgau6cqq00",
+  "parent": "mig_cvavpvg1g95li4qgi0ag",
+  "schema": "public",
+  "startedAt": "2025-03-15T22:19:59.029663Z"
+}
