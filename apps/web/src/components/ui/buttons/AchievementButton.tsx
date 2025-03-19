@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/i18n";
 import type * as React from "react";
 
 interface AchievementButtonProps {
@@ -12,6 +13,7 @@ export function AchievementButton({
 	hasNewAchievement = true,
 }: AchievementButtonProps) {
 	const router = useRouter();
+	const { t } = useTranslation();
 
 	return (
 		<button
@@ -30,7 +32,7 @@ export function AchievementButton({
 				)}
 			</div>
 			<span className="font-spaceGrotesk text-base font-medium text-white sm:text-lg">
-				Latest Achievement
+				{t('achievements.title')}
 			</span>
 		</button>
 	);

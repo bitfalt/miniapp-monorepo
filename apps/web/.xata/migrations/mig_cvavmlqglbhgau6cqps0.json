@@ -1,0 +1,25 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cvavmlqglbhgau6cqps0",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "Languages",
+          "column": {
+            "name": "short",
+            "type": "text",
+            "unique": true,
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cvavmlqglbhgau6cqps0",
+  "parent": "mig_cvavm6aglbhgau6cqpr0",
+  "schema": "public",
+  "startedAt": "2025-03-15T22:12:40.181093Z"
+}

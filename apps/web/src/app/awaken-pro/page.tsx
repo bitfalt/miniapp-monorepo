@@ -12,12 +12,14 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Crown, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 export default function AwakenProPage() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<"Basic" | "Pro">("Basic");
   const [payAmount, setPayAmount] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
@@ -75,7 +77,7 @@ export default function AwakenProPage() {
             ).toString(),
           },
         ],
-        description: "Upgrade to Awaken Pro - 1 Month Subscription",
+        description: t('awakenPro.paymentDescription'),
       };
 
       const { finalPayload } = await MiniKit.commandsAsync.pay(payload);
@@ -109,17 +111,17 @@ export default function AwakenProPage() {
       <div className="bg-brand-tertiary p-10 pt-16 pb-12 rounded-b-[4rem] shadow-lg border-b border-brand-tertiary/20 relative overflow-hidden mb-8">
         <div className="relative z-10 text-center max-w-md mx-auto">
           <h1 className="text-4xl font-bold text-slate-100 mb-4 tracking-tight">
-            Step Into the Next Level
+            {t('awakenPro.title')}
           </h1>
           <p className="text-slate-200 text-lg mb-4 max-w-sm mx-auto font-medium">
-            Current plan:{" "}
+            {t('awakenPro.currentPlan')}{" "}
             <span
               className={cn(
                 "font-bold",
                 currentPlan === "Pro" ? "text-accent-green" : "text-accent-red",
               )}
             >
-              {currentPlan}
+              {currentPlan === "Pro" ? t('settings.membership.premium') : t('settings.membership.basic')}
             </span>
           </p>
         </div>
@@ -142,7 +144,7 @@ export default function AwakenProPage() {
               <span className="text-4xl font-bold text-white">Pro</span>
             </div>
             <div className="bg-accent-red px-4 py-1 rounded-xl">
-              <span className="text-white font-bold">Popular</span>
+              <span className="text-white font-bold">{t('awakenPro.popular')}</span>
             </div>
           </div>
 
@@ -151,18 +153,18 @@ export default function AwakenProPage() {
               {payAmount} WLD
             </div>
             <div className="text-slate-300 text-sm">
-              Per month, billed monthly
+              {t('awakenPro.billingCycle')}
             </div>
           </div>
 
           <div className="space-y-4 mb-8">
             {[
-              "Advanced Insights",
-              "Early access to new features",
-              "Exclusive Community Access",
-              "Priority support",
-              "Soon chat with AI",
-              "More coming soon...",
+              t('awakenPro.features.advancedInsights'),
+              t('awakenPro.features.earlyAccess'),
+              t('awakenPro.features.exclusiveCommunity'),
+              t('awakenPro.features.prioritySupport'),
+              t('awakenPro.features.aiChat'),
+              t('awakenPro.features.moreSoon'),
             ].map((feature) => (
               <div key={feature} className="flex items-center gap-3">
                 <CheckCircle2 className="w-6 h-6 text-accent-red" />
@@ -248,33 +250,17 @@ export default function AwakenProPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
 
               <div className="relative z-10 flex items-center justify-center gap-3">
-                <Sparkles className="w-6 h-6 animate-pulse text-white" />
-                <span className="font-bold text-lg tracking-wide">
-                  {isProcessing ? (
-                    <div className="flex items-center gap-2">
-                      <span>Processing</span>
-                      <motion.div
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Number.POSITIVE_INFINITY,
-                        }}
-                      >
-                        ...
-                      </motion.div>
-                    </div>
-                  ) : (
-                    <motion.span
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Number.POSITIVE_INFINITY,
-                      }}
-                    >
-                      Upgrade to Pro
-                    </motion.span>
-                  )}
-                </span>
+                {isProcessing ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+                    <span>{t('common.loading')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5" />
+                    <span>{t('awakenPro.subscribe')}</span>
+                  </>
+                )}
               </div>
             </FilledButton>
           </motion.div>

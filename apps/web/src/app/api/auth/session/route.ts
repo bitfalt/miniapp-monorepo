@@ -52,13 +52,18 @@ async function verifyToken(token: string) {
 // GET handler for session verification
 export async function GET(req: NextRequest) {
   try {
-    // Get session token
+    // Get session token and language preference
     const sessionToken = req.cookies.get("session")?.value || "";
     const siweVerified = req.cookies.get("siwe_verified")?.value || "false";
+    
+    // Get language preference from header or cookie
+    const languageHeader = req.headers.get("X-Language-Preference");
+    const languageCookie = req.cookies.get("language")?.value;
+    const languagePreference = languageHeader || languageCookie || "en";
 
     // Early return if no session token
     if (!sessionToken) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           isAuthenticated: false,
           isRegistered: false,
@@ -73,18 +78,27 @@ export async function GET(req: NextRequest) {
           },
         },
       );
+      
+      // Preserve language preference even on error
+      response.cookies.set("language", languagePreference, {
+        path: "/",
+        maxAge: 86400, // 24 hours
+        sameSite: "lax",
+      });
+      
+      return response;
     }
 
     // Verify token
     const decoded = await verifyToken(sessionToken);
     if (!decoded || !decoded.address) {
       console.error("Token verification failed or missing address");
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           isAuthenticated: false,
           isRegistered: false,
           isVerified: false,
-          error: "Invalid session",
+          error: "Invalid session token",
         },
         {
           status: 401,
@@ -94,32 +108,85 @@ export async function GET(req: NextRequest) {
           },
         },
       );
+      
+      // Preserve language preference even on error
+      response.cookies.set("language", languagePreference, {
+        path: "/",
+        maxAge: 86400, // 24 hours
+        sameSite: "lax",
+      });
+      
+      return response;
     }
 
-    // Check if user exists in database
+    // Get user from database with retry mechanism
     const xata = getXataClient();
-    const user = await xata.db.Users.filter({
-      wallet_address: (decoded.address as string).toLowerCase(),
-    }).getFirst();
-
+    let user = null;
+    let dbError = null;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries && !user) {
+      try {
+        user = await xata.db.Users.filter({
+          wallet_address: decoded.address,
+        }).getFirst();
+        
+        if (user) break;
+        
+        // If no user found, try again with lowercase address
+        user = await xata.db.Users.filter({
+          wallet_address: typeof decoded.address === 'string' ? decoded.address.toLowerCase() : decoded.address,
+        }).getFirst();
+        
+        if (user) break;
+        
+        // If still no user, wait and retry
+        if (retryCount < maxRetries) {
+          console.warn(`User not found, retrying (attempt ${retryCount + 1}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error(`Database error on attempt ${retryCount + 1}:`, error);
+        dbError = error;
+        
+        // Wait before retrying
+        if (retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      retryCount++;
+    }
+    
+    // If we still don't have a user after retries
     if (!user) {
-      console.error("User not found in database");
-      return NextResponse.json(
+      console.error("User not found in database after retries");
+      const response = NextResponse.json(
         {
           isAuthenticated: false,
           isRegistered: false,
           isVerified: false,
-          error: "User not found",
+          error: dbError ? "Database error" : "User not found",
           address: decoded.address,
         },
         {
-          status: 404,
+          status: dbError ? 500 : 404,
           headers: {
             "Content-Type": "application/json",
             "Cache-Control": "no-store",
           },
         },
       );
+      
+      // Preserve language preference even on error
+      response.cookies.set("language", languagePreference, {
+        path: "/",
+        maxAge: 86400, // 24 hours
+        sameSite: "lax",
+      });
+      
+      return response;
     }
 
     // Determine registration status
@@ -143,16 +210,31 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    return NextResponse.json(responseData, {
+    const response = NextResponse.json(responseData, {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
       },
     });
+    
+    // Preserve language preference on success
+    response.cookies.set("language", languagePreference, {
+      path: "/",
+      maxAge: 86400, // 24 hours
+      sameSite: "lax",
+    });
+    
+    return response;
   } catch (error) {
     console.error("Session verification error:", error);
-    return NextResponse.json(
+    
+    // Get language preference from header or cookie (in case of error)
+    const languageHeader = req.headers.get("X-Language-Preference");
+    const languageCookie = req.cookies.get("language")?.value;
+    const languagePreference = languageHeader || languageCookie || "en";
+    
+    const response = NextResponse.json(
       {
         isAuthenticated: false,
         isRegistered: false,
@@ -167,6 +249,15 @@ export async function GET(req: NextRequest) {
         },
       },
     );
+    
+    // Preserve language preference even on error
+    response.cookies.set("language", languagePreference, {
+      path: "/",
+      maxAge: 86400, // 24 hours
+      sameSite: "lax",
+    });
+    
+    return response;
   }
 }
 
@@ -174,6 +265,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { walletAddress, isSiweVerified } = await req.json();
+    
+    // Get language preference from header or cookie
+    const languageHeader = req.headers.get("X-Language-Preference");
+    const languageCookie = req.cookies.get("language")?.value;
+    const languagePreference = languageHeader || languageCookie || "en";
+    
     const xata = getXataClient();
 
     // Find user by wallet address
@@ -240,6 +337,13 @@ export async function POST(req: NextRequest) {
       isRegistered ? "complete" : "pending",
       cookieOptions,
     );
+    
+    // Preserve language preference
+    response.cookies.set("language", languagePreference, {
+      path: "/",
+      maxAge: 86400, // 24 hours
+      sameSite: "lax",
+    });
 
     return response;
   } catch (error) {

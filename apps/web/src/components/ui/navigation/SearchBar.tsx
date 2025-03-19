@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import type * as React from "react";
 import { forwardRef, useState } from "react";
 import type { ChangeEvent, InputHTMLAttributes } from "react";
+import { useTranslation } from "@/i18n";
 
 import { cn } from "@/lib/utils";
 
@@ -37,9 +38,10 @@ interface SearchBarProps {
 export function SearchBar({
 	onSearch,
 	className,
-	placeholder = "Search for tests",
+	placeholder,
 }: SearchBarProps) {
 	const [searchQuery, setSearchQuery] = useState("");
+	const { t } = useTranslation();
 
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setSearchQuery(e.target.value);
@@ -58,7 +60,7 @@ export function SearchBar({
 		<div className={cn("relative w-full max-w-md", className)}>
 			<Input
 				type="text"
-				placeholder={placeholder}
+				placeholder={placeholder || t('common.search')}
 				value={searchQuery}
 				onChange={handleInputChange}
 				className="h-12 w-full rounded-full border-0 bg-white pl-4 pr-12 text-lg font-bold text-gray-600 placeholder:text-gray-400"
@@ -68,6 +70,7 @@ export function SearchBar({
 					type="button"
 					onClick={handleClear}
 					className="flex h-8 items-center justify-center rounded-full bg-gray-200 px-2 text-gray-600 transition-colors duration-200 hover:bg-gray-300"
+					aria-label={t('common.clear')}
 				>
 					<X className="h-4 w-4" />
 				</button>
@@ -75,6 +78,7 @@ export function SearchBar({
 					type="button"
 					onClick={handleSearch}
 					className="flex h-8 items-center justify-center rounded-full bg-teal-600 px-4 text-white shadow-md transition-shadow duration-200 hover:shadow-lg"
+					aria-label={t('common.search')}
 				>
 					<Search className="h-4 w-4" />
 				</button>

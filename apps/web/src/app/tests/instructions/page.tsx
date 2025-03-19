@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Brain, FileQuestion } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface TestInstructions {
   description: string;
@@ -17,6 +18,7 @@ export default function TestInstructions() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "1"; // Fallback to 1 for now
+  const { t, tWithVars } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [instructions, setInstructions] = useState<TestInstructions>({
@@ -82,7 +84,7 @@ export default function TestInstructions() {
                 onClick={() => router.back()}
               >
                 <ArrowLeft className="h-6 w-6" />
-                <span className="sr-only">Back</span>
+                <span className="sr-only">{t('common.back')}</span>
               </FilledButton>
             </motion.div>
 
@@ -95,41 +97,38 @@ export default function TestInstructions() {
               <div className="space-y-4 text-center">
                 <Brain className="mx-auto h-12 w-12 text-[#E36C59]" />
                 <h1 className="px-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  Uncover Your Political Values
+                  {t('tests.instructions.title')}
                 </h1>
               </div>
 
               <Card className="mx-4 space-y-3 border-white/20 bg-white/10 p-5 backdrop-blur-md sm:p-6 sm:space-y-4">
                 <h2 className="text-center text-lg font-semibold text-white sm:text-xl">
-                  Before you start
+                  {t('tests.instructions.beforeYouStart')}
                 </h2>
 
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <FileQuestion className="mt-1 h-5 w-5 flex-shrink-0 text-[#E36C59]" />
                     <p className="text-sm text-white/90">
-                      This test consists of {instructions.total_questions}{" "}
-                      thought-provoking statements designed to explore your
-                      political beliefs. Your answers will reflect your position
-                      across eight core values.
+                      {tWithVars('tests.instructions.testDescription', { count: instructions.total_questions })}
                     </p>
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/5 p-2 sm:p-3">
                     <p className="text-center text-sm font-medium text-white/90">
-                      Please respond honestly, based on your true opinions.
+                      {t('tests.instructions.honestResponses')}
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs text-white/90 sm:text-sm">
-                      Estimated Time:{" "}
+                      {t('tests.instructions.estimatedTime')}:{" "}
                       <span className="font-semibold text-white">
-                        {estimatedTime} min
+                        {tWithVars('tests.instructions.minutes', { count: estimatedTime })}
                       </span>
                     </p>
                     <p className="text-xs text-white/90 sm:text-sm">
-                      Progress:{" "}
+                      {t('tests.instructions.progress')}:{" "}
                       <span className="font-semibold text-white">
                         {currentQuestion}/{instructions.total_questions}
                       </span>
@@ -163,7 +162,7 @@ export default function TestInstructions() {
                   }}
                 >
                   <span className="relative z-10">
-                    {currentQuestion > 0 ? "Continue test" : "Start test"}
+                    {currentQuestion > 0 ? t('tests.instructions.continueTest') : t('tests.instructions.startTest')}
                   </span>
                 </FilledButton>
               </motion.div>

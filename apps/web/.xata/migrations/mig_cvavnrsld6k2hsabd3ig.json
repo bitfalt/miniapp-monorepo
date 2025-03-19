@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cvavnrsld6k2hsabd3ig",
+    "operations": [
+      {
+        "add_column": {
+          "up": "''",
+          "table": "QuestionsTranslate",
+          "column": {
+            "name": "translated_text",
+            "type": "text",
+            "comment": ""
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cvavnrsld6k2hsabd3ig",
+  "parent": "mig_cvavnk81g95li4qghvsg",
+  "schema": "public",
+  "startedAt": "2025-03-15T22:15:12.317621Z"
+}
