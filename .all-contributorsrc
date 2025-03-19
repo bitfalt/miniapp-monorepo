@@ -1,0 +1,69 @@
+{
+  "projectName": "miniapp-monorepo",
+  "projectOwner": "evgongora",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 120,
+  "commit": true,
+  "commitConvention": "atom",
+  "contributors": [
+    {
+      "login": "t0fudev",
+      "name": "Hellen Xie",
+      "avatar_url": "https://avatars.githubusercontent.com/u/167961274?v=4",
+      "profile": "https://github.com/t0fudev",
+      "contributions": [
+        "code",
+        "design",
+        "doc"
+      ]
+    },
+    {
+      "login": "evgongora",
+      "name": "Erick Vasquez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123427413?v=4",
+      "profile": "https://github.com/evgongora",
+      "contributions": [
+        "code",
+        "test",
+        "translation"
+      ]
+    },
+    {
+      "login": "LazarusAA",
+      "name": "Lazarus",
+      "avatar_url": "https://avatars.githubusercontent.com/u/169322121?v=4",
+      "profile": "https://github.com/LazarusAA",
+      "contributions": [
+        "code",
+        "design",
+        "data"
+      ]
+    },
+    {
+      "login": "bitfalt",
+      "name": "Daniel Garbanzo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75431447?v=4",
+      "profile": "https://github.com/bitfalt",
+      "contributions": [
+        "code",
+        "test",
+        "data"
+      ]
+    },
+    {
+      "login": "juancguerrerodev",
+      "name": "juancguerrerodev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/201527159?v=4",
+      "profile": "https://github.com/juancguerrerodev",
+      "contributions": [
+        "business","content","fundingFinding","mentoring"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}
